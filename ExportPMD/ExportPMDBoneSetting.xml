@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<pmd_bone_name>
+  <bones>
+    <bone jp="センター" en="center" root="1"/>
+    <bone jp="センター先" en="center end" />
+    <bone jp="上半身" en="upper body" group="Body[u]" />
+    <bone jp="首" en="neck" group="Body[u]" />
+    <bone jp="頭" en="head" group="Body[u]" />
+    <bone jp="頭先" en="head end" />
+    <bone jp="左目" en="eye_L" group="Body[u]" />
+    <bone jp="左目先" en="eye_L end" />
+    <bone jp="右目" en="eye_R" group="Body[u]" />
+    <bone jp="右目先" en="eye_R end" />
+    <bone jp="下半身" en="lower body" group="Body[l]" />
+    <bone jp="下半身先" en="lower body end" />
+    <bone jp="左肩" en="shoulder_L" group="Arms" />
+    <bone jp="左腕" en="arm_L" group="Arms" />
+    <bone jp="左ひじ" en="elbow_L" group="Arms" />
+    <bone jp="左手首" en="wrist_L" group="Arms" />
+    <bone jp="左手先" en="hand_L end" />
+    <bone jp="右肩" en="shoulder_R" group="Arms" />
+    <bone jp="右腕" en="arm_R" group="Arms" />
+    <bone jp="右ひじ" en="elbow_R" group="Arms" />
+    <bone jp="右手首" en="wrist_R" group="Arms" />
+    <bone jp="右手先" en="hand_R end" />
+    <bone jp="左親指１" en="thumb1_L" group="Fingers" />
+    <bone jp="左親指２" en="thumb2_L" group="Fingers" />
+    <bone jp="左親指先" en="thumb_L end" />
+    <bone jp="左人指１" en="fore1_L" group="Fingers" />
+    <bone jp="左人指２" en="fore2_L" group="Fingers" />
+    <bone jp="左人指３" en="fore3_L" group="Fingers" />
+    <bone jp="左人差指先" en="fore_L end" />
+    <bone jp="左中指１" en="middle1_L" group="Fingers" />
+    <bone jp="左中指２" en="middle2_L" group="Fingers" />
+    <bone jp="左中指３" en="middle3_L" group="Fingers" />
+    <bone jp="左中指先" en="middle_L end" />
+    <bone jp="左薬指１" en="third1_L" group="Fingers" />
+    <bone jp="左薬指２" en="third2_L" group="Fingers" />
+    <bone jp="左薬指３" en="third3_L" group="Fingers" />
+    <bone jp="左薬指先" en="third_L end" />
+    <bone jp="左小指１" en="little1_L" group="Fingers" />
+    <bone jp="左小指２" en="little2_L" group="Fingers" />
+    <bone jp="左小指３" en="little3_L" group="Fingers" />
+    <bone jp="左小指先" en="little_L end" />
+    <bone jp="右親指１" en="thumb1_R" group="Fingers" />
+    <bone jp="右親指２" en="thumb2_R" group="Fingers" />
+    <bone jp="右親指先" en="thumb_R end" />
+    <bone jp="右人指１" en="fore1_R" group="Fingers" />
+    <bone jp="右人指２" en="fore2_R" group="Fingers" />
+    <bone jp="右人指３" en="fore3_R" group="Fingers" />
+    <bone jp="右人差指先" en="fore_R end" />
+    <bone jp="右中指１" en="middle1_R" group="Fingers" />
+    <bone jp="右中指２" en="middle2_R" group="Fingers" />
+    <bone jp="右中指３" en="middle3_R" group="Fingers" />
+    <bone jp="右中指先" en="middle_R end" />
+    <bone jp="右薬指１" en="third1_R" group="Fingers" />
+    <bone jp="右薬指２" en="third2_R" group="Fingers" />
+    <bone jp="右薬指３" en="third3_R" group="Fingers" />
+    <bone jp="右薬指先" en="third_R end" />
+    <bone jp="右小指１" en="little1_R" group="Fingers" />
+    <bone jp="右小指２" en="little2_R" group="Fingers" />
+    <bone jp="右小指３" en="little3_R" group="Fingers" />
+    <bone jp="右小指先" en="little_R end" />
+    <bone jp="左足" en="leg_L" group="Legs" />
+    <bone jp="左ひざ" en="knee_L" group="Legs" />
+    <bone jp="左足首" en="ankle_L" group="Legs" />
+    <bone jp="右足" en="leg_R" group="Legs" />
+    <bone jp="右ひざ" en="knee_R" group="Legs" />
+    <bone jp="右足首" en="ankle_R" group="Legs" />
+    <bone jp="左足ＩＫ" en="leg IK_L" group="IK" />
+    <bone jp="左足ＩＫ先" en="leg IK_L end" group="IK" />
+    <bone jp="右足ＩＫ" en="leg IK_R" group="IK" />
+    <bone jp="右足ＩＫ先" en="leg IK_R end" group="IK" />
+    <bone jp="左つま先" en="L toe" />
+    <bone jp="右つま先" en="R toe" />
+    <bone jp="左つま先ＩＫ" en="toe IK_L" group="IK" />
+    <bone jp="右つま先ＩＫ" en="toe IK_R" group="IK" />
+    <bone jp="左つま先ＩＫ先" en="toe IK_L end" group="IK" />
+    <bone jp="右つま先ＩＫ先" en="toe IK_R end" group="IK" />
+    <bone jp="右目" en="eye_R" group="Body[u]" />
+    <bone jp="左目" en="eye_L" group="Body[u]" />
+    <bone jp="右目先" en="eye_R end"/>
+    <bone jp="左目先" en="eye_L end"/>
+    <bone jp="両目" en="eyes" group="Body[u]" />
+    <bone jp="両目先" en="eyes end"/>
+  </bones>
+  <ik_names>
+    <ik bone="ankle_L" ik="leg IK_L" end="leg IK_L end"/>
+    <ik bone="ankle_R" ik="leg IK_R" end="leg IK_R end"/>
+    <ik bone="L toe" ik="toe IK_L" end="toe IK_L end" />
+    <ik bone="R toe" ik="toe IK_R" end="toe IK_R end" />
+  </ik_names>
+  <groups>
+    <group jp="ＩＫ" en="IK" />
+    <group jp="体（上）" en="Body[u]" />
+    <group jp="髪" en="Hair" />
+    <group jp="腕" en="Arms" />
+    <group jp="指" en="Fingers" />
+    <group jp="体（下）" en="Body[l]" />
+    <group jp="足" en="Legs" />
+  </groups>
+</pmd_bone_name>

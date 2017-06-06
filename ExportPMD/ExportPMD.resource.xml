@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+  <resource language="Japanese">
+    <string id="Option">PMDオプション</string>
+    <string id="VisibleOnly">可視オブジェクトのみ</string>
+    <string id="Bone">ボーンの出力</string>
+    <string id="IKEnd">IK先の生成</string>
+    <string id="Facial">表情モーフの生成</string>
+    <string id="Disable">しない</string>
+    <string id="Enable">する</string>
+    <string id="ModelName">モデル名</string>
+    <string id="OtherBoneGroup">非標準ボーンのグループ名</string>
+    <string id="OtherName">その他</string>
+    <string id="Comment">コメント</string>
+    <string id="TooManyVertices">頂点数が多すぎるため出力できません。\n頂点数の上限は65,535です。</string>
+    <string id="TooManyBaseObject">ベースオブジェクトが多すぎるため出力できません。\nベースオブジェクト数の上限は1です。</string>
+  </resource>
+  <resource language="English" default="1">
+    <string id="Option">PMD options</string>
+    <string id="VisibleOnly">Visible only</string>
+    <string id="Bone">Bone</string>
+    <string id="IKEnd">IK end node</string>
+    <string id="Facial">Facial Morph</string>
+    <string id="Disable">Off</string>
+    <string id="Enable">On</string>
+    <string id="ModelName">Model name</string>
+    <string id="OtherBoneGroup">Other bone group</string>
+    <string id="OtherName">Other</string>
+    <string id="Comment">Comment</string>
+    <string id="TooManyVertices">Cannot export because vertices are too many.\nThe maximum number of vertices is 65,535.</string>
+    <string id="TooManyBaseObject">Cannot export because base object are too many.\nThe maximum number of base object is 1.</string>
+  </resource>
+</resources>
