@@ -130,19 +130,19 @@ ExportPMDPlugin::~ExportPMDPlugin()
 
 void ExportPMDPlugin::GetPlugInID(DWORD *Product, DWORD *ID)
 {
-	*Product = 0x56A31D20;
-	*ID      = 0x1A4AF3CA;
+	*Product = 0x56A31D21;
+	*ID      = 0x1A4AF3CB;
 }
 
 const char *ExportPMDPlugin::GetPlugInName(void)
 {
-	return "Export PMD       Copyright(C) 2014-2015, tetraface Inc.";
+	return "Export PMX       Copyright(C) 2014-2015, tetraface Inc.";
 }
 
 const char *ExportPMDPlugin::EnumFileType(int index)
 {
 	if(index == 0){
-		return "MikuMikuDance format (*.pmd)";
+		return "MikuMikuDance format (*.pmx)";
 	}
 	return NULL;
 }
@@ -150,7 +150,7 @@ const char *ExportPMDPlugin::EnumFileType(int index)
 const char *ExportPMDPlugin::EnumFileExt(int index)
 {
 	if(index == 0){
-		return "pmd";
+		return "pmx";
 	}
 	return NULL;
 }
@@ -585,7 +585,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	option.comment = MAnsiString();
 	// Load a setting.
 	MQSetting *setting = OpenSetting();
-	if(setting != NULL){
+	if(setting != NULL){//设置页面显示的
 		setting->Load("VisibleOnly", option.visible_only, option.visible_only);
 		setting->Load("Bone", option.output_bone, option.output_bone);
 		setting->Load("IKEnd", option.output_ik_end, option.output_ik_end);
@@ -602,7 +602,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	dlginfo.softname = "";
 	dlginfo.dialog_callback = CreateDialogOption;
 	dlginfo.dialog_callback_ptr = &option;
-	MQ_ShowFileDialog("PMD Export", &dlginfo);
+	MQ_ShowFileDialog("PMX Export", &dlginfo);
 
 	// Save a setting.
 	scaling = dlginfo.scale;
@@ -1054,7 +1054,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	memset(comment, 0, 256);
 	memcpy(comment, option.comment.c_str(), option.comment.length());
 
-	fwrite("Pmd", 3, 1, fh);
+	fwrite("Pmx", 3, 1, fh);
 	//fprintf(fh,"Pmd\n");
 	fwrite(&version, 4, 1, fh);
 	//fprintf(fh,"%f\n",version);

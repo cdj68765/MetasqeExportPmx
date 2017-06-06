@@ -30,4 +30,19 @@
     <string id="TooManyVertices">Cannot export because vertices are too many.\nThe maximum number of vertices is 65,535.</string>
     <string id="TooManyBaseObject">Cannot export because base object are too many.\nThe maximum number of base object is 1.</string>
   </resource>
+  <resource language="Chinese">
+    <string id="Option">PMX选项</string>
+    <string id="VisibleOnly">仅可见对象</string>
+    <string id="Bone">导出骨骼</string>
+    <string id="IKEnd">生成IK</string>
+    <string id="Facial">生成表情动作</string>
+    <string id="Disable">否</string>
+    <string id="Enable">是</string>
+    <string id="ModelName">模型名</string>
+    <string id="OtherBoneGroup">非标准骨骼的组名</string>
+    <string id="OtherName">其他</string>
+    <string id="Comment">注释</string>
+    <string id="TooManyVertices">顶点数达到上限65535，无法导出。</string>
+    <string id="TooManyBaseObject">对象太多无法导出，最大导出基础对象为1个。</string>
+  </resource>
 </resources>
