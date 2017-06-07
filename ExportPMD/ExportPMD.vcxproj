@@ -68,7 +68,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\..\..\..\Program Files\tetraface\Metasequoia4\Plugins\Export\</OutDir>
+    <OutDir>..\..\..\..\..\..\Program Files\tetraface\Metasequoia4\Plugins\Export</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <ExecutablePath>C:\Program Files\tetraface\Metasequoia4;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
@@ -197,6 +197,7 @@ copy $(ProjectDir)\*.xml ..\..\Metaseq\$(Platform)\$(Configuration)\Plugins\Expo
     <ClCompile Include="tinyxml2\tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="ExportPMD.resource.xml">
       <SubType>Designer</SubType>
     </None>

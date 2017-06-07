@@ -71,6 +71,7 @@
     <None Include="ExportPMDBoneSetting.xml">
       <Filter>リソース ファイル</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQExportObject.h">

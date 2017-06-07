@@ -411,7 +411,7 @@ static bool containsTargetObject(std::vector<PMDMorphInputParam> &list, MQObject
 
 BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc)
 {
-	std::wstring lang = GetSettingValue(MQSETTINGVALUE_LANGUAGE);
+	std::wstring lang = GetSettingValue(MQSETTINGVALUE_LANGUAGE);//获得水杉设置语言
 	MString dir = MFileUtil::extractDirectory(s_DllPath);
 	MString path = MFileUtil::combinePath(dir, L"ExportPMD.resource.xml");
 	MLanguage language;
@@ -1046,17 +1046,19 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	}
 
 	// Header
-	float version = 1.0f;
+	float version = 2.0f;
 	char model_name[20];
 	char comment[256];
 	memset(model_name, 0, 20);
 	memcpy(model_name, option.modelname.c_str(), option.modelname.length());
 	memset(comment, 0, 256);
 	memcpy(comment, option.comment.c_str(), option.comment.length());
-
-	fwrite("Pmx", 3, 1, fh);
+	char magic[4] = { 0x50 ,0x4d ,0x58 ,0x20 };
+	fwrite(magic, 1, 4, fh);
 	//fprintf(fh,"Pmd\n");
-	fwrite(&version, 4, 1, fh);
+	fwrite((char*)&version, sizeof(float), 1, fh);
+	uint8_t Header[9] = { 8,0,0,2,1,1,1,1,1 };
+	fwrite(&Header, sizeof(uint8_t), 9, fh);
 	//fprintf(fh,"%f\n",version);
 	fwrite(model_name, 20, 1, fh);
 	//fprintf(fh,"%s\n",model_name);
@@ -1073,7 +1075,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		float uv[2];
 		WORD bone_index[2]; // ボーン番号1、番号2 // モデル変形(頂点移動)時に影響
 		BYTE bone_weight; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
-		BYTE edge_flag; // 0:通常、1:エッジ無効 // エッジ(輪郭)が有効の場合
+//		BYTE edge_flag; // 0:通常、1:エッジ無効 // エッジ(輪郭)が有効の場合
 
 		MQObject obj = doc->GetObject(vert_orgobj[i]);
 		MQExportObject *eobj = expobjs[vert_orgobj[i]];
@@ -1103,21 +1105,36 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			int max_num = 16;
 			weight_num = bone_manager.GetVertexWeightArray(obj, vert_id, max_num, vert_bone_id, weights);
 		}
-
-		if(weight_num >= 2){
+	    if(weight_num == 1)
+		{
+			int bi = bone_id_index[vert_bone_id[0]];
+			if(bone_param[bi].parent != 0){
+				bone_index[0] = bone_param[bone_id_index[bone_param[bi].parent]].pmd_tip_index;
+			}else{
+				bone_index[0] = bone_param[bi].pmd_root_index;
+			}
+			bone_index[1] = bone_index[0];
+			bone_weight = 100;
+			fwrite(bone_index, 2, 2, fh);
+			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
+			fwrite(&bone_weight, 1, 1, fh);
+			//fprintf(fh,"%d\n",bone_weight);
+		}
+		else if (weight_num == 2)
+		{
 			int max_bone1 = -1;
 			float max_weight1 = 0.0f;
-			for(int n=0; n<weight_num; n++){
-				if(max_weight1 < weights[n]){
+			for (int n = 0; n<weight_num; n++) {
+				if (max_weight1 < weights[n]) {
 					max_weight1 = weights[n];
 					max_bone1 = n;
 				}
 			}
 			int max_bone2 = -1;
 			float max_weight2 = 0.0f;
-			for(int n=0; n<weight_num; n++){
-				if(n == max_bone1) continue;
-				if(max_weight2 < weights[n]){
+			for (int n = 0; n<weight_num; n++) {
+				if (n == max_bone1) continue;
+				if (max_weight2 < weights[n]) {
 					max_weight2 = weights[n];
 					max_bone2 = n;
 				}
@@ -1127,41 +1144,123 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			// ルート側のノードにウェイトを割り当てる
 			int bi1 = bone_id_index[vert_bone_id[max_bone1]];
 			int bi2 = bone_id_index[vert_bone_id[max_bone2]];
-			if(bone_param[bi1].parent != 0){
+			if (bone_param[bi1].parent != 0) {
 				bone_index[0] = bone_param[bone_id_index[bone_param[bi1].parent]].pmd_tip_index;
-			}else{
+			}
+			else {
 				bone_index[0] = bone_param[bi1].pmd_root_index;
 			}
-			if(bone_param[bi2].parent != 0){
+			if (bone_param[bi2].parent != 0) {
 				bone_index[1] = bone_param[bone_id_index[bone_param[bi2].parent]].pmd_tip_index;
-			}else{
+			}
+			else {
 				bone_index[1] = bone_param[bi2].pmd_root_index;
 			}
-			if(bone_index[0] != bone_index[1]){
+			if (bone_index[0] != bone_index[1]) {
 				bone_weight = (BYTE)floor(max_weight1 / total_weights * 100.f + 0.5f);
-			}else{
+			}
+			else {
 				bone_weight = 100;
 			}
-		}else if(weight_num == 1){
-			int bi = bone_id_index[vert_bone_id[0]];
-			if(bone_param[bi].parent != 0){
-				bone_index[0] = bone_param[bone_id_index[bone_param[bi].parent]].pmd_tip_index;
-			}else{
-				bone_index[0] = bone_param[bi].pmd_root_index;
+			fwrite(bone_index, 2, 2, fh);
+			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
+			fwrite(&bone_weight, 1, 1, fh);
+			//fprintf(fh,"%d\n",bone_weight);
+		}
+		else if (weight_num >= 3)
+		{
+			WORD bone_index2[2]; // ボーン番号1、番号2 // モデル変形(頂点移動)時に影響
+			BYTE bone_weight2; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
+			BYTE bone_weight3; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
+			int max_bone1 = -1;
+			float max_weight1 = 0.0f;
+			for (int n = 0; n < weight_num; n++) //遍历骨骼，选中最大权重值骨骼
+			{
+				if (max_weight1 < weights[n])
+				{
+					max_weight1 = weights[n];
+					max_bone1 = n;
+				}
 			}
-			bone_index[1] = bone_index[0];
-			bone_weight = 100;
-		}else{
+			int max_bone2 = -1;
+			float max_weight2 = 0.0f;
+			for (int n = 0; n < weight_num; n++) {
+				if (n == max_bone1) continue;//跳过上一个骨骼
+				if (max_weight2 < weights[n]) {
+					max_weight2 = weights[n];
+					max_bone2 = n;
+				}
+			}
+			int max_bone3 = -1;
+			float max_weight3 = 0.0f;
+			for (int n = 0; n < weight_num; n++)
+			{
+				if (n == max_bone1 || n == max_bone2) continue;
+				if (max_weight3 < weights[n])
+				{
+					max_weight3 = weights[n];
+					max_bone3 = n;
+				}
+			}
+			float total_weights = max_weight1 + max_weight2 + max_bone3;
+
+			// ルート側のノードにウェイトを割り当てる
+			int bi1 = bone_id_index[vert_bone_id[max_bone1]];
+			int bi2 = bone_id_index[vert_bone_id[max_bone2]];
+			int bi3 = bone_id_index[vert_bone_id[max_bone3]];
+			if (bone_param[bi1].parent != 0)
+			{
+				bone_index[0] = bone_param[bone_id_index[bone_param[bi1].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[0] = bone_param[bi1].pmd_root_index;
+			}
+
+			if (bone_param[bi2].parent != 0)
+			{
+				bone_index[1] = bone_param[bone_id_index[bone_param[bi2].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[1] = bone_param[bi2].pmd_root_index;
+			}
+
+			if (bone_param[bi3].parent != 0)
+			{
+				bone_index2[0] = bone_param[bone_id_index[bone_param[bi3].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index2[0] = bone_param[bi3].pmd_root_index;
+			}
+			bone_index2[1] = bone_index2[0];
+
+
+			bone_weight = (BYTE)floor(max_weight1 / total_weights * 100.f + 0.5f);
+			bone_weight2 = (BYTE)floor(max_weight2 / total_weights * 100.f + 0.5f);
+			bone_weight3 = (BYTE)floor(max_weight3 / total_weights * 100.f + 0.5f);
+
+			fwrite(bone_index, 2, 2, fh);
+			fwrite(bone_index2, 2, 2, fh);
+			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
+			fwrite(&bone_weight, 1, 1, fh);
+			//fprintf(fh,"%d\n",bone_weight);
+
+		}
+		else
+		{
 			bone_index[0] = 0;
 			bone_index[1] = 0;
 			bone_weight = 100;
+			fwrite(bone_index, 2, 2, fh);
+			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
+			fwrite(&bone_weight, 1, 1, fh);
+			//fprintf(fh,"%d\n",bone_weight);
 		}
-		fwrite(bone_index, 2, 2, fh);
-		//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
-		fwrite(&bone_weight, 1, 1, fh);
-		//fprintf(fh,"%d\n",bone_weight);
-		edge_flag = 0;
-		fwrite(&edge_flag, 1, 1, fh);
+
+		/*edge_flag = 0;
+		fwrite(&edge_flag, 1, 1, fh);*/
 		//fprintf(fh,"%d\n",edge_flag);
 	}
 
