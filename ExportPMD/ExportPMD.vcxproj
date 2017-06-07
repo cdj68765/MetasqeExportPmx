@@ -74,7 +74,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\..\..\..\..\Program Files\tetraface\Metasequoia4\Plugins\Export\</OutDir>
+    <OutDir>..\..\..\..\..\..\Program Files\tetraface\Metasequoia4\Plugins\Export</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <ExecutablePath>C:\Program Files\tetraface\Metasequoia4;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
@@ -212,6 +212,7 @@ copy $(ProjectDir)\*.xml ..\..\Metaseq\$(Platform)\$(Configuration)\Plugins\Expo
     <ClInclude Include="..\SDK\MQPlugin.h" />
     <ClInclude Include="..\SDK\MQSetting.h" />
     <ClInclude Include="..\SDK\MQWidget.h" />
+    <ClInclude Include="EncodingHelper.h" />
     <ClInclude Include="Language.h" />
     <ClInclude Include="MLibs\MAnsiString.h" />
     <ClInclude Include="MLibs\MFileUtil.h" />

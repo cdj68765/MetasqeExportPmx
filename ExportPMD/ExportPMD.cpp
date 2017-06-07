@@ -11,6 +11,7 @@
 #include "MQSetting.h"
 #include "MQBoneManager.h"
 #include "Language.h"
+#include "EncodingHelper.h"
 //#include "Edition.h"
 #include <vector>
 #include <set>
@@ -1047,10 +1048,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 	// Header
 	float version = 2.0f;
-	char model_name[20];
 	char comment[256];
-	memset(model_name, 0, 20);
-	memcpy(model_name, option.modelname.c_str(), option.modelname.length());
 	memset(comment, 0, 256);
 	memcpy(comment, option.comment.c_str(), option.comment.length());
 	char magic[4] = { 0x50 ,0x4d ,0x58 ,0x20 };
@@ -1060,7 +1058,13 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	uint8_t Header[9] = { 8,0,0,2,1,1,1,1,1 };
 	fwrite(&Header, sizeof(uint8_t), 9, fh);
 	//fprintf(fh,"%f\n",version);
-	fwrite(model_name, 20, 1, fh);
+
+	oguna::EncodingConverter converter = oguna::EncodingConverter();
+	std::wstring result;
+	int Len=converter.Cp936ToUtf16(option.modelname, option.modelname.length(), &result);
+	fwrite(&Len, sizeof(int), 1, fh);
+	fwrite(result.c_str(), option.modelname.length(), 1, fh);
+
 	//fprintf(fh,"%s\n",model_name);
 	fwrite(comment, 256, 1, fh);
 	//fprintf(fh,"%s\n",comment);
@@ -1899,7 +1903,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	BYTE english_name_compatibility = 1;
 	fwrite(&english_name_compatibility, 1, 1, fh);
 	//fprintf(fh,"%d\n",english_name_compatibility);
-	fwrite(model_name, 20, 1, fh);
+	//fwrite(model_name, 20, 1, fh);
 	//fprintf(fh,"%s\n",model_name);
 	fwrite(comment, 256, 1, fh);
 	//fprintf(fh,"%s\n",comment);
