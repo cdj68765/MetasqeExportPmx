@@ -1080,7 +1080,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		float pos[3];
 		float nrm[3];
 		float uv[2];
-		byte bone_index[2]; // ボーン番号1、番号2 // モデル変形(頂点移動)時に影響
+		byte bone_index[4]; // ボーン番号1、番号2 // モデル変形(頂点移動)時に影響
 		float bone_weight; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
 		float edge_flag; // 0:通常、1:エッジ無効 // エッジ(輪郭)が有効の場合
 
@@ -1113,9 +1113,96 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			UINT vert_id = obj->GetVertexUniqueID(eobj->GetOriginalVertex(vert_expvert[i]));
 			int max_num = 16;
 			weight_num = bone_manager.GetVertexWeightArray(obj, vert_id, max_num, vert_bone_id, weights);
+		}		
+		if (weight_num == 4)
+		{
+			int max_bone1 = bone_id_index[vert_bone_id[0]];
+			int max_bone2 = bone_id_index[vert_bone_id[1]];
+			int max_bone3 = bone_id_index[vert_bone_id[2]];
+			int max_bone4 = bone_id_index[vert_bone_id[3]];
+			if (bone_param[max_bone1].parent != 0) {
+				bone_index[0] = bone_param[bone_id_index[bone_param[max_bone1].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[0] = bone_param[max_bone1].pmd_root_index;
+			}
+			if (bone_param[max_bone2].parent != 0) {
+				bone_index[1] = bone_param[bone_id_index[bone_param[max_bone2].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[1] = bone_param[max_bone2].pmd_root_index;
+			}
+			if (bone_param[max_bone3].parent != 0) {
+				bone_index[2] = bone_param[bone_id_index[bone_param[max_bone3].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[2] = bone_param[max_bone3].pmd_root_index;
+			}
+			if (bone_param[max_bone4].parent != 0) {
+				bone_index[3] = bone_param[bone_id_index[bone_param[max_bone4].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[3] = bone_param[max_bone4].pmd_root_index;
+			}
+			int type = 2;
+			fwrite(&type, sizeof(byte), 1, fh);
+			fwrite(bone_index, 1, 4, fh);
+			float total_weights = weights[0] + weights[1] + weights[2]+ weights[3];
+			float	bone_weight1 = floor(weights[0] / total_weights * 100.f + 0.5f) / 100;
+			fwrite(&bone_weight1, sizeof(float), 1, fh);
+			float	bone_weight2 = floor(weights[1] / total_weights * 100.f + 0.5f) / 100;
+			fwrite(&bone_weight2, sizeof(float), 1, fh);
+			float	bone_weight3 = floor(weights[2] / total_weights * 100.f + 0.5f) / 100;
+			fwrite(&bone_weight3, sizeof(float), 1, fh);
+			float	bone_weight4 = 1 - bone_weight1 - bone_weight2- bone_weight3;
+			fwrite(&bone_weight4, sizeof(float), 1, fh);
 		}
-
-		if (weight_num >= 2) {
+		else if (weight_num == 3)
+		{
+			int max_bone1 = bone_id_index[vert_bone_id[0]];
+			int max_bone2 = bone_id_index[vert_bone_id[1]];
+			int max_bone3 = bone_id_index[vert_bone_id[2]];
+			int max_bone4 = 0;
+			if (bone_param[max_bone1].parent != 0) {
+				bone_index[0] = bone_param[bone_id_index[bone_param[max_bone1].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[0] = bone_param[max_bone1].pmd_root_index;
+			}
+			if (bone_param[max_bone2].parent != 0) {
+				bone_index[1] = bone_param[bone_id_index[bone_param[max_bone2].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[1] = bone_param[max_bone2].pmd_root_index;
+			}
+			if (bone_param[max_bone3].parent != 0) {
+				bone_index[2] = bone_param[bone_id_index[bone_param[max_bone3].parent]].pmd_tip_index;
+			}
+			else
+			{
+				bone_index[2] = bone_param[max_bone3].pmd_root_index;
+			}
+			int type = 2;
+			fwrite(&type, sizeof(byte), 1, fh);
+			fwrite(bone_index, 1, 4, fh);
+			float total_weights = weights[0] + weights[1] + weights[2];
+			float	bone_weight1 = floor(weights[0] / total_weights * 100.f + 0.5f) / 100;
+			fwrite(&bone_weight1, sizeof(float), 1, fh);
+			float	bone_weight2 = floor(weights[1] / total_weights * 100.f + 0.5f) / 100;
+			fwrite(&bone_weight2, sizeof(float), 1, fh);
+			float	bone_weight3 = 1 - bone_weight1 - bone_weight2;
+			fwrite(&bone_weight3, sizeof(float), 1, fh);
+			float	bone_weight4 =0;
+			fwrite(&bone_weight4, sizeof(float), 1, fh);
+		}
+		else if (weight_num == 2) 
+		{
 			int max_bone1 = -1;
 			float max_weight1 = 0.0f;
 			for (int n = 0; n<weight_num; n++) {
@@ -1156,6 +1243,10 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			else {
 				bone_weight = 1;
 			}
+			int type = 1;
+			fwrite(&type, sizeof(byte), 1, fh);
+			fwrite(bone_index, 1, 2, fh);
+			fwrite(&bone_weight, sizeof(float), 1, fh);
 		}
 		else if (weight_num == 1) {
 			int bi = bone_id_index[vert_bone_id[0]];
@@ -1167,21 +1258,23 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			}
 			bone_index[1] = bone_index[0];
 			bone_weight = 1;
+			int type = 1;
+			fwrite(&type, sizeof(byte), 1, fh);
+			fwrite(bone_index, 1, 2, fh);
+			fwrite(&bone_weight, sizeof(float), 1, fh);
 		}
 		else {
 			bone_index[0] = 0;
 			bone_index[1] = 0;
 			bone_weight = 1;
+			int type = 1;
+			fwrite(&type, sizeof(byte), 1, fh);
+			fwrite(bone_index, 1, 2, fh);
+			fwrite(&bone_weight, sizeof(float), 1, fh);
 		}
-		int type = 1;
-		fwrite(&type, sizeof(byte), 1, fh);
-		fwrite(bone_index, 1, 2, fh);
-		//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
-		fwrite(&bone_weight, sizeof(float), 1, fh);
-		//fprintf(fh,"%d\n",bone_weight);
+		
 		edge_flag = 1;
 		fwrite(&edge_flag, sizeof(float), 1, fh);
-		//fprintf(fh,"%d\n",edge_flag);
 
 
 /*		if(bone_num > 0){
