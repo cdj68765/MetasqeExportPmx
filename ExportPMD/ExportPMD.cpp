@@ -676,7 +676,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 		int vert_num = eobj->GetVertexCount();
 		orgvert_vert[oi].resize(vert_num, -1);
-		for(int evi=0; evi<vert_num; evi++){
+		for (int evi = 0; evi < vert_num; evi++) {
 			orgvert_vert[oi][evi] = total_vert_num;
 
 			vert_orgobj.push_back(oi);
@@ -690,14 +690,14 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			vert_coord.push_back(uv);
 			total_vert_num++;
 
-			if(total_vert_num > 65535){
+			/*if(total_vert_num > 65535){
 				MQWindow mainwin = MQWindow::GetMainWindow();
 				MQDialog::MessageWarningBox(mainwin, language.Search("TooManyVertices"), GetResourceString("Error"));
 				for(size_t i=0; i<expobjs.size(); i++){
 					delete expobjs[i];
 				}
 				return FALSE;
-			}
+			}*/
 		}
 	}
 	std::map<UINT, int> bone_id_index;
@@ -1061,25 +1061,28 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 	oguna::EncodingConverter converter = oguna::EncodingConverter();
 	std::wstring result;
-	int Len=converter.Cp936ToUtf16(option.modelname, option.modelname.length(), &result);
+	int Len=converter.Cp936ToUtf16(option.modelname, option.modelname.length(), &result)*2;
 	fwrite(&Len, sizeof(int), 1, fh);
-	fwrite(result.c_str(), option.modelname.length(), 1, fh);
-
+	fwrite(result.c_str(), Len, 1, fh);
+	Len = 0;
+	fwrite(&Len, sizeof(int), 1, fh);
+	fwrite(&Len, sizeof(int), 1, fh);
+	fwrite(&Len, sizeof(int), 1, fh);
 	//fprintf(fh,"%s\n",model_name);
-	fwrite(comment, 256, 1, fh);
+	//fwrite(comment, 256, 1, fh);
 	//fprintf(fh,"%s\n",comment);
 	// Vertex list
-	DWORD dw_vert_num = total_vert_num;
-	fwrite(&dw_vert_num, 4, 1, fh);
+	int dw_vert_num = total_vert_num;
+	fwrite(&dw_vert_num, sizeof(int), 1, fh);
 	//fprintf(fh,"%lu\n",dw_vert_num);
 	for(int i=0; i<total_vert_num; i++)
 	{
 		float pos[3];
 		float nrm[3];
 		float uv[2];
-		WORD bone_index[2]; // ボーン番号1、番号2 // モデル変形(頂点移動)時に影響
-		BYTE bone_weight; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
-//		BYTE edge_flag; // 0:通常、1:エッジ無効 // エッジ(輪郭)が有効の場合
+		byte bone_index[2]; // ボーン番号1、番号2 // モデル変形(頂点移動)時に影響
+		float bone_weight; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
+		float edge_flag; // 0:通常、1:エッジ無効 // エッジ(輪郭)が有効の場合
 
 		MQObject obj = doc->GetObject(vert_orgobj[i]);
 		MQExportObject *eobj = expobjs[vert_orgobj[i]];
@@ -1104,7 +1107,84 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		UINT vert_bone_id[16];
 		float weights[16];
 		int weight_num = 0;
-		if(bone_num > 0){
+
+
+		if (bone_num > 0) {
+			UINT vert_id = obj->GetVertexUniqueID(eobj->GetOriginalVertex(vert_expvert[i]));
+			int max_num = 16;
+			weight_num = bone_manager.GetVertexWeightArray(obj, vert_id, max_num, vert_bone_id, weights);
+		}
+
+		if (weight_num >= 2) {
+			int max_bone1 = -1;
+			float max_weight1 = 0.0f;
+			for (int n = 0; n<weight_num; n++) {
+				if (max_weight1 < weights[n]) {
+					max_weight1 = weights[n];
+					max_bone1 = n;
+				}
+			}
+			int max_bone2 = -1;
+			float max_weight2 = 0.0f;
+			for (int n = 0; n<weight_num; n++) {
+				if (n == max_bone1) continue;
+				if (max_weight2 < weights[n]) {
+					max_weight2 = weights[n];
+					max_bone2 = n;
+				}
+			}
+			float total_weights = max_weight1 + max_weight2;
+
+			// ルート側のノードにウェイトを割り当てる
+			int bi1 = bone_id_index[vert_bone_id[max_bone1]];
+			int bi2 = bone_id_index[vert_bone_id[max_bone2]];
+			if (bone_param[bi1].parent != 0) {
+				bone_index[0] = bone_param[bone_id_index[bone_param[bi1].parent]].pmd_tip_index;
+			}
+			else {
+				bone_index[0] = bone_param[bi1].pmd_root_index;
+			}
+			if (bone_param[bi2].parent != 0) {
+				bone_index[1] = bone_param[bone_id_index[bone_param[bi2].parent]].pmd_tip_index;
+			}
+			else {
+				bone_index[1] = bone_param[bi2].pmd_root_index;
+			}
+			if (bone_index[0] != bone_index[1]) {
+				bone_weight = floor(max_weight1 / total_weights * 100.f + 0.5f)/100;
+			}
+			else {
+				bone_weight = 1;
+			}
+		}
+		else if (weight_num == 1) {
+			int bi = bone_id_index[vert_bone_id[0]];
+			if (bone_param[bi].parent != 0) {
+				bone_index[0] = bone_param[bone_id_index[bone_param[bi].parent]].pmd_tip_index;
+			}
+			else {
+				bone_index[0] = bone_param[bi].pmd_root_index;
+			}
+			bone_index[1] = bone_index[0];
+			bone_weight = 1;
+		}
+		else {
+			bone_index[0] = 0;
+			bone_index[1] = 0;
+			bone_weight = 1;
+		}
+		int type = 1;
+		fwrite(&type, sizeof(byte), 1, fh);
+		fwrite(bone_index, 1, 2, fh);
+		//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
+		fwrite(&bone_weight, sizeof(float), 1, fh);
+		//fprintf(fh,"%d\n",bone_weight);
+		edge_flag = 1;
+		fwrite(&edge_flag, sizeof(float), 1, fh);
+		//fprintf(fh,"%d\n",edge_flag);
+
+
+/*		if(bone_num > 0){
 			UINT vert_id = obj->GetVertexUniqueID(eobj->GetOriginalVertex(vert_expvert[i]));
 			int max_num = 16;
 			weight_num = bone_manager.GetVertexWeightArray(obj, vert_id, max_num, vert_bone_id, weights);
@@ -1119,6 +1199,8 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			}
 			bone_index[1] = bone_index[0];
 			bone_weight = 100;
+			int type = 1;
+			fwrite(&type, sizeof(byte), 1, fh);
 			fwrite(bone_index, 2, 2, fh);
 			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
 			fwrite(&bone_weight, 1, 1, fh);
@@ -1166,6 +1248,8 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			else {
 				bone_weight = 100;
 			}
+			int type = 1;
+			fwrite(&type, sizeof(byte), 1, fh);
 			fwrite(bone_index, 2, 2, fh);
 			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
 			fwrite(&bone_weight, 1, 1, fh);
@@ -1244,7 +1328,8 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			bone_weight = (BYTE)floor(max_weight1 / total_weights * 100.f + 0.5f);
 			bone_weight2 = (BYTE)floor(max_weight2 / total_weights * 100.f + 0.5f);
 			bone_weight3 = (BYTE)floor(max_weight3 / total_weights * 100.f + 0.5f);
-
+			int type = 2;
+			fwrite(&type, sizeof(byte), 1, fh);
 			fwrite(bone_index, 2, 2, fh);
 			fwrite(bone_index2, 2, 2, fh);
 			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
@@ -1257,12 +1342,14 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			bone_index[0] = 0;
 			bone_index[1] = 0;
 			bone_weight = 100;
+			int type = 1;
+			fwrite(&type, sizeof(byte), 1, fh);
 			fwrite(bone_index, 2, 2, fh);
 			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
 			fwrite(&bone_weight, 1, 1, fh);
 			//fprintf(fh,"%d\n",bone_weight);
 		}
-
+		*/
 		/*edge_flag = 0;
 		fwrite(&edge_flag, 1, 1, fh);*/
 		//fprintf(fh,"%d\n",edge_flag);
@@ -1355,7 +1442,45 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	for(int i=0; i<=numMat; i++){
 		if(material_used[i] > 0) used_mat_num++;
 	}
-	fwrite(&used_mat_num, 4, 1, fh);
+	std::unique_ptr<MAnsiString[]>  textures = std::make_unique<MAnsiString[]>(numMat);
+	int TexCount = 0;
+	for (int i = 0; i < numMat; i++)
+	{
+		if (material_used[i] == 0) continue;
+		if (i < numMat) {
+			MQMaterial mat = doc->GetMaterial(i);
+			if (mat != NULL) 
+			{
+				char path[_MAX_PATH];
+				mat->GetTextureName(path, _MAX_PATH);
+				MAnsiString texture = MFileUtil::extractFilenameAndExtension(MString::fromAnsiString(path)).toAnsiString();
+				if (texture.length() == 0)continue;
+				for (int j = 0; j < numMat; j++)
+				{
+					if (textures[j] == texture)
+					{
+						break;
+					}
+					else if (textures[j].length()==0)
+					{
+						textures[j] = texture;
+						TexCount += 1;
+						break;
+					}
+				}
+			}
+		}
+	}
+	fwrite(&TexCount, sizeof(int), 1, fh);
+	for (int i = 0; i < TexCount; i++)
+	{
+		oguna::EncodingConverter converter = oguna::EncodingConverter();
+		std::wstring RES;
+		int Len = converter.Cp936ToUtf16(textures[i].c_str(), textures[i].length(), &RES) * 2;
+		fwrite(&Len, sizeof(int), 1, fh);
+		fwrite(RES.c_str(), Len, 1, fh);
+	}
+	fwrite(&used_mat_num, 4, 1, fh); 
 	//fprintf(fh,"%lu\n",used_mat_num);
 	for(int i=0; i<=numMat; i++){
 		if(material_used[i] == 0) continue;
