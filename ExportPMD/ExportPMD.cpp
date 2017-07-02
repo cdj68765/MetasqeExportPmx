@@ -1577,7 +1577,14 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	//fprintf(fh,"%lu\n",used_mat_num);
 	for(int i=0; i<=numMat; i++){
 		if(material_used[i] == 0) continue;
-
+		MQMaterial mat = doc->GetMaterial(i);
+		oguna::EncodingConverter converter = oguna::EncodingConverter();
+		std::wstring RES;
+		int Len = converter.Cp936ToUtf16(mat->GetName().c_str(), mat->GetName().length(), &RES) * 2;
+		fwrite(&Len, sizeof(int), 1, fh);
+		fwrite(RES.c_str(), Len, 1, fh);
+		int EngName = 0;
+		fwrite(&EngName, sizeof(int), 1, fh);
 		MQColor col(1,1,1);
 		float dif = 0.8f;
 		float alpha = 1.0f;
@@ -1589,7 +1596,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		bool edge = false;
 
 		if(i < numMat){
-			MQMaterial mat = doc->GetMaterial(i);
 			if(mat != NULL){
 				col = mat->GetColor();
 				dif = mat->GetDiffuse();
@@ -1600,7 +1606,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				char path[_MAX_PATH];
 				mat->GetTextureName(path, _MAX_PATH);
 				texture = MFileUtil::extractFilenameAndExtension(MString::fromAnsiString(path)).toAnsiString();
-
 				int shader = mat->GetShader();
 				if(shader == MQMATERIAL_SHADER_HLSL){
 					MAnsiString shader_name = mat->GetShaderName();
@@ -1620,8 +1625,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		//fprintf(fh,"%f %f %f\n",diffuse_color[0],diffuse_color[1],diffuse_color[2]);
 		fwrite(&alpha, 4, 1, fh);
 		//fprintf(fh,"%f\n",alpha);
-		fwrite(&spc_pow, 4, 1, fh);
-		//fprintf(fh,"%f\n",spc_pow);
+
 
 		//float max_spc_col = std::max(spc_col.r, std::max(spc_col.g, spc_col.b));
 		float specular_color[3]; // sr, sg, sb // 光沢色
@@ -1634,6 +1638,9 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		fwrite(&specular_color, 4, 3, fh);
 		//fprintf(fh,"%f %f %f\n",specular_color[0],specular_color[1],specular_color[2]);
 
+		fwrite(&spc_pow, 4, 1, fh);
+		//fprintf(fh,"%f\n",spc_pow);
+
 		float ambient_color[3]; // mr, mg, mb // 環境色(ambient)
 		ambient_color[0] = amb_col.r;
 		ambient_color[1] = amb_col.g;
@@ -1641,29 +1648,54 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		fwrite(&ambient_color, 4, 3, fh);
 		//fprintf(fh,"%f %f %f\n",ambient_color[0],ambient_color[1],ambient_color[2]);
 
+		BYTE edge_flag = edge ? 1 : 0;
+		fwrite(&edge_flag, 1, 1, fh);
+		//fprintf(fh,"%d\n",edge_flag);
+
+		float edge_color[5] = {0,0,0,0,0};
+		fwrite(&edge_color, sizeof(float), 5, fh);
+		uint8_t size = 255;
+		if (texture != "")
+		{
+			for (int i = 0; i < TexCount; i++)
+			{
+				if (texture == textures[i])
+				{
+					size = i;
+					break;
+				}
+			}
+		}
+		fwrite(&size, sizeof(uint8_t), 1, fh);
+		size = 255;
+		fwrite(&size, sizeof(uint8_t), 1, fh);
+		edge_flag = 0;
+		fwrite(&edge_flag, 1, 2, fh);
+
 		BYTE toon_index = (toon >= 1 && toon <= 10) ? (BYTE)(toon-1) : 0;
 		fwrite(&toon_index, 1, 1, fh);
 		//fprintf(fh,"%d\n",toon_index);
 
-		BYTE edge_flag = edge ? 1 : 0;
-		fwrite(&edge_flag, 1, 1, fh);
-		//fprintf(fh,"%d\n",edge_flag);
+		fwrite(&edge_flag, sizeof(int), 1, fh);
+		
 
 		DWORD face_vert_count = material_used[i] * 3;
 		fwrite(&face_vert_count, 4, 1, fh);
 		//fprintf(fh,"%lu\n",face_vert_count);
 
-		MAnsiString texture_str = getMultiBytesSubstring(texture, 20);
+		/*MAnsiString texture_str = getMultiBytesSubstring(texture, 20);
 		char texture_file_name[20]; // The end null is unnecessary.
 		memset(texture_file_name, 0, 20);
 		memcpy(texture_file_name, texture_str.c_str(), texture_str.length());
-		fwrite(texture_file_name, 20, 1, fh);
+		fwrite(texture_file_name, 20, 1, fh);*/
 		//fprintf(fh,"%s\n",texture_str.c_str());
 	}
 	std::vector<int>bone_group;
+	int bone_count = 0;
 	// Bone list
 	if(bone_num == 0){
-		WORD dw_bone_num = 1;
+		fwrite(&bone_count, sizeof(int), 1, fh);
+		/*WORD dw_bone_num = 1;
 		fwrite(&dw_bone_num, 2, 1, fh);
 		//fprintf(fh,"%u\n",dw_bone_num);
 
@@ -1691,44 +1723,91 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		//fprintf(fh,"%f %f %f\n",bone_head_pos[0],bone_head_pos[1],bone_head_pos[2]);
 
 		WORD ik_data_count = 0;
-		fwrite(&ik_data_count, 2, 1, fh);
-	}else{
-		WORD dw_bone_num = (WORD)pmdbone_num;
-		fwrite(&dw_bone_num, 2, 1, fh);
+		fwrite(&ik_data_count, 2, 1, fh);*/
+	}
+	else{
+	 //先添加普通骨骼 后添加IK骨骼
+		fwrite(&pmdbone_num, sizeof(int), 1, fh);
 		//fprintf(fh,"%u\n",dw_bone_num);
 		int pmdbone_index = 0;
-		for(int i=0; i<bone_num; i++){
-			if(bone_param[i].pmd_root_index >= 0 && bone_param[i].pmd_root_index >= pmdbone_index){
+		for(int i=0; i<bone_num; i++)
+		{
+			if(bone_param[i].pmd_root_index >= 0 && bone_param[i].pmd_root_index >= pmdbone_index)//判断是否是初始骨骼
+			{
 				assert(bone_param[i].pmd_root_index == pmdbone_index);
-				char bone_name[20];
+				oguna::EncodingConverter converter = oguna::EncodingConverter();
+				std::wstring RES;
+				MAnsiString subname = getMultiBytesSubstring(bone_param[i].name_jp.toAnsiString(), 20);
+				int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+				fwrite(&Len, sizeof(int), 1, fh);
+				fwrite(RES.c_str(), Len, 1, fh);
+				Len = converter.Cp936ToUtf16(bone_param[i].name_en.toAnsiString(), bone_param[i].name_en.length(), &RES) * 2;
+				fwrite(&Len, sizeof(int), 1, fh);
+				fwrite(RES.c_str(), Len, 1, fh);
+
+				float bone_head_pos[3];
+				bone_head_pos[0] = bone_param[i].org_root.x * scaling;
+				bone_head_pos[1] = bone_param[i].org_root.y * scaling;
+				bone_head_pos[2] = -bone_param[i].org_root.z * scaling;
+				fwrite(&bone_head_pos, 4, 3, fh);
+			
+				uint8_t parent_bone_index = 255;
+				if (bone_param[i].parent != 0)
+				{
+					auto parent_it = bone_id_index.find(bone_param[i].parent);
+					if (parent_it != bone_id_index.end()) 
+					{
+						parent_bone_index = bone_param[(*parent_it).second].pmd_tip_index;
+					}
+				}
+				else {
+					parent_bone_index = bone_param[i].pmd_root_index;
+				}
+				fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
+				
+				int level = 0;
+				fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+
+
+				//fprintf(fh,"%u\n",parent_bone_index);
+
+
+				/*char bone_name[20];
 				memset(bone_name, 0, 20);
 				MAnsiString subname = getMultiBytesSubstring(bone_param[i].name_jp.toAnsiString(), 20);
 				memset(bone_name, 0, 20);
 				memcpy(bone_name, subname.c_str(), subname.length());
-				fwrite(bone_name, 20, 1, fh);
-				bone_group.push_back(-1);
+				fwrite(bone_name, 20, 1, fh);*/
+				//bone_group.push_back(-1);
 				//fprintf(fh,"%s\n",bone_name);
 
-				WORD parent_bone_index = 0xFFFF;
-				fwrite(&parent_bone_index, 2, 1, fh);
+				//WORD parent_bone_index = 0xFFFF;
+				//fwrite(&parent_bone_index, 2, 1, fh);
 				//fprintf(fh,"%u\n",parent_bone_index);
 
-				WORD tail_pos_bone_index = 0;
+				/*WORD tail_pos_bone_index = 0;
 				if(bone_param[i].pmd_tip_index != -1){
 					tail_pos_bone_index = bone_param[i].pmd_tip_index; // tail位置のボーン番号(チェーン末端の場合は0xFFFF 0 →補足2) // 親：子は1：多なので、主に位置決め用
 					if(bone_param[i].link_id!=0 && bone_param[i].link_rate != 100){
 						tail_pos_bone_index = bone_id_index[bone_param[i].link_id];
 					}
 				}
-				fwrite(&tail_pos_bone_index, 2, 1, fh);
+				fwrite(&tail_pos_bone_index, 2, 1, fh);*/
 				//fprintf(fh,"%u\n",tail_pos_bone_index);
 
 				BYTE bone_type = 1; // ボーンの種類 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示
-				if(bone_param[i].twist)bone_type = 8;
-				if(bone_param[i].link_id!=0){
-					if(bone_param[i].link_rate == 100){
+				if (bone_param[i].twist)
+				{
+					bone_type = 8;
+				}
+				if (bone_param[i].link_id != 0)
+				{
+					if (bone_param[i].link_rate == 100)
+					{
 						bone_type = 5;
-					}else{
+					}
+					else
+					{
 						bone_type = 9;
 					}
 				}
@@ -1750,16 +1829,13 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 				//fprintf(fh,"%u\n",ik_parent_bone_index);
 
-				float bone_head_pos[3];
-				bone_head_pos[0] = bone_param[i].org_root.x * scaling;
-				bone_head_pos[1] = bone_param[i].org_root.y * scaling;
-				bone_head_pos[2] = -bone_param[i].org_root.z * scaling;
-				fwrite(&bone_head_pos, 4, 3, fh);
+				
 				//fprintf(fh,"%f %f %f\n",bone_head_pos[0],bone_head_pos[1],bone_head_pos[2]);
 
 				pmdbone_index++;
 			}
-			if(bone_param[i].pmd_tip_index >= 0 && bone_param[i].pmd_tip_index >= pmdbone_index){
+			if(bone_param[i].pmd_tip_index >= 0 && bone_param[i].pmd_tip_index >= pmdbone_index)
+			{
 				assert(bone_param[i].pmd_tip_index == pmdbone_index);
 				MAnsiString subname;
 				if(bone_param[i].tip_id==0){
@@ -1776,20 +1852,11 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				memcpy(bone_name, subname.c_str(), subname.length());
 				fwrite(bone_name, 20, 1, fh);
 				//fprintf(fh,"%s\n",bone_name);
-				WORD parent_bone_index = 0xFFFF;
-				if(bone_param[i].parent != 0){
-					auto parent_it = bone_id_index.find(bone_param[i].parent);
-					if(parent_it != bone_id_index.end()){
-						parent_bone_index = (WORD)bone_param[(*parent_it).second].pmd_tip_index;
-					}
-				}else{
-					parent_bone_index = (WORD)bone_param[i].pmd_root_index;
-				}
-				fwrite(&parent_bone_index, 2, 1, fh);
-				//fprintf(fh,"%u\n",parent_bone_index);
+
 
 				WORD tail_pos_bone_index = 0;
-				if(!bone_param[i].children.empty()){
+				if(!bone_param[i].children.empty())
+				{
 					tail_pos_bone_index = (WORD)bone_param[bone_param[i].children.front()].pmd_tip_index; // tail位置のボーン番号(チェーン末端の場合は0xFFFF 0 →補足2) // 親：子は1：多なので、主に位置決め用
 					if(bone_param[bone_param[i].children.front()].link_id!=0 && bone_param[bone_param[i].children.front()].link_rate != 100){
 						tail_pos_bone_index = bone_id_index[bone_param[bone_param[i].children.front()].link_id];
