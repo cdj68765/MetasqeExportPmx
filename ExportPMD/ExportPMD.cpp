@@ -1760,99 +1760,110 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 						parent_bone_index = bone_param[(*parent_it).second].pmd_tip_index;
 					}
 				}
-				else {
+				else 
+				{
 					parent_bone_index = bone_param[i].pmd_root_index;
 				}
 				fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
 				
 				int level = 0;
 				fwrite(&level, sizeof(int), 1, fh);	//变形阶层
-
-
-				//fprintf(fh,"%u\n",parent_bone_index);
-
-
-				/*char bone_name[20];
-				memset(bone_name, 0, 20);
-				MAnsiString subname = getMultiBytesSubstring(bone_param[i].name_jp.toAnsiString(), 20);
-				memset(bone_name, 0, 20);
-				memcpy(bone_name, subname.c_str(), subname.length());
-				fwrite(bone_name, 20, 1, fh);*/
-				//bone_group.push_back(-1);
-				//fprintf(fh,"%s\n",bone_name);
-
-				//WORD parent_bone_index = 0xFFFF;
-				//fwrite(&parent_bone_index, 2, 1, fh);
-				//fprintf(fh,"%u\n",parent_bone_index);
-
-				/*WORD tail_pos_bone_index = 0;
-				if(bone_param[i].pmd_tip_index != -1){
-					tail_pos_bone_index = bone_param[i].pmd_tip_index; // tail位置のボーン番号(チェーン末端の場合は0xFFFF 0 →補足2) // 親：子は1：多なので、主に位置決め用
-					if(bone_param[i].link_id!=0 && bone_param[i].link_rate != 100){
-						tail_pos_bone_index = bone_id_index[bone_param[i].link_id];
-					}
-				}
-				fwrite(&tail_pos_bone_index, 2, 1, fh);*/
-				//fprintf(fh,"%u\n",tail_pos_bone_index);
-
-				BYTE bone_type = 1; // ボーンの種類 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示
-				if (bone_param[i].twist)
+				uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
+				if (bone_param[i].movable == true)//是否移动
 				{
-					bone_type = 8;
+					BoneFlag += 4;
 				}
-				if (bone_param[i].link_id != 0)
+				if (bone_param[i].dummy == true)//是否显示
 				{
-					if (bone_param[i].link_rate == 100)
-					{
-						bone_type = 5;
-					}
-					else
-					{
-						bone_type = 9;
-					}
+					BoneFlag += 8;
 				}
-				if(bone_type <= 1){
-					bone_type = bone_param[i].movable;
+				if (bone_param[i].link_id !=0)//是否旋转+
+				{
+					BoneFlag += 256;
 				}
-				fwrite(&bone_type, 1, 1, fh);
-				//fprintf(fh,"%d\n",bone_type);
+				fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
 
-				WORD ik_parent_bone_index = 0; // IKボーン番号(影響IKボーン。ない場合は0)
-				if(bone_param[i].link_id!=0){
-					if(bone_param[i].link_rate == 100){
-						ik_parent_bone_index = bone_id_index[bone_param[i].link_id];
-					}else{
-						ik_parent_bone_index = bone_param[i].link_rate;
-					}
+				if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
+				{
+					uint8_t target_index = 0;
+					target_index = (WORD)bone_param[bone_param[i].children.front()].pmd_tip_index;
+					fwrite(&target_index, sizeof(uint8_t), 1, fh);
 				}
-				fwrite(&ik_parent_bone_index, 2, 1, fh);
-
-				//fprintf(fh,"%u\n",ik_parent_bone_index);
-
-				
-				//fprintf(fh,"%f %f %f\n",bone_head_pos[0],bone_head_pos[1],bone_head_pos[2]);
-
 				pmdbone_index++;
 			}
 			if(bone_param[i].pmd_tip_index >= 0 && bone_param[i].pmd_tip_index >= pmdbone_index)
 			{
 				assert(bone_param[i].pmd_tip_index == pmdbone_index);
+				oguna::EncodingConverter converter = oguna::EncodingConverter();
+				std::wstring RES;
 				MAnsiString subname;
-				if(bone_param[i].tip_id==0){
-					 subname = getMultiBytesSubstring(bone_param[i].tip_name_jp.toAnsiString(), 20);
-					 bone_group.push_back(-1);
-				}else{
-					subname = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_jp.toAnsiString(), 20);
-					if(bone_param[bone_id_index[bone_param[i].tip_id]].link_id!=0&&bone_param[bone_id_index[bone_param[i].tip_id]].link_rate!=100)bone_group.push_back(-1);
-					else if(bone_param[i].group_id==0)bone_group.push_back(bone_param[bone_id_index[bone_param[i].tip_id]].group_id);
-					else bone_group.push_back(bone_param[i].group_id);
+				MAnsiString subnameEN;
+				if(bone_param[i].tip_id==0)
+				{
+					subname = getMultiBytesSubstring(bone_param[i].tip_name_jp.toAnsiString(), 20);
+					subnameEN = getMultiBytesSubstring(bone_param[i].tip_name_jp.toAnsiString(), 20);
 				}
-				char bone_name[20];
-				memset(bone_name, 0, 20);
-				memcpy(bone_name, subname.c_str(), subname.length());
-				fwrite(bone_name, 20, 1, fh);
-				//fprintf(fh,"%s\n",bone_name);
+				else
+				{
+					subname = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_jp.toAnsiString(), 20);
+					subnameEN = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_en.toAnsiString(), 20);
+				}
+				int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+				fwrite(&Len, sizeof(int), 1, fh);
+				fwrite(RES.c_str(), Len, 1, fh);
+				Len = converter.Cp936ToUtf16(subnameEN.c_str(), subnameEN.length(), &RES) * 2;
+				fwrite(&Len, sizeof(int), 1, fh);
+				fwrite(RES.c_str(), Len, 1, fh);
+				float bone_head_pos[3];
+				bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
+				bone_head_pos[1] = bone_param[i].org_tip.y * scaling;
+				bone_head_pos[2] = -bone_param[i].org_tip.z * scaling;
+				fwrite(&bone_head_pos, 4, 3, fh);
 
+				uint8_t parent_bone_index = 255;
+				if (bone_param[i].parent != 0)
+				{
+					auto parent_it = bone_id_index.find(bone_param[i].parent);
+					if (parent_it != bone_id_index.end())
+					{
+						parent_bone_index = bone_param[(*parent_it).second].pmd_tip_index;
+					}
+				}
+				else
+				{
+					parent_bone_index = bone_param[i].pmd_root_index;
+				}
+				fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
+
+				int level = 0;
+				fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+				uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
+				if (bone_param[i].movable == true)//是否移动
+				{
+					BoneFlag += 4;
+				}
+				if (bone_param[i].dummy == true)//是否显示
+				{
+					BoneFlag += 8;
+				}
+				if (!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id != 0)//是否旋转+
+				{
+					BoneFlag += 256;
+				}
+				fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
+
+				if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
+				{
+					uint8_t target_index = bone_param[bone_param[i].children.front()].pmd_tip_index;
+					fwrite(&target_index, sizeof(uint8_t), 1, fh);
+				}
+				if (BoneFlag & (0x0100 | 0x0200)) 
+				{
+					uint8_t grant_parent_index=	bone_id_index[bone_param[bone_param[i].children.front()].link_id];
+					fwrite(&grant_parent_index, sizeof(uint8_t), 1, fh);
+					uint8_t grant_weight = 1;
+					fwrite(&grant_weight, sizeof(float), 1, fh);
+				}
 
 				WORD tail_pos_bone_index = 0;
 				if(!bone_param[i].children.empty())
@@ -1866,31 +1877,61 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				//fprintf(fh,"%u\n",tail_pos_bone_index);
 
 				BYTE bone_type = 0; // ボーンの種類 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示
-				if(bone_param[i].tip_id == 0 && bone_param[i].child_num != 0)bone_type = 7;
-				else if(bone_param[i].pmd_ik_parent_tip >= 0) bone_type = 4;
-				else if(bone_param[i].pmd_ik_index >= 0) bone_type = 6;
-				else if(!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id!=0){
-					if(bone_param[bone_param[i].children.front()].link_rate == 100){
+				if (bone_param[i].tip_id == 0 && bone_param[i].child_num != 0)
+				{
+					bone_type = 7;
+				}
+				else if (bone_param[i].pmd_ik_parent_tip >= 0)
+				{
+					bone_type = 4; 
+				}
+				else if (bone_param[i].pmd_ik_index >= 0) 
+				{
+					bone_type = 6;
+				}
+				else if(!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id!=0)
+				{
+					if(bone_param[bone_param[i].children.front()].link_rate == 100)
+					{
 						bone_type = 5;
-					}else{
+					}
+					else
+					{
 						bone_type = 9;
 					}
 				}
-				else if(bone_param[i].twist)bone_type = 8;
-				else if(bone_param[i].child_num == 0) bone_type = 7;
-				if(!bone_param[i].children.empty() && bone_type <= 1){
+				else if (bone_param[i].twist)
+				{
+					bone_type = 8;
+				}
+				else if (bone_param[i].child_num == 0)
+				{
+					bone_type = 7;
+				}
+				if(!bone_param[i].children.empty() && bone_type <= 1)
+				{
 					bone_type = bone_param[bone_param[i].children.front()].movable;
 				}
 				fwrite(&bone_type, 1, 1, fh);
 				//fprintf(fh,"%d\n",bone_type);
 
 				WORD ik_parent_bone_index = 0; // IKボーン番号(影響IKボーン。ない場合は0)
-				if(bone_param[i].pmd_ik_index >= 0) ik_parent_bone_index = (WORD)bone_param[i].pmd_ik_index;
-				else if(bone_param[i].pmd_ik_parent_tip >= 0) ik_parent_bone_index = (WORD)bone_param[i].pmd_ik_parent_tip;
-				else if(!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id!=0){
-					if( bone_param[bone_param[i].children.front()].link_rate == 100){
+				if (bone_param[i].pmd_ik_index >= 0)
+				{
+					ik_parent_bone_index = (WORD)bone_param[i].pmd_ik_index; 
+				}
+				else if (bone_param[i].pmd_ik_parent_tip >= 0)
+				{
+					ik_parent_bone_index = (WORD)bone_param[i].pmd_ik_parent_tip;
+				}
+				else if(!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id!=0)
+				{
+					if( bone_param[bone_param[i].children.front()].link_rate == 100)
+					{
 						ik_parent_bone_index = bone_id_index[bone_param[bone_param[i].children.front()].link_id];
-					}else{
+					}
+					else
+					{
 						ik_parent_bone_index = bone_param[bone_param[i].children.front()].link_rate;
 					}
 				}

@@ -266,7 +266,8 @@ namespace pmx
 		if (this->bone_flag & 0x2000) {
 			stream->read((char*) &this->key, sizeof(int));
 		}
-		if (this->bone_flag & 0x0020) {
+		if (this->bone_flag & 0x0020) 
+		{
 			this->ik_target_bone_index = ReadIndex(stream, setting->bone_index_size);
 			stream->read((char*) &ik_loop, sizeof(int));
 			stream->read((char*) &ik_loop_angle_limit, sizeof(float));
