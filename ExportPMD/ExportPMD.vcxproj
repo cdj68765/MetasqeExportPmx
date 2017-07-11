@@ -198,12 +198,6 @@ copy $(ProjectDir)\*.xml ..\..\Metaseq\$(Platform)\$(Configuration)\Plugins\Expo
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
-    <None Include="ExportPMD.resource.xml">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="ExportPMDBoneSetting.xml">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\MQBoneManager.h" />
@@ -220,6 +214,9 @@ copy $(ProjectDir)\*.xml ..\..\Metaseq\$(Platform)\$(Configuration)\Plugins\Expo
     <ClInclude Include="MLibs\MString.h" />
     <ClInclude Include="MQExportObject.h" />
     <ClInclude Include="tinyxml2\tinyxml2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resource.resx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1048,15 +1048,12 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 	// Header
 	float version = 2.0f;
-	char comment[256];
-	memset(comment, 0, 256);
-	memcpy(comment, option.comment.c_str(), option.comment.length());
 	char magic[4] = { 0x50 ,0x4d ,0x58 ,0x20 };
 	fwrite(magic, 1, 4, fh);
 	//fprintf(fh,"Pmd\n");
 	fwrite((char*)&version, sizeof(float), 1, fh);
-	uint8_t Header[9] = { 8,0,0,2,1,1,1,1,1 };
-	fwrite(&Header, sizeof(uint8_t), 9, fh);
+	byte Header[9] = { 8,0,0,4,1,1,1,1,1 };
+	fwrite(&Header, sizeof(byte), 9, fh);
 	//fprintf(fh,"%f\n",version);
 
 	oguna::EncodingConverter converter = oguna::EncodingConverter();
@@ -1068,13 +1065,24 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	fwrite(&Len, sizeof(int), 1, fh);
 	fwrite(&Len, sizeof(int), 1, fh);
 	fwrite(&Len, sizeof(int), 1, fh);
-	//fprintf(fh,"%s\n",model_name);
-	//fwrite(comment, 256, 1, fh);
-	//fprintf(fh,"%s\n",comment);
-	// Vertex list
+
+	/*int SaveCount = 0;
+	fwrite(&SaveCount, sizeof(int), 1, fh);//V
+	fwrite(&SaveCount, sizeof(int), 1, fh);//F
+	fwrite(&SaveCount, sizeof(int), 1, fh);//T
+	fwrite(&SaveCount, sizeof(int), 1, fh);//Ma
+	fwrite(&SaveCount, sizeof(int), 1, fh);//B
+	fwrite(&SaveCount, sizeof(int), 1, fh);//M
+	fwrite(&SaveCount, sizeof(int), 1, fh);//Z
+	fwrite(&SaveCount, sizeof(int), 1, fh);//Body
+	fwrite(&SaveCount, sizeof(int), 1, fh);//J
+	if (fclose(fh) == 0)
+	{
+		return true;
+	}*/
+	//顶点
 	int dw_vert_num = total_vert_num;
-	fwrite(&dw_vert_num, sizeof(int), 1, fh);
-	//fprintf(fh,"%lu\n",dw_vert_num);
+	fwrite(&dw_vert_num, 4, 1, fh);
 	for(int i=0; i<total_vert_num; i++)
 	{
 		float pos[3];
@@ -1091,18 +1099,15 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		pos[1] = v.y * scaling;
 		pos[2] = -v.z * scaling;
 		fwrite(pos, 4, 3, fh);
-		//fprintf(fh,"%f %f %f\n",pos[0],pos[1],pos[2]);
 
 		nrm[0] = vert_normal[i].x;
 		nrm[1] = vert_normal[i].y;
 		nrm[2] = -vert_normal[i].z;
 		fwrite(nrm, 4, 3, fh);
-		//fprintf(fh,"%f %f %f\n",nrm[0],nrm[1],nrm[2]);
 
 		uv[0] = vert_coord[i].u;
 		uv[1] = vert_coord[i].v;
 		fwrite(uv, 4, 2, fh);
-		//fprintf(fh,"%f %f\n",uv[0],uv[1]);
 
 		UINT vert_bone_id[16];
 		float weights[16];
@@ -1221,8 +1226,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				}
 			}
 			float total_weights = max_weight1 + max_weight2;
-
-			// ルート側のノードにウェイトを割り当てる
 			int bi1 = bone_id_index[vert_bone_id[max_bone1]];
 			int bi2 = bone_id_index[vert_bone_id[max_bone2]];
 			if (bone_param[bi1].parent != 0) {
@@ -1272,186 +1275,14 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			fwrite(bone_index, 1, 2, fh);
 			fwrite(&bone_weight, sizeof(float), 1, fh);
 		}
-		
 		edge_flag = 1;
 		fwrite(&edge_flag, sizeof(float), 1, fh);
-
-
-/*		if(bone_num > 0){
-			UINT vert_id = obj->GetVertexUniqueID(eobj->GetOriginalVertex(vert_expvert[i]));
-			int max_num = 16;
-			weight_num = bone_manager.GetVertexWeightArray(obj, vert_id, max_num, vert_bone_id, weights);
-		}
-	    if(weight_num == 1)
-		{
-			int bi = bone_id_index[vert_bone_id[0]];
-			if(bone_param[bi].parent != 0){
-				bone_index[0] = bone_param[bone_id_index[bone_param[bi].parent]].pmd_tip_index;
-			}else{
-				bone_index[0] = bone_param[bi].pmd_root_index;
-			}
-			bone_index[1] = bone_index[0];
-			bone_weight = 100;
-			int type = 1;
-			fwrite(&type, sizeof(byte), 1, fh);
-			fwrite(bone_index, 2, 2, fh);
-			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
-			fwrite(&bone_weight, 1, 1, fh);
-			//fprintf(fh,"%d\n",bone_weight);
-		}
-		else if (weight_num == 2)
-		{
-			int max_bone1 = -1;
-			float max_weight1 = 0.0f;
-			for (int n = 0; n<weight_num; n++) {
-				if (max_weight1 < weights[n]) {
-					max_weight1 = weights[n];
-					max_bone1 = n;
-				}
-			}
-			int max_bone2 = -1;
-			float max_weight2 = 0.0f;
-			for (int n = 0; n<weight_num; n++) {
-				if (n == max_bone1) continue;
-				if (max_weight2 < weights[n]) {
-					max_weight2 = weights[n];
-					max_bone2 = n;
-				}
-			}
-			float total_weights = max_weight1 + max_weight2;
-
-			// ルート側のノードにウェイトを割り当てる
-			int bi1 = bone_id_index[vert_bone_id[max_bone1]];
-			int bi2 = bone_id_index[vert_bone_id[max_bone2]];
-			if (bone_param[bi1].parent != 0) {
-				bone_index[0] = bone_param[bone_id_index[bone_param[bi1].parent]].pmd_tip_index;
-			}
-			else {
-				bone_index[0] = bone_param[bi1].pmd_root_index;
-			}
-			if (bone_param[bi2].parent != 0) {
-				bone_index[1] = bone_param[bone_id_index[bone_param[bi2].parent]].pmd_tip_index;
-			}
-			else {
-				bone_index[1] = bone_param[bi2].pmd_root_index;
-			}
-			if (bone_index[0] != bone_index[1]) {
-				bone_weight = (BYTE)floor(max_weight1 / total_weights * 100.f + 0.5f);
-			}
-			else {
-				bone_weight = 100;
-			}
-			int type = 1;
-			fwrite(&type, sizeof(byte), 1, fh);
-			fwrite(bone_index, 2, 2, fh);
-			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
-			fwrite(&bone_weight, 1, 1, fh);
-			//fprintf(fh,"%d\n",bone_weight);
-		}
-		else if (weight_num >= 3)
-		{
-			WORD bone_index2[2]; // ボーン番号1、番号2 // モデル変形(頂点移動)時に影響
-			BYTE bone_weight2; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
-			BYTE bone_weight3; // ボーン1に与える影響度 // min:0 max:100 // ボーン2への影響度は、(100 - bone_weight)
-			int max_bone1 = -1;
-			float max_weight1 = 0.0f;
-			for (int n = 0; n < weight_num; n++) //遍历骨骼，选中最大权重值骨骼
-			{
-				if (max_weight1 < weights[n])
-				{
-					max_weight1 = weights[n];
-					max_bone1 = n;
-				}
-			}
-			int max_bone2 = -1;
-			float max_weight2 = 0.0f;
-			for (int n = 0; n < weight_num; n++) {
-				if (n == max_bone1) continue;//跳过上一个骨骼
-				if (max_weight2 < weights[n]) {
-					max_weight2 = weights[n];
-					max_bone2 = n;
-				}
-			}
-			int max_bone3 = -1;
-			float max_weight3 = 0.0f;
-			for (int n = 0; n < weight_num; n++)
-			{
-				if (n == max_bone1 || n == max_bone2) continue;
-				if (max_weight3 < weights[n])
-				{
-					max_weight3 = weights[n];
-					max_bone3 = n;
-				}
-			}
-			float total_weights = max_weight1 + max_weight2 + max_bone3;
-
-			// ルート側のノードにウェイトを割り当てる
-			int bi1 = bone_id_index[vert_bone_id[max_bone1]];
-			int bi2 = bone_id_index[vert_bone_id[max_bone2]];
-			int bi3 = bone_id_index[vert_bone_id[max_bone3]];
-			if (bone_param[bi1].parent != 0)
-			{
-				bone_index[0] = bone_param[bone_id_index[bone_param[bi1].parent]].pmd_tip_index;
-			}
-			else
-			{
-				bone_index[0] = bone_param[bi1].pmd_root_index;
-			}
-
-			if (bone_param[bi2].parent != 0)
-			{
-				bone_index[1] = bone_param[bone_id_index[bone_param[bi2].parent]].pmd_tip_index;
-			}
-			else
-			{
-				bone_index[1] = bone_param[bi2].pmd_root_index;
-			}
-
-			if (bone_param[bi3].parent != 0)
-			{
-				bone_index2[0] = bone_param[bone_id_index[bone_param[bi3].parent]].pmd_tip_index;
-			}
-			else
-			{
-				bone_index2[0] = bone_param[bi3].pmd_root_index;
-			}
-			bone_index2[1] = bone_index2[0];
-
-
-			bone_weight = (BYTE)floor(max_weight1 / total_weights * 100.f + 0.5f);
-			bone_weight2 = (BYTE)floor(max_weight2 / total_weights * 100.f + 0.5f);
-			bone_weight3 = (BYTE)floor(max_weight3 / total_weights * 100.f + 0.5f);
-			int type = 2;
-			fwrite(&type, sizeof(byte), 1, fh);
-			fwrite(bone_index, 2, 2, fh);
-			fwrite(bone_index2, 2, 2, fh);
-			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
-			fwrite(&bone_weight, 1, 1, fh);
-			//fprintf(fh,"%d\n",bone_weight);
-
-		}
-		else
-		{
-			bone_index[0] = 0;
-			bone_index[1] = 0;
-			bone_weight = 100;
-			int type = 1;
-			fwrite(&type, sizeof(byte), 1, fh);
-			fwrite(bone_index, 2, 2, fh);
-			//fprintf(fh,"%u,%u\n",bone_index[0],bone_index[1]);
-			fwrite(&bone_weight, 1, 1, fh);
-			//fprintf(fh,"%d\n",bone_weight);
-		}
-		*/
-		/*edge_flag = 0;
-		fwrite(&edge_flag, 1, 1, fh);*/
-		//fprintf(fh,"%d\n",edge_flag);
 	}
 
-	// Face's vertices list
 	DWORD face_vert_count = 0;
 	std::vector<int> material_used(numMat+1, 0);
-	for(int i=0; i<numObj; i++){
+	for(int i=0; i<numObj; i++)
+	{
 		MQObject obj = doc->GetObject(i);
 		if(obj == NULL)
 			continue;
@@ -1476,7 +1307,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		}
 	}
 	fwrite(&face_vert_count, 4, 1, fh);
-	//fprintf(fh,"%lu\n",face_vert_count);
+
 	int output_face_vert_count = 0;
 	for(int m=0; m<=numMat; m++)
 	{
@@ -1489,8 +1320,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 			if(option.visible_only && obj->GetVisible() == 0)
 				continue;
-
-			// ターゲットオブジェクトは飛ばす
 			if(isOutputFacial && containsTargetObject(morph_intput_list, obj))
 				continue;
 
@@ -1515,12 +1344,13 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 					std::vector<int> tri((n-2)*3);
 					doc->Triangulate(p.data(), n, tri.data(), (n-2)*3);
 
-					for(int j=0; j<n-2; j++){
-						WORD tvi[3];
-						tvi[0] = (WORD)orgvert_vert[i][vi[tri[j*3]]];
-						tvi[1] = (WORD)orgvert_vert[i][vi[tri[j*3+1]]];
-						tvi[2] = (WORD)orgvert_vert[i][vi[tri[j*3+2]]];
-						fwrite(tvi, 2, 3, fh);
+					for(int j=0; j<n-2; j++)
+					{
+						int tvi[3];
+						tvi[0] = orgvert_vert[i][vi[tri[j*3]]];
+						tvi[1] = orgvert_vert[i][vi[tri[j*3+1]]];
+						tvi[2] = orgvert_vert[i][vi[tri[j*3+2]]];
+						fwrite(tvi, 4, 3, fh);
 						//fprintf(fh,"%u %u %u\n",tvi[0],tvi[1],tvi[2]);
 						output_face_vert_count += 3;
 					}
@@ -1530,9 +1360,12 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	}
 	assert(face_vert_count == output_face_vert_count);
 
+
+
 	// Matrial list
 	DWORD used_mat_num = 0;
-	for(int i=0; i<=numMat; i++){
+	for(int i=0; i<=numMat; i++)
+	{
 		if(material_used[i] > 0) used_mat_num++;
 	}
 	std::unique_ptr<MAnsiString[]>  textures = std::make_unique<MAnsiString[]>(numMat);
@@ -1564,6 +1397,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			}
 		}
 	}
+
 	fwrite(&TexCount, sizeof(int), 1, fh);
 	for (int i = 0; i < TexCount; i++)
 	{
@@ -1574,7 +1408,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		fwrite(RES.c_str(), Len, 1, fh);
 	}
 	fwrite(&used_mat_num, 4, 1, fh); 
-	//fprintf(fh,"%lu\n",used_mat_num);
 	for(int i=0; i<=numMat; i++){
 		if(material_used[i] == 0) continue;
 		MQMaterial mat = doc->GetMaterial(i);
@@ -1690,11 +1523,9 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		fwrite(texture_file_name, 20, 1, fh);*/
 		//fprintf(fh,"%s\n",texture_str.c_str());
 	}
-	std::vector<int>bone_group;
-	int bone_count = 0;
-	// Bone list
+
 	if(bone_num == 0){
-		fwrite(&bone_count, sizeof(int), 1, fh);
+		fwrite(&pmdbone_num, sizeof(int), 1, fh);
 		/*WORD dw_bone_num = 1;
 		fwrite(&dw_bone_num, 2, 1, fh);
 		//fprintf(fh,"%u\n",dw_bone_num);
@@ -1726,94 +1557,248 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		fwrite(&ik_data_count, 2, 1, fh);*/
 	}
 	else{
-	 //先添加普通骨骼 后添加IK骨骼
 		fwrite(&pmdbone_num, sizeof(int), 1, fh);
-		//fprintf(fh,"%u\n",dw_bone_num);
-		int pmdbone_index = 0;
-		for(int i=0; i<bone_num; i++)
+		if (pmdbone_num != 0)
 		{
-			if(bone_param[i].pmd_root_index >= 0 && bone_param[i].pmd_root_index >= pmdbone_index)//判断是否是初始骨骼
+			int pmdbone_index = 0;
+			for (int i = 0; i < bone_num; i++)
 			{
-				assert(bone_param[i].pmd_root_index == pmdbone_index);
-				oguna::EncodingConverter converter = oguna::EncodingConverter();
-				std::wstring RES;
-				MAnsiString subname = getMultiBytesSubstring(bone_param[i].name_jp.toAnsiString(), 20);
-				int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
-				fwrite(&Len, sizeof(int), 1, fh);
-				fwrite(RES.c_str(), Len, 1, fh);
-				Len = converter.Cp936ToUtf16(bone_param[i].name_en.toAnsiString(), bone_param[i].name_en.length(), &RES) * 2;
-				fwrite(&Len, sizeof(int), 1, fh);
-				fwrite(RES.c_str(), Len, 1, fh);
-
-				float bone_head_pos[3];
-				bone_head_pos[0] = bone_param[i].org_root.x * scaling;
-				bone_head_pos[1] = bone_param[i].org_root.y * scaling;
-				bone_head_pos[2] = -bone_param[i].org_root.z * scaling;
-				fwrite(&bone_head_pos, 4, 3, fh);
-			
-				uint8_t parent_bone_index = 255;
-				if (bone_param[i].parent != 0)
+				if (bone_param[i].pmd_root_index >= 0 && bone_param[i].pmd_root_index >= pmdbone_index)//判断是否是初始骨骼
 				{
-					auto parent_it = bone_id_index.find(bone_param[i].parent);
-					if (parent_it != bone_id_index.end()) 
+					assert(bone_param[i].pmd_root_index == pmdbone_index);
+					oguna::EncodingConverter converter = oguna::EncodingConverter();
+					std::wstring RES;
+					MAnsiString subname = getMultiBytesSubstring(bone_param[i].name_jp.toAnsiString(), 20);
+					int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+					fwrite(&Len, sizeof(int), 1, fh);
+					fwrite(RES.c_str(), Len, 1, fh);
+					Len = converter.Cp936ToUtf16(bone_param[i].name_en.toAnsiString(), bone_param[i].name_en.length(), &RES) * 2;
+					fwrite(&Len, sizeof(int), 1, fh);
+					fwrite(RES.c_str(), Len, 1, fh);
+
+					float bone_head_pos[3];
+					bone_head_pos[0] = bone_param[i].org_root.x * scaling;
+					bone_head_pos[1] = bone_param[i].org_root.y * scaling;
+					bone_head_pos[2] = -bone_param[i].org_root.z * scaling;
+					fwrite(&bone_head_pos, 4, 3, fh);
+
+					auto parent_bone_index = -1;
+					fwrite(&parent_bone_index,1, 1, fh);
+
+					int level = 0;
+					fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+					uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
+					if (bone_param[i].movable == true)//是否移动
 					{
-						parent_bone_index = bone_param[(*parent_it).second].pmd_tip_index;
+						BoneFlag += 4;
+					}
+					if (bone_param[i].dummy == true)//是否显示
+					{
+						BoneFlag += 8;
+					}
+					if (bone_param[i].link_id != 0)//是否旋转+
+					{
+						BoneFlag += 256;
+					}
+					fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
+
+					if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
+					{
+						uint8_t target_index = 0;
+						target_index = bone_param[i].pmd_tip_index;
+						if (bone_param[i].link_id != 0 && bone_param[i].link_rate != 100)
+						{
+							target_index = bone_id_index[bone_param[i].link_id];
+						}
+						fwrite(&target_index, sizeof(uint8_t), 1, fh);
+					}
+					pmdbone_index++;
+				}
+				if (bone_param[i].pmd_tip_index >= 0 && bone_param[i].pmd_tip_index >= pmdbone_index)
+				{
+					assert(bone_param[i].pmd_tip_index == pmdbone_index);
+					oguna::EncodingConverter converter = oguna::EncodingConverter();
+					std::wstring RES;
+					MAnsiString subname;
+					MAnsiString subnameEN;
+					if (bone_param[i].tip_id == 0)
+					{
+						subname = getMultiBytesSubstring(bone_param[i].tip_name_jp.toAnsiString(), 20);
+						subnameEN = getMultiBytesSubstring(bone_param[i].tip_name_en.toAnsiString(), 20);
+					}
+					else
+					{
+						subname = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_jp.toAnsiString(), 20);
+						subnameEN = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_en.toAnsiString(), 20);
+					}
+					int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+					fwrite(&Len, sizeof(int), 1, fh);
+					fwrite(RES.c_str(), Len, 1, fh);
+					Len = converter.Cp936ToUtf16(subnameEN.c_str(), subnameEN.length(), &RES) * 2;
+					fwrite(&Len, sizeof(int), 1, fh);
+					fwrite(RES.c_str(), Len, 1, fh);
+
+					float bone_head_pos[3];
+					bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
+					bone_head_pos[1] = bone_param[i].org_tip.y * scaling;
+					bone_head_pos[2] = -bone_param[i].org_tip.z * scaling;
+					fwrite(&bone_head_pos, 4, 3, fh);
+
+					uint8_t parent_bone_index = 255;
+					if (bone_param[i].parent != 0)
+					{
+						auto parent_it = bone_id_index.find(bone_param[i].parent);
+						if (parent_it != bone_id_index.end())
+						{
+							parent_bone_index = bone_param[(*parent_it).second].pmd_tip_index;
+						}
+					}
+					else
+					{
+						parent_bone_index = bone_param[i].pmd_root_index;
+					}
+					fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
+
+					int level = 0;
+					fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+					uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
+					if (!bone_param[i].children.empty())//是否显示
+					{
+						BoneFlag += 8;
+					}
+					if (!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id != 0)//是否旋转+
+					{
+						BoneFlag += 256;
+					}
+					fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
+
+					/*BYTE bone_type = 0; // ボーンの種類 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示
+					if (bone_param[i].tip_id == 0 && bone_param[i].child_num != 0)
+					{
+						bone_type = 7;
+					}
+					else if (bone_param[i].pmd_ik_parent_tip >= 0)
+					{
+						bone_type = 4;
+					}
+					else if (bone_param[i].pmd_ik_index >= 0)
+					{
+						bone_type = 6;
+					}
+					else if (!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id != 0)
+					{
+						if (bone_param[bone_param[i].children.front()].link_rate == 100)
+						{
+							bone_type = 5;
+						}
+						else
+						{
+							bone_type = 9;
+						}
+					}
+					else if (bone_param[i].twist)
+					{
+						bone_type = 8;
+					}
+					else if (bone_param[i].child_num == 0)
+					{
+						bone_type = 7;
+					}
+					if (!bone_param[i].children.empty() && bone_type <= 1)
+					{
+						bone_type = bone_param[bone_param[i].children.front()].movable;
+					}
+					fwrite(&bone_type, 1, 1, fh);*/
+
+
+
+
+
+
+					if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
+					{
+						uint8_t target_index = -1;
+						if (!bone_param[i].children.empty())
+						{
+							target_index = bone_param[bone_param[i].children.front()].pmd_tip_index;
+							if (bone_param[bone_param[i].children.front()].link_id != 0 && bone_param[bone_param[i].children.front()].link_rate != 100)
+							{
+								target_index = bone_id_index[bone_param[bone_param[i].children.front()].link_id];
+							}
+						}
+						fwrite(&target_index, sizeof(uint8_t), 1, fh);
+					}
+					if (BoneFlag & (0x0100 | 0x0200))
+					{
+						uint8_t grant_parent_index = bone_id_index[bone_param[bone_param[i].children.front()].link_id];
+						fwrite(&grant_parent_index, sizeof(uint8_t), 1, fh);
+						float grant_weight = 1;
+						fwrite(&grant_weight, sizeof(float), 1, fh);
+					}
+					pmdbone_index++;
+				}
+			}
+			for (int i = 0; i < bone_num; i++)
+			{
+				if (bone_param[i].pmd_ik_chain.empty()) continue;
+
+				MString name = bone_param[i].ik_name_jp;
+				MString ik_end_name = bone_param[i].ik_tip_name_jp;
+
+				if (name.length() == 0 || ik_end_name.length() == 0)
+				{
+					for (auto ikt = m_BoneIKNameSetting.begin(); ikt != m_BoneIKNameSetting.end(); ++ikt)
+					{
+						if ((*ikt).bone == bone_param[i].name || (*ikt).bone == bone_param[i].name_en)
+						{
+							MString n = (*ikt).ik;
+							MString en = (*ikt).ikend;
+							for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
+							{
+								if ((*it).en == name)
+								{
+									n = (*it).jp;
+									break;
+								}
+							}
+							for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
+							{
+								if ((*it).en == ik_end_name)
+								{
+									en = (*it).jp;
+									break;
+								}
+							}
+							if (name.length() == 0)
+							{
+								name = n;
+							}
+							if (ik_end_name.length() == 0)
+							{
+								ik_end_name = en;
+							}
+							break;
+						}
 					}
 				}
-				else 
+				if (name.length() == 0)
 				{
-					parent_bone_index = bone_param[i].pmd_root_index;
+					name = MString(L"IK-") + bone_param[i].name;
 				}
-				fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
-				
-				int level = 0;
-				fwrite(&level, sizeof(int), 1, fh);	//变形阶层
-				uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
-				if (bone_param[i].movable == true)//是否移动
+				if (ik_end_name.length() == 0)
 				{
-					BoneFlag += 4;
+					ik_end_name = name + MString(L" end");
 				}
-				if (bone_param[i].dummy == true)//是否显示
-				{
-					BoneFlag += 8;
-				}
-				if (bone_param[i].link_id !=0)//是否旋转+
-				{
-					BoneFlag += 256;
-				}
-				fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
 
-				if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
-				{
-					uint8_t target_index = 0;
-					target_index = (WORD)bone_param[bone_param[i].children.front()].pmd_tip_index;
-					fwrite(&target_index, sizeof(uint8_t), 1, fh);
-				}
-				pmdbone_index++;
-			}
-			if(bone_param[i].pmd_tip_index >= 0 && bone_param[i].pmd_tip_index >= pmdbone_index)
-			{
-				assert(bone_param[i].pmd_tip_index == pmdbone_index);
+				MAnsiString subname = getMultiBytesSubstring(name.toAnsiString(), 20);
 				oguna::EncodingConverter converter = oguna::EncodingConverter();
 				std::wstring RES;
-				MAnsiString subname;
-				MAnsiString subnameEN;
-				if(bone_param[i].tip_id==0)
-				{
-					subname = getMultiBytesSubstring(bone_param[i].tip_name_jp.toAnsiString(), 20);
-					subnameEN = getMultiBytesSubstring(bone_param[i].tip_name_jp.toAnsiString(), 20);
-				}
-				else
-				{
-					subname = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_jp.toAnsiString(), 20);
-					subnameEN = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_en.toAnsiString(), 20);
-				}
 				int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 				fwrite(&Len, sizeof(int), 1, fh);
 				fwrite(RES.c_str(), Len, 1, fh);
-				Len = converter.Cp936ToUtf16(subnameEN.c_str(), subnameEN.length(), &RES) * 2;
-				fwrite(&Len, sizeof(int), 1, fh);
-				fwrite(RES.c_str(), Len, 1, fh);
+				int EngName = 0;
+				fwrite(&EngName, sizeof(int), 1, fh);
+
 				float bone_head_pos[3];
 				bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
 				bone_head_pos[1] = bone_param[i].org_tip.y * scaling;
@@ -1821,541 +1806,251 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				fwrite(&bone_head_pos, 4, 3, fh);
 
 				uint8_t parent_bone_index = 255;
-				if (bone_param[i].parent != 0)
+				if (bone_param[i].ikparent != 0)
 				{
-					auto parent_it = bone_id_index.find(bone_param[i].parent);
-					if (parent_it != bone_id_index.end())
+					if (!bone_param[i].ikparent_isik)
 					{
-						parent_bone_index = bone_param[(*parent_it).second].pmd_tip_index;
+						parent_bone_index = bone_id_index[bone_param[i].ikparent];
+					}
+					else
+					{
+						parent_bone_index = bone_param[bone_id_index[bone_param[i].ikparent]].pmd_ik_index;
 					}
 				}
-				else
-				{
-					parent_bone_index = bone_param[i].pmd_root_index;
-				}
 				fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
-
 				int level = 0;
 				fwrite(&level, sizeof(int), 1, fh);	//变形阶层
-				uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
-				if (bone_param[i].movable == true)//是否移动
-				{
-					BoneFlag += 4;
-				}
-				if (bone_param[i].dummy == true)//是否显示
-				{
-					BoneFlag += 8;
-				}
-				if (!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id != 0)//是否旋转+
-				{
-					BoneFlag += 256;
-				}
+
+				uint16_t BoneFlag = 63;//
 				fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
 
 				if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
 				{
-					uint8_t target_index = bone_param[bone_param[i].children.front()].pmd_tip_index;
+					uint8_t target_index = -1;
+					if (bone_param[i].pmd_ik_end_index >= 0)
+					{
+						target_index = bone_param[i].pmd_ik_end_index;
+					}
+					else if (bone_param[i].pmd_ik_parent_tip >= 0)
+					{
+						target_index = bone_param[i].pmd_ik_parent_tip;
+					}
 					fwrite(&target_index, sizeof(uint8_t), 1, fh);
 				}
-				if (BoneFlag & (0x0100 | 0x0200)) 
+				if (BoneFlag & 0x0020)
 				{
-					uint8_t grant_parent_index=	bone_id_index[bone_param[bone_param[i].children.front()].link_id];
-					fwrite(&grant_parent_index, sizeof(uint8_t), 1, fh);
-					uint8_t grant_weight = 1;
-					fwrite(&grant_weight, sizeof(float), 1, fh);
-				}
-
-				WORD tail_pos_bone_index = 0;
-				if(!bone_param[i].children.empty())
-				{
-					tail_pos_bone_index = (WORD)bone_param[bone_param[i].children.front()].pmd_tip_index; // tail位置のボーン番号(チェーン末端の場合は0xFFFF 0 →補足2) // 親：子は1：多なので、主に位置決め用
-					if(bone_param[bone_param[i].children.front()].link_id!=0 && bone_param[bone_param[i].children.front()].link_rate != 100){
-						tail_pos_bone_index = bone_id_index[bone_param[bone_param[i].children.front()].link_id];
+					uint8_t ik_target_bone_index = bone_param[i].pmd_tip_index; // IKターゲットボーン番号 // IKボーンが最初に接続するボーン
+					fwrite(&ik_target_bone_index, sizeof(uint8_t), 1, fh);
+					int ik_loop = 10; // 再帰演算回数 // IK値1
+					fwrite(&ik_loop, sizeof(int), 1, fh);
+					float ik_loop_angle_limit = 0.5f;
+					fwrite(&ik_loop_angle_limit, sizeof(float), 1, fh);
+					int ik_link_count = bone_param[i].pmd_ik_chain.size();
+					fwrite(&ik_link_count, sizeof(int), 1, fh);
+					for (size_t j = 0; j < ik_link_count; j++)
+					{
+						uint8_t link_target = -1;
+						if (j + 1 == ik_link_count && !bone_param[i].pmd_ik_root_tip)
+						{
+							link_target = bone_param[bone_param[i].pmd_ik_chain[j]].pmd_root_index;
+						}
+						else
+						{
+							link_target = bone_param[bone_param[i].pmd_ik_chain[j]].pmd_tip_index;
+						}
+						fwrite(&link_target, sizeof(uint8_t), 1, fh);
+						uint8_t angle_lock = 0;
+						fwrite(&angle_lock, sizeof(uint8_t), 1, fh);
+						if (angle_lock == 1)
+						{
+							float max_radian[3];
+							max_radian[0] = 0;
+							max_radian[1] = 0;
+							max_radian[2] = 0;
+							fwrite(&max_radian, 4, 3, fh);
+							float min_radian[3];
+							min_radian[0] = 0;
+							min_radian[1] = 0;
+							min_radian[2] = 0;
+							fwrite(&min_radian, 4, 3, fh);
+						}
 					}
 				}
-				fwrite(&tail_pos_bone_index, 2, 1, fh);
-				//fprintf(fh,"%u\n",tail_pos_bone_index);
+				assert(pmdbone_index == bone_param[i].pmd_ik_index);
+				pmdbone_index++;
 
-				BYTE bone_type = 0; // ボーンの種類 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示
-				if (bone_param[i].tip_id == 0 && bone_param[i].child_num != 0)
+				if (option.output_ik_end)
 				{
-					bone_type = 7;
-				}
-				else if (bone_param[i].pmd_ik_parent_tip >= 0)
-				{
-					bone_type = 4; 
-				}
-				else if (bone_param[i].pmd_ik_index >= 0) 
-				{
-					bone_type = 6;
-				}
-				else if(!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id!=0)
-				{
-					if(bone_param[bone_param[i].children.front()].link_rate == 100)
+					MAnsiString subname = getMultiBytesSubstring(ik_end_name.toAnsiString(), 20);
+					oguna::EncodingConverter converter = oguna::EncodingConverter();
+					std::wstring RES;
+					int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+					fwrite(&Len, sizeof(int), 1, fh);
+					fwrite(RES.c_str(), Len, 1, fh);
+					int EngName = 0;
+					fwrite(&EngName, sizeof(int), 1, fh);
+
+
+					MQPoint parent_dir;
+					parent_dir = bone_param[i].org_root - bone_param[i].org_tip;
+					parent_dir.normalize();
+					MQPoint vec1(0, -1, 0), vec2(0, 0, -1);
+					MQPoint ik_end_dir;
+					if (fabs(GetInnerProduct(parent_dir, vec1)) < fabs(GetInnerProduct(parent_dir, vec2)))
 					{
-						bone_type = 5;
+						ik_end_dir = vec1;
 					}
 					else
 					{
-						bone_type = 9;
+						ik_end_dir = vec2;
 					}
-				}
-				else if (bone_param[i].twist)
-				{
-					bone_type = 8;
-				}
-				else if (bone_param[i].child_num == 0)
-				{
-					bone_type = 7;
-				}
-				if(!bone_param[i].children.empty() && bone_type <= 1)
-				{
-					bone_type = bone_param[bone_param[i].children.front()].movable;
-				}
-				fwrite(&bone_type, 1, 1, fh);
-				//fprintf(fh,"%d\n",bone_type);
 
-				WORD ik_parent_bone_index = 0; // IKボーン番号(影響IKボーン。ない場合は0)
-				if (bone_param[i].pmd_ik_index >= 0)
-				{
-					ik_parent_bone_index = (WORD)bone_param[i].pmd_ik_index; 
-				}
-				else if (bone_param[i].pmd_ik_parent_tip >= 0)
-				{
-					ik_parent_bone_index = (WORD)bone_param[i].pmd_ik_parent_tip;
-				}
-				else if(!bone_param[i].children.empty() && bone_param[bone_param[i].children.front()].link_id!=0)
-				{
-					if( bone_param[bone_param[i].children.front()].link_rate == 100)
+					if (!bone_param[i].children.empty())
 					{
-						ik_parent_bone_index = bone_id_index[bone_param[bone_param[i].children.front()].link_id];
-					}
-					else
-					{
-						ik_parent_bone_index = bone_param[bone_param[i].children.front()].link_rate;
-					}
-				}
-				fwrite(&ik_parent_bone_index, 2, 1, fh);
-				//fprintf(fh,"%u\n",ik_parent_bone_index);
-
-				float bone_head_pos[3];
-				bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
-				bone_head_pos[1] = bone_param[i].org_tip.y * scaling;
-				bone_head_pos[2] = -bone_param[i].org_tip.z * scaling;
-
-				fwrite(&bone_head_pos, 4, 3, fh);
-				//fprintf(fh,"%f %f %f\n",bone_head_pos[0],bone_head_pos[1],bone_head_pos[2]);
-
-				pmdbone_index++;
-			}
-		}
-
-		// IKの先端を別ノードとして登録する（IKリストとリンクさせる）
-		for(int i=0; i<bone_num; i++){
-			if(bone_param[i].pmd_ik_chain.empty()) continue;
-			MString name = bone_param[i].ik_name_jp;
-			MString ik_end_name = bone_param[i].ik_tip_name_jp;
-
-			if(name.length() == 0 || ik_end_name.length() == 0){
-				for(auto ikt=m_BoneIKNameSetting.begin(); ikt!=m_BoneIKNameSetting.end(); ++ikt){
-					if((*ikt).bone == bone_param[i].name || (*ikt).bone == bone_param[i].name_en){
-						MString n = (*ikt).ik;
-						MString en = (*ikt).ikend;
-						for(auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it){
-							if((*it).en == name){
-								n = (*it).jp;
-								break;
-							}
+						MQPoint child_dir = bone_param[bone_param[i].children.front()].org_tip - bone_param[i].org_tip;
+						child_dir.normalize();
+						if (GetInnerProduct(child_dir, ik_end_dir) > 0)
+						{
+							ik_end_dir = -ik_end_dir;
 						}
-						for(auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it){
-							if((*it).en == ik_end_name){
-								en = (*it).jp;
-								break;
-							}
-						}
-						if(name.length() == 0) name = n;
-						if(ik_end_name.length() == 0) ik_end_name = en;
-						break;
 					}
+					MQPoint ik_end_pos;
+					ik_end_pos = bone_param[i].org_tip + ik_end_dir;
+					float bone_head_pos[3];
+					bone_head_pos[0] = ik_end_pos.x * scaling;
+					bone_head_pos[1] = ik_end_pos.y * scaling;
+					bone_head_pos[2] = -ik_end_pos.z * scaling;
+					fwrite(&bone_head_pos, 4, 3, fh);
+
+					uint8_t	parent_bone_index = bone_param[i].pmd_ik_index;
+					fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
+					int level = 0;
+					fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+
+					uint16_t BoneFlag = 19;
+					fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
+
+					uint8_t target_index = -1;
+					fwrite(&target_index, sizeof(uint8_t), 1, fh);
+
+					assert(pmdbone_index == bone_param[i].pmd_ik_end_index);
+
+					pmdbone_index++;
 				}
 			}
-			if(name.length() == 0){
-				name = MString(L"IK-") + bone_param[i].name;
-			}
-			if(ik_end_name.length() == 0){
-				ik_end_name = name + MString(L" end");
-			}
-
-			MAnsiString subname = getMultiBytesSubstring(name.toAnsiString(), 20);
-			char bone_name[20];
-			memset(bone_name, 0, 20);
-			memcpy(bone_name, subname.c_str(), subname.length());
-			fwrite(bone_name, 20, 1, fh);
-			//fprintf(fh,"%s\n",bone_name);
-			bone_group.push_back(-2);
-			WORD parent_bone_index = 0xFFFF;
-			//if(bone_param[bone_param[i].pmd_ik_chain.back()].pmd_ik_index >= 0){
-			//	parent_bone_index = (WORD)bone_param[bone_param[i].pmd_ik_chain.back()].pmd_ik_index;
-			//}
-			if(bone_param[i].ikparent!=0){
-				if(!bone_param[i].ikparent_isik){
-					parent_bone_index = bone_id_index[bone_param[i].ikparent];
-				}else{
-					parent_bone_index = bone_param[bone_id_index[bone_param[i].ikparent]].pmd_ik_index;
-				}
-			}
-			fwrite(&parent_bone_index, 2, 1, fh);
-			//fprintf(fh,"%u\n",parent_bone_index);
-
-			WORD tail_pos_bone_index = 0xFFFF;
-			if(bone_param[i].pmd_ik_end_index >= 0){
-				tail_pos_bone_index = (WORD)bone_param[i].pmd_ik_end_index;
-			}else if(bone_param[i].pmd_ik_parent_tip >= 0){
-				tail_pos_bone_index = (WORD)bone_param[i].pmd_ik_parent_tip;
-			}
-			fwrite(&tail_pos_bone_index, 2, 1, fh);
-			//fprintf(fh,"%u\n",tail_pos_bone_index);
-
-			BYTE bone_type = 2; // ボーンの種類 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示
-			fwrite(&bone_type, 1, 1, fh);
-			//fprintf(fh,"%d\n",bone_type);
-
-			WORD ik_parent_bone_index = 0; // IKボーン番号(影響IKボーン。ない場合は0)
-			fwrite(&ik_parent_bone_index, 2, 1, fh);
-			//fprintf(fh,"%u\n",ik_parent_bone_index);
-
-			float bone_head_pos[3];
-			bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
-			bone_head_pos[1] = bone_param[i].org_tip.y * scaling;
-			bone_head_pos[2] = -bone_param[i].org_tip.z * scaling;
-			fwrite(&bone_head_pos, 4, 3, fh);
-			//fprintf(fh,"%f %f %f\n",bone_head_pos[0],bone_head_pos[1],bone_head_pos[2]);
-			
-			assert(pmdbone_index == bone_param[i].pmd_ik_index);
-			pmdbone_index++;
-
-			if(option.output_ik_end){
-				MAnsiString subname = getMultiBytesSubstring(ik_end_name.toAnsiString(), 20);
-				char bone_name[20];
-				memset(bone_name, 0, 20);
-				memcpy(bone_name, subname.c_str(), subname.length());
-				fwrite(bone_name, 20, 1, fh);
-				//fprintf(fh,"%s\n",bone_name);
-				bone_group.push_back(-1);
-				WORD parent_bone_index;
-				parent_bone_index = (WORD)bone_param[i].pmd_ik_index;
-				fwrite(&parent_bone_index, 2, 1, fh);
-				//fprintf(fh,"%u\n",parent_bone_index);
-
-				WORD tail_pos_bone_index = 0xFFFF;
-				fwrite(&tail_pos_bone_index, 2, 1, fh);
-				//fprintf(fh,"%u\n",tail_pos_bone_index);
-
-				BYTE bone_type = 7; // ボーンの種類 0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示
-				fwrite(&bone_type, 1, 1, fh);
-				//fprintf(fh,"%d\n",bone_type);
-
-				WORD ik_parent_bone_index = 0; // IKボーン番号(影響IKボーン。ない場合は0)
-				fwrite(&ik_parent_bone_index, 2, 1, fh);
-				//fprintf(fh,"%u\n",ik_parent_bone_index);
-
-				MQPoint parent_dir;
-				parent_dir = bone_param[i].org_root - bone_param[i].org_tip;
-				parent_dir.normalize();
-				MQPoint vec1(0,-1,0), vec2(0,0,-1);
-				MQPoint ik_end_dir;
-				if(fabs(GetInnerProduct(parent_dir, vec1)) < fabs(GetInnerProduct(parent_dir, vec2))){
-					ik_end_dir = vec1;
-				}else{
-					ik_end_dir = vec2;
-				}
-
-				if(!bone_param[i].children.empty()){
-					MQPoint child_dir = bone_param[bone_param[i].children.front()].org_tip - bone_param[i].org_tip;
-					child_dir.normalize();
-					if(GetInnerProduct(child_dir, ik_end_dir) > 0){
-						ik_end_dir = -ik_end_dir;
-					}
-				}
-				MQPoint ik_end_pos;
-				ik_end_pos = bone_param[i].org_tip + ik_end_dir;
-
-				float bone_head_pos[3];
-				bone_head_pos[0] = ik_end_pos.x * scaling;
-				bone_head_pos[1] = ik_end_pos.y * scaling;
-				bone_head_pos[2] = -ik_end_pos.z * scaling;
-				fwrite(&bone_head_pos, 4, 3, fh);
-				//fprintf(fh,"%f %f %f\n",bone_head_pos[0],bone_head_pos[1],bone_head_pos[2]);
-
-				assert(pmdbone_index == bone_param[i].pmd_ik_end_index);
-
-				pmdbone_index++;
-			}
-		}
-
-		// IK list
-		WORD ik_data_count = (WORD)ik_chain_end_list.size();
-		fwrite(&ik_data_count, 2, 1, fh);
-		//fprintf(fh,"%u\n",ik_data_count);
-		for(size_t id=0; id<ik_chain_end_list.size(); id++){
-			int idx = ik_chain_end_list[id];
-
-			WORD ik_bone_index = (WORD)bone_param[idx].pmd_ik_index; // IKノード番号
-			fwrite(&ik_bone_index, 2, 1, fh);
-			//fprintf(fh,"%u\n",ik_bone_index);
-
-			WORD ik_target_bone_index = bone_param[idx].pmd_tip_index; // IKターゲットボーン番号 // IKボーンが最初に接続するボーン
-			fwrite(&ik_target_bone_index, 2, 1, fh);
-			//fprintf(fh,"%u\n",ik_target_bone_index);
-
-			BYTE ik_chain_length = (BYTE)bone_param[idx].pmd_ik_chain.size(); // IKチェーンの長さ(子の数)
-			fwrite(&ik_chain_length, 1, 1, fh);
-			//fprintf(fh,"%d\n",ik_chain_length);
-
-			WORD iterations = 10; // 再帰演算回数 // IK値1
-			fwrite(&iterations, 2, 1, fh);
-			//fprintf(fh,"%u\n",iterations);
-
-			float control_weight = 0.5f; // 演算1回あたりの制限角度 // IK値2
-			fwrite(&control_weight, 4, 1, fh);
-			//fprintf(fh,"%f\n",control_weight);
-
-			std::vector<WORD> ik_child_bone_index(bone_param[idx].pmd_ik_chain.size()); // IK影響下のボーン番号
-			for(size_t j=0; j<ik_child_bone_index.size(); j++){
-				if(j+1 == ik_child_bone_index.size() && !bone_param[idx].pmd_ik_root_tip){ 
-					ik_child_bone_index[j] = bone_param[bone_param[idx].pmd_ik_chain[j]].pmd_root_index;
-				}else{
-					ik_child_bone_index[j] = bone_param[bone_param[idx].pmd_ik_chain[j]].pmd_tip_index;
-				}
-				//fprintf(fh,"%u ",ik_child_bone_index[j]);
-			}
-			fwrite(ik_child_bone_index.data(), 2, ik_child_bone_index.size(), fh);
-			//fprintf(fh,"\n");
 		}
 	}
-	// モーフ情報書き込み
-	// Facial
-	WORD skin_count = static_cast<WORD>(morph_param_list.size());
-	fwrite(&skin_count, 2, 1, fh);
+
+	int skin_count = static_cast<int>(morph_param_list.size());
+	int Save_skin_count = skin_count - 1;
+	fwrite(&Save_skin_count, sizeof(int), 1, fh);
 	float skin_vert_pos[3];
 	DWORD skin_vert_count = 0;
-	DWORD skin_vert_index = 0;
+	int skin_vert_index = 0;
 	PMDMorphParam *mParam;
-	for(int i=0; i<(int)skin_count; i++)
+	int MAXCOUNT = 0;
+	int MAXTEMP = 0;
+	PMDMorphParam MaxParam;
+	for (int i = 0; i < skin_count; i++)
 	{
+		int TEMP = morph_param_list.at(i).vertNum;
+		if (TEMP > MAXCOUNT)
+		{
+			MAXCOUNT = TEMP;
+			MaxParam = morph_param_list.at(i);
+		}
+	}
+	std::vector<int> MaxList;
+	for (size_t i = 0; i < MAXCOUNT; i++)
+	{
+		MaxList.push_back(MaxParam.vertex.at(i).first);
+	}
+	
+	for (int i = 0; i < skin_count; i++)
+	{
+		if (i == MAXTEMP)
+		{
+			continue;
+		}
 		mParam = &morph_param_list.at(i);
-
-		char facial_name[20];
-		memset(facial_name, 0, 20);
-
+		oguna::EncodingConverter converter = oguna::EncodingConverter();
+		std::wstring RES;
 		auto subname = getMultiBytesSubstring(mParam->skin_name, 20);
-		memcpy(facial_name, subname.c_str(), subname.length());
-
-		fwrite(facial_name, sizeof(char) * 20, 1, fh);
-		fwrite(&mParam->vertNum, sizeof(DWORD), 1, fh);
-		fwrite(&mParam->type, sizeof(BYTE), 1, fh);
-
+		int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+		fwrite(&Len, sizeof(int), 1, fh);
+		fwrite(RES.c_str(), Len, 1, fh);
+		int EngName = 0;
+		fwrite(&EngName, sizeof(int), 1, fh);
+		fwrite(&mParam->type, sizeof(uint8_t), 1, fh);//Panel
+		uint8_t morph_type = 1;
+		fwrite(&morph_type, sizeof(uint8_t), 1, fh);//Kind=Vertex
+		fwrite(&mParam->vertNum, sizeof(int), 1, fh);//num
 		skin_vert_count = mParam->vertNum;
-		for(DWORD j=0; j<skin_vert_count; ++j)
+		for (DWORD j = 0; j < skin_vert_count; ++j)
 		{
 			auto vertex = &mParam->vertex.at(j);
-
-			if(i == 0)
+			if (i == 0)
+			{
 				skin_vert_index = vertex->first;
+			}
 			else
-				skin_vert_index = static_cast<DWORD>(std::distance(morph_base_vertex_index_list.begin(), std::find(morph_base_vertex_index_list.begin(), morph_base_vertex_index_list.end(), vertex->first)));
-			fwrite(&skin_vert_index, sizeof(DWORD), 1, fh);
-
+			{
+				skin_vert_index = static_cast<int>(std::distance(morph_base_vertex_index_list.begin(), std::find(morph_base_vertex_index_list.begin(), morph_base_vertex_index_list.end(), vertex->first)));
+			}
+			skin_vert_index = MaxList[skin_vert_index];
+			fwrite(&skin_vert_index, 4, 1, fh);
 			skin_vert_pos[0] = vertex->second.x * scaling;
 			skin_vert_pos[1] = vertex->second.y * scaling;
 			skin_vert_pos[2] = -vertex->second.z * scaling;
-
-			fwrite(skin_vert_pos, sizeof(float), 3, fh);
+			fwrite(skin_vert_pos, 4, 3, fh);
 		}
 	}
 
 	// 表情枠用表示リスト
-	BYTE skin_disp_count = static_cast<BYTE>(skin_count);
-	if(skin_disp_count != 0)
-		skin_disp_count -= 1;
-	fwrite(&skin_disp_count, 1, 1, fh);
-	for(WORD i=1; i<=(WORD)skin_disp_count; i++)
-		fwrite(&i, sizeof(WORD), 1, fh);
-
-	std::map<int,int> group_table;
-	BYTE bone_disp_name_count = (BYTE)groups.size();
-	if(ik_chain_end_list.size()!=0)bone_disp_name_count++;
-	fwrite(&bone_disp_name_count, 1, 1, fh);
-	int i = 1;
-	for(auto it = groups.begin(); it != groups.end(); it++){
-		group_table.insert(std::pair<int,int>(it->first,i++));
-		MAnsiString name = group_names[it->first].first.toAnsiString();
-		char disp_name[50];
-		memset(disp_name, 0, 50);
-		memcpy(disp_name, name.c_str(), name.length());
-		fwrite(disp_name, 50, 1, fh); // 枠名(50Bytes/枠)
-	}
-	//IK枠
-	if(ik_chain_end_list.size()!=0){
-		std::string str("ＩＫ");
-		MString name = MString::fromUtf8String(str.c_str());
-		char disp_name[50];
-		memset(disp_name, 0, 50);
-		memcpy(disp_name, str.c_str(), str.length());
-		fwrite(disp_name, 50, 1, fh); // 枠名(50Bytes/枠)
-	
-	}
-	
-	// ボーン枠用表示リスト
-	DWORD bone_disp_count = 0;
-	for(int i = 0;i < (int)bone_group.size();i++){
-		if(bone_group[i]==-1)continue;
-		bone_disp_count++;
-	}
-	fwrite(&bone_disp_count, 4, 1, fh);
-	//fprintf(fh,"%lu\n",bone_disp_count);
-	int count = 0;
-	for(int i = 0;i < (int)bone_group.size();i++){
-		if(bone_group[i] == -1)continue;
-		WORD bone_index = i;
-		fwrite(&bone_index, 2, 1, fh);
-		BYTE bone_disp_frame_index; // 表示枠番号 // センター:00 他の表示枠:01～ // センター枠にセンター(index 0)以外のボーンを指定しても表示されません。
-		if(bone_group[i] == -2)bone_disp_frame_index = (BYTE)(groups.size()+1);
-		else bone_disp_frame_index = (BYTE)(group_table[bone_group[i]]);
-		fwrite(&bone_disp_frame_index, 1, 1, fh);
-		count++;
-	}
-	// 英名
-	BYTE english_name_compatibility = 1;
-	fwrite(&english_name_compatibility, 1, 1, fh);
-	//fprintf(fh,"%d\n",english_name_compatibility);
-	//fwrite(model_name, 20, 1, fh);
-	//fprintf(fh,"%s\n",model_name);
-	fwrite(comment, 256, 1, fh);
-	//fprintf(fh,"%s\n",comment);
-	if(bone_num == 0){
-		char bone_name[20];
-		memset(bone_name, 0, 20);
-		strcpy_s(bone_name, "default");
-		fwrite(bone_name, 20, 1, fh);
-		//fprintf(fh,"%s\n",bone_name);
-	}else{
-		int pmdbone_index = 0;
-		for(int i=0; i<bone_num; i++){
-			if(bone_param[i].pmd_root_index >= 0 && bone_param[i].pmd_root_index >= pmdbone_index){
-				assert(bone_param[i].pmd_root_index == pmdbone_index);
-				char bone_name[20];
-				MAnsiString subname = getMultiBytesSubstring(bone_param[i].name_en.toAnsiString(), 20);
-				memset(bone_name, 0, 20);
-				memcpy(bone_name, subname.c_str(), subname.length());
-
-				fwrite(bone_name, 20, 1, fh);
-				//fprintf(fh,"%s\n",bone_name);
-
-				pmdbone_index++;
-			}
-
-			if(bone_param[i].pmd_tip_index >= 0 && bone_param[i].pmd_tip_index >= pmdbone_index){
-				assert(bone_param[i].pmd_tip_index == pmdbone_index);
-				MAnsiString subname;
-				if(bone_param[i].tip_id==0){
-					subname = getMultiBytesSubstring(bone_param[i].tip_name_en.toAnsiString(), 20);
-				}else{
-					subname = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_en.toAnsiString(), 20);
-				}
-				char bone_name[20];
-				memset(bone_name, 0, 20);
-				memcpy(bone_name, subname.c_str(), subname.length());
-				fwrite(bone_name, 20, 1, fh);
-				//fprintf(fh,"%s\n",bone_name);
-
-				if(bone_param[i].tip_id == 0)assert(bone_param[i].pmd_tip_index == pmdbone_index);
-				else assert(bone_param[i].pmd_tip_index = bone_param[bone_id_index[bone_param[bone_id_index[bone_param[i].tip_id]].parent]].pmd_tip_index);
-				pmdbone_index++;
-			}
-
-		}
-
-		for(int i=0; i<bone_num; i++){
-			if(bone_param[i].pmd_ik_chain.empty()) continue;
-
-			MAnsiString name = getMultiBytesSubstring(bone_param[i].ik_name_en.toAnsiString(),20);
-			MAnsiString ik_end_name = getMultiBytesSubstring(bone_param[i].ik_tip_name_en.toAnsiString(),20);
-			char bone_name[20];
-			memset(bone_name, 0, 20);
-			memcpy(bone_name, name.c_str(), name.length());
-			fwrite(bone_name, 20, 1, fh);
-			//fprintf(fh,"%s\n",bone_name);
-
-			assert(pmdbone_index == bone_param[i].pmd_ik_index);
-			pmdbone_index++;
-
-			if(option.output_ik_end){
-				char bone_name[20];
-				memset(bone_name, 0, 20);
-				memcpy(bone_name, ik_end_name.c_str(), ik_end_name.length());
-				fwrite(bone_name, 20, 1, fh);
-				//fprintf(fh,"%s\n",bone_name);
-
-				assert(pmdbone_index == bone_param[i].pmd_ik_end_index);
-				pmdbone_index++;
-			}
-		}
-	}
-
-	// skin_name
-	for(int i=1; i<=morph_target_size; ++i)
+	int skin_disp_count = 2;
+	fwrite(&skin_disp_count, sizeof(int), 1, fh);
 	{
-		char facial_name[20];
-		memset(facial_name, 0, 20);
+		for (int i = 0; i < skin_disp_count; i++)
+		{
+			oguna::EncodingConverter converter = oguna::EncodingConverter();
+			std::wstring RES;
+			MAnsiString subname;
+			MAnsiString subnameEN;
+			if (i == 0)
+			{
+				 subname="Root";
+				 subnameEN="Root";
+			}
+			else
+			{
+				subname = "表情";
+				subnameEN = "Exp";
+			}
+			int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+			fwrite(&Len, sizeof(int), 1, fh);
+			fwrite(RES.c_str(), Len, 1, fh);
+			Len = converter.Cp936ToUtf16(subnameEN.c_str(), subnameEN.length(), &RES) * 2;
+			fwrite(&Len, sizeof(int), 1, fh);
+			fwrite(RES.c_str(), Len, 1, fh);
+			byte SystemNode = 1;
+			fwrite(&SystemNode, sizeof(byte), 1, fh);
+			int NodeNum = 0;
+			fwrite(&NodeNum, sizeof(int), 1, fh);
+		}
 
-		auto subname = getMultiBytesSubstring(morph_param_list[i].skin_name, 20);
-		memcpy(facial_name, subname.c_str(), subname.length());
-
-		fwrite(facial_name, sizeof(char) * 20, 1, fh);
 	}
 
-	for(auto it=groups.begin(); it!= groups.end(); it++){
-		MString wsubname = group_names[it->first].second;
-		MAnsiString subname = getMultiBytesSubstring(wsubname.toAnsiString(), 50);
-		char disp_name[50];
-		memset(disp_name, 0, 50);
-		memcpy(disp_name, subname.c_str(), subname.length());
-		fwrite(disp_name, 50, 1, fh); // 枠名(50Bytes/枠)
-		//fprintf(fh,"%s",disp_name);
-	}
-	//IK枠
-	if(ik_chain_end_list.size()!=0){
-		std::string str("IK");
-		MString name = MString::fromUtf8String(str.c_str());
-		MAnsiString subname = getMultiBytesSubstring(name.toAnsiString(), 50);
-		char disp_name[50];
-		memset(disp_name, 0, 50);
-		memcpy(disp_name, subname.c_str(), subname.length());
-		fwrite(disp_name, 50, 1, fh); // 枠名(50Bytes/枠)
-	}
-	for(int i=0; i<10; i++){
-		char toon_file_name[100];
-		memset(toon_file_name, 0, 100);
-		MAnsiString n = MAnsiString::format("toon%02d.bmp", i+1);
-		memcpy(toon_file_name, n.c_str(), n.length());
-		fwrite(toon_file_name, 100, 1, fh);
-		//fprintf(fh,"%s\n",toon_file_name);
-	}
-
-	DWORD rigid_body_count = 0;
-	fwrite(&rigid_body_count, 4, 1, fh);
-	//fprintf(fh,"%lu\n",rigid_body_count);
-
-	DWORD joint_count = 0;
-	fwrite(&joint_count, 4, 1, fh);
-	//fprintf(fh,"%lu\n",joint_count);
+	int rigid_body_count = 0;
+	fwrite(&rigid_body_count, sizeof(int), 1, fh);
+	int joint_count = 0;
+	fwrite(&joint_count, sizeof(int), 1, fh);
 
 	for(size_t i=0; i<expobjs.size(); i++){
 		delete expobjs[i];
 	}
 
-	if(fclose(fh) != 0){
+	if(fclose(fh) != 0)
+	{
 		return FALSE;
 	}
 	return TRUE;
