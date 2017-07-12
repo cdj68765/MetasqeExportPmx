@@ -56,13 +56,14 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 )
 {
 	// The instance will be used for a dialog box
-	s_hInstance = (HINSTANCE)hModule;
+	s_hInstance = static_cast<HINSTANCE>(hModule);
 
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		::GetModuleFileName((HMODULE)hModule, s_DllPath, MAX_PATH);
+		::GetModuleFileName(static_cast<HMODULE>(hModule), s_DllPath, MAX_PATH);
 		break;
+	default: ;
 	}
 	return TRUE;
 }
@@ -342,7 +343,7 @@ struct PMXBoneParam
 	MString ik_name_en;
 	MString ik_tip_name_en;
 
-	PMXBoneParam()
+	PMXBoneParam(): id(0)
 	{
 		parent = 0;
 		child_num = 0;
@@ -489,7 +490,7 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 	const DWORD morph_plugin_id = 0xC452C6DB;
 
 	// モーフプラグインから必要な情報を取得
-	int morph_num = 0;
+	int morph_num;
 	int morph_target_size = 0;
 	std::vector<PMXMorphInputParam> morph_intput_list;
 	std::vector<std::vector<MQObject>> morph_target_list;
@@ -519,7 +520,6 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 		// モーフターゲット情報を取得
 		std::vector<std::pair<MQObject, MorphType>> target;
 		int target_size;
-		PMXMorphInputParam* iParam;
 		auto targets = &morph_target_list.front();
 		auto targetIndexes = &morph_target_index_list.front();
 		int targetIndex = 1;
@@ -528,7 +528,7 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 			targets = &morph_target_list.at(i);
 			targetIndexes = &morph_target_index_list.at(i);
 
-			iParam = &morph_intput_list.at(i);
+			PMXMorphInputParam*	iParam = &morph_intput_list.at(i);
 			target_size = this->SendUserMessage(doc, morph_plugin_product, morph_plugin_id, "getTargetSize", iParam->base);
 
 			target.resize(target_size + 1);
@@ -615,19 +615,6 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 	int numObj = doc->GetObjectCount();
 	int numMat = doc->GetMaterialCount();
 
-	bool has_color = false;
-	for (int i = 0; i < numMat; i++)
-	{
-		MQMaterial mat = doc->GetMaterial(i);
-		if (mat == nullptr) continue;
-
-		if (mat->GetVertexColor() != MQMATERIAL_VERTEXCOLOR_DISABLE)
-		{
-			has_color = true;
-			break;
-		}
-	}
-
 	// 頂点をひとまとめにする（単一オブジェクトしか扱えないので）
 	std::vector<MQExportObject*> expobjs(numObj, nullptr);
 	std::vector<std::vector<int>> orgvert_vert(numObj);
@@ -666,7 +653,6 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 			vert_orgobj.push_back(oi);
 			vert_expvert.push_back(evi);
 
-			int ovi = eobj->GetOriginalVertex(evi);
 			MQPoint nrm = eobj->GetVertexNormal(evi);
 			MQCoordinate uv = eobj->GetVertexCoordinate(evi);
 
@@ -822,7 +808,6 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 		if (bone_param[i].ikchain >= 0)
 		{
 			int chain_num = bone_param[i].ikchain;
-			bool result = false;
 			int idx = i;
 			for (int p = 0; p <= chain_num; p++)
 			{
@@ -959,7 +944,6 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 	// ベースオブジェクト情報
 	PMXMorphParam* morph_base_param = nullptr;
 	{
-		DWORD morph_vert_size = 0;
 		if (!morph_intput_list.empty())
 		{
 			morph_base_param = &morph_param_list.front();
@@ -972,23 +956,19 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 	// ターゲットオブジェクト情報
 	if (isOutputFacial && morph_num > 0)
 	{
-		size_t bIdx, tIdx, totalIdx = 1;
-		PMXMorphParam* mParam;
+		size_t totalIdx = 1;
 		auto bBegin = morph_intput_list.begin();
 		auto bEnd = morph_intput_list.end();
 		auto tBegin = morph_intput_list.front().target.begin();
 		auto tEnd = morph_intput_list.front().target.end();
 		for (auto bIte = bBegin; bIte != bEnd; ++bIte)
 		{
-			bIdx = distance(bBegin, bIte);
-			tIdx = 0;
 			tBegin = bIte->target.begin();
 			tEnd = bIte->target.end();
 
 			for (auto tIte = tBegin; tIte != tEnd; ++tIte)
 			{
-				tIdx = distance(tBegin, tIte);
-				mParam = &morph_param_list.at(totalIdx++);
+				PMXMorphParam * mParam = &morph_param_list.at(totalIdx++);
 				tIte->first->GetName(mParam->skin_name, 20);
 				mParam->type = tIte->second;
 				mParam->vertNum = 0;
@@ -1000,47 +980,40 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 	std::vector<DWORD> morph_base_vertex_index_list;
 	if (isOutputFacial && morph_num > 0)
 	{
-		size_t paramIdx, baseIdx;
-		int baseVertSize, baseExpIdx, baseOrgIdx;
-		MQObject base, target;
-		MQPoint basePos, targetPos;
-		bool isWriteBase;
 		auto end = morph_intput_list.end();
-		size_t totalIdx = 1;
-		PMXMorphParam* param;
 		auto targetList = morph_target_list.front();
 		auto targetIndexList = morph_target_index_list.front();
 		for (auto ite = morph_intput_list.begin(); ite != end; ++ite)
 		{
-			isWriteBase = false;
+			bool isWriteBase = false;
 
-			paramIdx = distance(morph_intput_list.begin(), ite);
+			size_t paramIdx = distance(morph_intput_list.begin(), ite);
 
-			base = ite->base;
-			baseIdx = doc->GetObjectIndex(base);
+			MQObject base = ite->base;
+			size_t baseIdx = doc->GetObjectIndex(base);
 			if (expobjs[baseIdx] == nullptr)
 				continue;
-			baseVertSize = expobjs[baseIdx]->GetVertexCount();
+			int baseVertSize = expobjs[baseIdx]->GetVertexCount();
 
 			for (int i = 0; i < baseVertSize; ++i)
 			{
-				baseExpIdx = orgvert_vert.at(baseIdx).at(i);
-				baseOrgIdx = expobjs[baseIdx]->GetOriginalVertex(i);
-				basePos = base->GetVertex(baseOrgIdx);
+				int baseExpIdx = orgvert_vert.at(baseIdx).at(i);
+				int baseOrgIdx = expobjs[baseIdx]->GetOriginalVertex(i);
+				MQPoint basePos = base->GetVertex(baseOrgIdx);
 
 				auto tList = &ite->target;
 				auto tEnd = tList->end();
 				for (auto tIte = tList->begin(); tIte != tEnd; ++tIte)
 				{
-					target = tIte->first;
-					targetPos = target->GetVertex(baseOrgIdx);
+					MQObject target = tIte->first;
+					MQPoint targetPos = target->GetVertex(baseOrgIdx);
 					if (!MQPointFuzzyEqual(basePos, targetPos))
 					{
 						isWriteBase = true;
 
 						targetList = morph_target_list.at(paramIdx);
 						targetIndexList = morph_target_index_list.at(paramIdx);
-						param = &morph_param_list.at(targetIndexList.at(distance(targetList.begin(), find(targetList.begin(), targetList.end(), target))));
+						PMXMorphParam * param = &morph_param_list.at(targetIndexList.at(distance(targetList.begin(), find(targetList.begin(), targetList.end(), target))));
 						param->vertex.push_back(std::make_pair(baseExpIdx, targetPos - basePos));
 						++param->vertNum;
 					}
@@ -1074,7 +1047,7 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 	char magic[4] = {0x50 ,0x4d ,0x58 ,0x20};
 	fwrite(magic, 1, 4, fh);
 	//fprintf(fh,"PMX\n");
-	fwrite((char*)&version, sizeof(float), 1, fh);
+	fwrite(reinterpret_cast<char*>(&version), sizeof(float), 1, fh);
 	byte Header[9] = {8,0,0,4,1,1,1,1,1};
 	fwrite(&Header, sizeof(byte), 9, fh);
 	//fprintf(fh,"%f\n",version);
@@ -1441,10 +1414,14 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 		fwrite(RES.c_str(), Len, 1, fh);
 	}
 	fwrite(&used_mat_num, 4, 1, fh);
-	for (int i = 0; i <= numMat; i++)
+	for (int i = 0; i < numMat; i++)
 	{
 		if (material_used[i] == 0) continue;
 		MQMaterial mat = doc->GetMaterial(i);
+		if(mat==nullptr)
+		{
+			continue;
+		}
 		Len = converter.Cp936ToUtf16(mat->GetName().c_str(), mat->GetName().length(), &RES) * 2;
 		fwrite(&Len, sizeof(int), 1, fh);
 		fwrite(RES.c_str(), Len, 1, fh);
@@ -1540,26 +1517,18 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 		edge_flag = 0;
 		fwrite(&edge_flag, 1, 2, fh);
 
-		BYTE toon_index = (toon >= 1 && toon <= 10) ? (BYTE)(toon - 1) : 0;
+		BYTE toon_index = (toon >= 1 && toon <= 10) ? static_cast<BYTE>(toon - 1) : 0;
 		fwrite(&toon_index, 1, 1, fh);
-		//fprintf(fh,"%d\n",toon_index);
-
 		fwrite(&edge_flag, sizeof(int), 1, fh);
 		face_vert_count = material_used[i] * 3;
 		fwrite(&face_vert_count, 4, 1, fh);
-		//fprintf(fh,"%lu\n",face_vert_count);
 
-		/*MAnsiString texture_str = getMultiBytesSubstring(texture, 20);
-		char texture_file_name[20]; // The end null is unnecessary.
-		memset(texture_file_name, 0, 20);
-		memcpy(texture_file_name, texture_str.c_str(), texture_str.length());
-		fwrite(texture_file_name, 20, 1, fh);*/
-		//fprintf(fh,"%s\n",texture_str.c_str());
 	}
 
-	if (bone_num == 0)
+	if (bone_num == 0||!option.output_bone)
 	{
-		fwrite(&PMXbone_num, sizeof(int), 1, fh);
+		Len = 0;
+		fwrite(&Len, sizeof(int), 1, fh);
 		/*WORD dw_bone_num = 1;
 		fwrite(&dw_bone_num, 2, 1, fh);
 		//fprintf(fh,"%u\n",dw_bone_num);
@@ -1592,7 +1561,15 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 	}
 	else
 	{
-		fwrite(&PMXbone_num, sizeof(int), 1, fh);
+		if(option.output_ik_end)
+		{
+			fwrite(&PMXbone_num, sizeof(int), 1, fh);
+		}else
+		{
+			Len = bone_num + 1;
+			fwrite(&Len, sizeof(int), 1, fh);
+		}
+		
 		if (PMXbone_num != 0)
 		{
 			int PMXbone_index = 0;
@@ -1764,265 +1741,272 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 					PMXbone_index++;
 				}
 			}
-			for (int i = 0; i < bone_num; i++)
+			if (option.output_ik_end)
 			{
-				if (bone_param[i].PMX_ik_chain.empty()) continue;
-
-				MString name = bone_param[i].ik_name_jp;
-				MString ik_end_name = bone_param[i].ik_tip_name_jp;
-
-				if (name.length() == 0 || ik_end_name.length() == 0)
+				for (int i = 0; i < bone_num; i++)
 				{
-					for (auto ikt = m_BoneIKNameSetting.begin(); ikt != m_BoneIKNameSetting.end(); ++ikt)
+					if (bone_param[i].PMX_ik_chain.empty()) continue;
+
+					MString name = bone_param[i].ik_name_jp;
+					MString ik_end_name = bone_param[i].ik_tip_name_jp;
+
+					if (name.length() == 0 || ik_end_name.length() == 0)
 					{
-						if ((*ikt).bone == bone_param[i].name || (*ikt).bone == bone_param[i].name_en)
+						for (auto ikt = m_BoneIKNameSetting.begin(); ikt != m_BoneIKNameSetting.end(); ++ikt)
 						{
-							MString n = (*ikt).ik;
-							MString en = (*ikt).ikend;
-							for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
+							if ((*ikt).bone == bone_param[i].name || (*ikt).bone == bone_param[i].name_en)
 							{
-								if ((*it).en == name)
+								MString n = (*ikt).ik;
+								MString en = (*ikt).ikend;
+								for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
 								{
-									n = (*it).jp;
-									break;
+									if ((*it).en == name)
+									{
+										n = (*it).jp;
+										break;
+									}
 								}
-							}
-							for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
-							{
-								if ((*it).en == ik_end_name)
+								for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
 								{
-									en = (*it).jp;
-									break;
+									if ((*it).en == ik_end_name)
+									{
+										en = (*it).jp;
+										break;
+									}
 								}
+								if (name.length() == 0)
+								{
+									name = n;
+								}
+								if (ik_end_name.length() == 0)
+								{
+									ik_end_name = en;
+								}
+								break;
 							}
-							if (name.length() == 0)
-							{
-								name = n;
-							}
-							if (ik_end_name.length() == 0)
-							{
-								ik_end_name = en;
-							}
-							break;
 						}
 					}
-				}
-				if (name.length() == 0)
-				{
-					name = MString(L"IK-") + bone_param[i].name;
-				}
-				if (ik_end_name.length() == 0)
-				{
-					ik_end_name = name + MString(L" end");
-				}
-
-				MAnsiString subname = getMultiBytesSubstring(name.toAnsiString(), 20);
-
-				Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
-				fwrite(&Len, sizeof(int), 1, fh);
-				fwrite(RES.c_str(), Len, 1, fh);
-				Len = 0;
-				fwrite(&Len, sizeof(int), 1, fh);
-
-				float bone_head_pos[3];
-				bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
-				bone_head_pos[1] = bone_param[i].org_tip.y * scaling;
-				bone_head_pos[2] = -bone_param[i].org_tip.z * scaling;
-				fwrite(&bone_head_pos, 4, 3, fh);
-
-				uint8_t parent_bone_index = 255;
-				if (bone_param[i].ikparent != 0)
-				{
-					if (!bone_param[i].ikparent_isik)
+					if (name.length() == 0)
 					{
-						parent_bone_index = bone_id_index[bone_param[i].ikparent];
+						name = MString(L"IK-") + bone_param[i].name;
 					}
-					else
+					if (ik_end_name.length() == 0)
 					{
-						parent_bone_index = bone_param[bone_id_index[bone_param[i].ikparent]].PMX_ik_index;
+						ik_end_name = name + MString(L" end");
 					}
-				}
-				fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
-				int level = 0;
-				fwrite(&level, sizeof(int), 1, fh); //变形阶层
 
-				uint16_t BoneFlag = 63;//
-				fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
+					MAnsiString subname = getMultiBytesSubstring(name.toAnsiString(), 20);
 
-				if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
-				{
-					uint8_t target_index = -1;
-					if (bone_param[i].PMX_ik_end_index >= 0)
-					{
-						target_index = bone_param[i].PMX_ik_end_index;
-					}
-					else if (bone_param[i].PMX_ik_parent_tip >= 0)
-					{
-						target_index = bone_param[i].PMX_ik_parent_tip;
-					}
-					fwrite(&target_index, sizeof(uint8_t), 1, fh);
-				}
-				if (BoneFlag & 0x0020)
-				{
-					uint8_t ik_target_bone_index = bone_param[i].PMX_tip_index; // IKターゲットボーン番号 // IKボーンが最初に接続するボーン
-					fwrite(&ik_target_bone_index, sizeof(uint8_t), 1, fh);
-					int ik_loop = 10; // 再帰演算回数 // IK値1
-					fwrite(&ik_loop, sizeof(int), 1, fh);
-					float ik_loop_angle_limit = 0.5f;
-					fwrite(&ik_loop_angle_limit, sizeof(float), 1, fh);
-					int ik_link_count = bone_param[i].PMX_ik_chain.size();
-					fwrite(&ik_link_count, sizeof(int), 1, fh);
-					for (size_t j = 0; j < ik_link_count; j++)
-					{
-						uint8_t link_target = -1;
-						if (j + 1 == ik_link_count && !bone_param[i].PMX_ik_root_tip)
-						{
-							link_target = bone_param[bone_param[i].PMX_ik_chain[j]].PMX_root_index;
-						}
-						else
-						{
-							link_target = bone_param[bone_param[i].PMX_ik_chain[j]].PMX_tip_index;
-						}
-						fwrite(&link_target, sizeof(uint8_t), 1, fh);
-						uint8_t angle_lock = 0;
-						fwrite(&angle_lock, sizeof(uint8_t), 1, fh);
-						if (angle_lock == 1)
-						{
-							float max_radian[3];
-							max_radian[0] = 0;
-							max_radian[1] = 0;
-							max_radian[2] = 0;
-							fwrite(&max_radian, 4, 3, fh);
-							float min_radian[3];
-							min_radian[0] = 0;
-							min_radian[1] = 0;
-							min_radian[2] = 0;
-							fwrite(&min_radian, 4, 3, fh);
-						}
-					}
-				}
-				assert(PMXbone_index == bone_param[i].PMX_ik_index);
-				PMXbone_index++;
-
-				if (option.output_ik_end)
-				{
-					subname = getMultiBytesSubstring(ik_end_name.toAnsiString(), 20);
 					Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 					fwrite(&Len, sizeof(int), 1, fh);
 					fwrite(RES.c_str(), Len, 1, fh);
 					Len = 0;
 					fwrite(&Len, sizeof(int), 1, fh);
-					MQPoint parent_dir = bone_param[i].org_root - bone_param[i].org_tip;
-					parent_dir.normalize();
-					MQPoint vec1(0, -1, 0), vec2(0, 0, -1);
-					MQPoint ik_end_dir;
-					if (fabs(GetInnerProduct(parent_dir, vec1)) < fabs(GetInnerProduct(parent_dir, vec2)))
-					{
-						ik_end_dir = vec1;
-					}
-					else
-					{
-						ik_end_dir = vec2;
-					}
 
-					if (!bone_param[i].children.empty())
-					{
-						MQPoint child_dir = bone_param[bone_param[i].children.front()].org_tip - bone_param[i].org_tip;
-						child_dir.normalize();
-						if (GetInnerProduct(child_dir, ik_end_dir) > 0)
-						{
-							ik_end_dir = -ik_end_dir;
-						}
-					}
-
-					MQPoint ik_end_pos = bone_param[i].org_tip + ik_end_dir;
-					bone_head_pos[3];
-					bone_head_pos[0] = ik_end_pos.x * scaling;
-					bone_head_pos[1] = ik_end_pos.y * scaling;
-					bone_head_pos[2] = -ik_end_pos.z * scaling;
+					float bone_head_pos[3];
+					bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
+					bone_head_pos[1] = bone_param[i].org_tip.y * scaling;
+					bone_head_pos[2] = -bone_param[i].org_tip.z * scaling;
 					fwrite(&bone_head_pos, 4, 3, fh);
 
-					parent_bone_index = bone_param[i].PMX_ik_index;
+					uint8_t parent_bone_index = 255;
+					if (bone_param[i].ikparent != 0)
+					{
+						if (!bone_param[i].ikparent_isik)
+						{
+							parent_bone_index = bone_id_index[bone_param[i].ikparent];
+						}
+						else
+						{
+							parent_bone_index = bone_param[bone_id_index[bone_param[i].ikparent]].PMX_ik_index;
+						}
+					}
 					fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
-					Len = 0;
-					fwrite(&Len, sizeof(int), 1, fh); //变形阶层
+					int level = 0;
+					fwrite(&level, sizeof(int), 1, fh); //变形阶层
 
-					BoneFlag = 19;
+					uint16_t BoneFlag = 63;//
 					fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
 
-					uint8_t target_index = -1;
-					fwrite(&target_index, sizeof(uint8_t), 1, fh);
-
-					assert(PMXbone_index == bone_param[i].PMX_ik_end_index);
-
+					if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
+					{
+						uint8_t target_index = -1;
+						if (bone_param[i].PMX_ik_end_index >= 0)
+						{
+							target_index = bone_param[i].PMX_ik_end_index;
+						}
+						else if (bone_param[i].PMX_ik_parent_tip >= 0)
+						{
+							target_index = bone_param[i].PMX_ik_parent_tip;
+						}
+						fwrite(&target_index, sizeof(uint8_t), 1, fh);
+					}
+					if (BoneFlag & 0x0020)
+					{
+						uint8_t ik_target_bone_index = bone_param[i].PMX_tip_index; // IKターゲットボーン番号 // IKボーンが最初に接続するボーン
+						fwrite(&ik_target_bone_index, sizeof(uint8_t), 1, fh);
+						int ik_loop = 10; // 再帰演算回数 // IK値1
+						fwrite(&ik_loop, sizeof(int), 1, fh);
+						float ik_loop_angle_limit = 0.5f;
+						fwrite(&ik_loop_angle_limit, sizeof(float), 1, fh);
+						int ik_link_count = bone_param[i].PMX_ik_chain.size();
+						fwrite(&ik_link_count, sizeof(int), 1, fh);
+						for (size_t j = 0; j < ik_link_count; j++)
+						{
+							uint8_t link_target = -1;
+							if (j + 1 == ik_link_count && !bone_param[i].PMX_ik_root_tip)
+							{
+								link_target = bone_param[bone_param[i].PMX_ik_chain[j]].PMX_root_index;
+							}
+							else
+							{
+								link_target = bone_param[bone_param[i].PMX_ik_chain[j]].PMX_tip_index;
+							}
+							fwrite(&link_target, sizeof(uint8_t), 1, fh);
+							uint8_t angle_lock = 0;
+							fwrite(&angle_lock, sizeof(uint8_t), 1, fh);
+							if (angle_lock == 1)
+							{
+								float max_radian[3];
+								max_radian[0] = 0;
+								max_radian[1] = 0;
+								max_radian[2] = 0;
+								fwrite(&max_radian, 4, 3, fh);
+								float min_radian[3];
+								min_radian[0] = 0;
+								min_radian[1] = 0;
+								min_radian[2] = 0;
+								fwrite(&min_radian, 4, 3, fh);
+							}
+						}
+					}
+					assert(PMXbone_index == bone_param[i].PMX_ik_index);
 					PMXbone_index++;
+
+					if (option.output_ik_end)
+					{
+						subname = getMultiBytesSubstring(ik_end_name.toAnsiString(), 20);
+						Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+						fwrite(&Len, sizeof(int), 1, fh);
+						fwrite(RES.c_str(), Len, 1, fh);
+						Len = 0;
+						fwrite(&Len, sizeof(int), 1, fh);
+						MQPoint parent_dir = bone_param[i].org_root - bone_param[i].org_tip;
+						parent_dir.normalize();
+						MQPoint vec1(0, -1, 0), vec2(0, 0, -1);
+						MQPoint ik_end_dir;
+						if (fabs(GetInnerProduct(parent_dir, vec1)) < fabs(GetInnerProduct(parent_dir, vec2)))
+						{
+							ik_end_dir = vec1;
+						}
+						else
+						{
+							ik_end_dir = vec2;
+						}
+
+						if (!bone_param[i].children.empty())
+						{
+							MQPoint child_dir = bone_param[bone_param[i].children.front()].org_tip - bone_param[i].org_tip;
+							child_dir.normalize();
+							if (GetInnerProduct(child_dir, ik_end_dir) > 0)
+							{
+								ik_end_dir = -ik_end_dir;
+							}
+						}
+
+						MQPoint ik_end_pos = bone_param[i].org_tip + ik_end_dir;
+						bone_head_pos[3];
+						bone_head_pos[0] = ik_end_pos.x * scaling;
+						bone_head_pos[1] = ik_end_pos.y * scaling;
+						bone_head_pos[2] = -ik_end_pos.z * scaling;
+						fwrite(&bone_head_pos, 4, 3, fh);
+
+						parent_bone_index = bone_param[i].PMX_ik_index;
+						fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
+						Len = 0;
+						fwrite(&Len, sizeof(int), 1, fh); //变形阶层
+
+						BoneFlag = 19;
+						fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
+
+						uint8_t target_index = -1;
+						fwrite(&target_index, sizeof(uint8_t), 1, fh);
+
+						assert(PMXbone_index == bone_param[i].PMX_ik_end_index);
+
+						PMXbone_index++;
+					}
 				}
 			}
 		}
 	}
 
 	int skin_count = static_cast<int>(morph_param_list.size());
-	int Save_skin_count = skin_count - 1;
-	fwrite(&Save_skin_count, sizeof(int), 1, fh);
-	float skin_vert_pos[3];
-	DWORD skin_vert_count = 0;
-	int skin_vert_index = 0;
-	PMXMorphParam* mParam;
-	int MAXCOUNT = 0;
-	int MAXTEMP = 0;
-	PMXMorphParam MaxParam;
-	for (int i = 0; i < skin_count; i++)
+	if (skin_count != 0)
 	{
-		int TEMP = morph_param_list.at(i).vertNum;
-		if (TEMP > MAXCOUNT)
+		int Save_skin_count = skin_count - 1;
+		fwrite(&Save_skin_count, sizeof(int), 1, fh);
+		float skin_vert_pos[3];
+		int skin_vert_index = 0;
+		int MAXCOUNT = 0;
+		int MAXTEMP = 0;
+		PMXMorphParam MaxParam;
+		for (int i = 0; i < skin_count; i++)
 		{
-			MAXCOUNT = TEMP;
-			MaxParam = morph_param_list.at(i);
-		}
-	}
-	std::vector<int> MaxList;
-	for (size_t i = 0; i < MAXCOUNT; i++)
-	{
-		MaxList.push_back(MaxParam.vertex.at(i).first);
-	}
-
-	for (int i = 0; i < skin_count; i++)
-	{
-		if (i == MAXTEMP)
-		{
-			continue;
-		}
-		mParam = &morph_param_list.at(i);
-
-		auto subname = getMultiBytesSubstring(mParam->skin_name, 20);
-		Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
-		fwrite(&Len, sizeof(int), 1, fh);
-		fwrite(RES.c_str(), Len, 1, fh);
-		Len = 0;
-		fwrite(&Len, sizeof(int), 1, fh);
-		fwrite(&mParam->type, sizeof(uint8_t), 1, fh);//Panel
-		uint8_t morph_type = 1;
-		fwrite(&morph_type, sizeof(uint8_t), 1, fh);//Kind=Vertex
-		fwrite(&mParam->vertNum, sizeof(int), 1, fh);//num
-		skin_vert_count = mParam->vertNum;
-		for (DWORD j = 0; j < skin_vert_count; ++j)
-		{
-			auto vertex = &mParam->vertex.at(j);
-			if (i == 0)
+			int TEMP = morph_param_list.at(i).vertNum;
+			if (TEMP > MAXCOUNT)
 			{
-				skin_vert_index = vertex->first;
+				MAXCOUNT = TEMP;
+				MaxParam = morph_param_list.at(i);
 			}
-			else
-			{
-				skin_vert_index = static_cast<int>(distance(morph_base_vertex_index_list.begin(), find(morph_base_vertex_index_list.begin(), morph_base_vertex_index_list.end(), vertex->first)));
-			}
-			skin_vert_index = MaxList[skin_vert_index];
-			fwrite(&skin_vert_index, 4, 1, fh);
-			skin_vert_pos[0] = vertex->second.x * scaling;
-			skin_vert_pos[1] = vertex->second.y * scaling;
-			skin_vert_pos[2] = -vertex->second.z * scaling;
-			fwrite(skin_vert_pos, 4, 3, fh);
 		}
+		std::vector<int> MaxList;
+		for (size_t i = 0; i < MAXCOUNT; i++)
+		{
+			MaxList.push_back(MaxParam.vertex.at(i).first);
+		}
+
+		for (int i = 0; i < skin_count; i++)
+		{
+			if (i == MAXTEMP)
+			{
+				continue;
+			}
+			PMXMorphParam * mParam = &morph_param_list.at(i);
+
+			auto subname = getMultiBytesSubstring(mParam->skin_name, 20);
+			Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+			fwrite(&Len, sizeof(int), 1, fh);
+			fwrite(RES.c_str(), Len, 1, fh);
+			Len = 0;
+			fwrite(&Len, sizeof(int), 1, fh);
+			fwrite(&mParam->type, sizeof(uint8_t), 1, fh);//Panel
+			uint8_t morph_type = 1;
+			fwrite(&morph_type, sizeof(uint8_t), 1, fh);//Kind=Vertex
+			fwrite(&mParam->vertNum, sizeof(int), 1, fh);//num
+			DWORD skin_vert_count = mParam->vertNum;
+			for (DWORD j = 0; j < skin_vert_count; ++j)
+			{
+				auto vertex = &mParam->vertex.at(j);
+				if (i == 0)
+				{
+					skin_vert_index = vertex->first;
+				}
+				else
+				{
+					skin_vert_index = static_cast<int>(distance(morph_base_vertex_index_list.begin(), find(morph_base_vertex_index_list.begin(), morph_base_vertex_index_list.end(), vertex->first)));
+				}
+				skin_vert_index = MaxList[skin_vert_index];
+				fwrite(&skin_vert_index, 4, 1, fh);
+				skin_vert_pos[0] = vertex->second.x * scaling;
+				skin_vert_pos[1] = vertex->second.y * scaling;
+				skin_vert_pos[2] = -vertex->second.z * scaling;
+				fwrite(skin_vert_pos, 4, 3, fh);
+			}
+		}
+	}else
+	{
+		fwrite(&skin_count, sizeof(int), 1, fh);
 	}
 
 	// 表情枠用表示リスト
@@ -2087,10 +2071,10 @@ bool ExportPMXPlugin::LoadBoneSettingFile()
 		OutputDebugStringW(buf.c_str());*/
 		return false;
 	}
-	const tinyxml2::XMLElement* root = doc.RootElement();
-	if (root != nullptr)
+	const tinyxml2::XMLElement* Root = doc.RootElement();
+	if (Root != nullptr)
 	{
-		const tinyxml2::XMLElement* bones = root->FirstChildElement("bones");
+		const tinyxml2::XMLElement* bones = Root->FirstChildElement("bones");
 		if (bones != nullptr)
 		{
 			const tinyxml2::XMLElement* elem = bones->FirstChildElement("bone");
@@ -2119,7 +2103,7 @@ bool ExportPMXPlugin::LoadBoneSettingFile()
 			}
 		}
 
-		const tinyxml2::XMLElement* ik_names = root->FirstChildElement("ik_names");
+		const tinyxml2::XMLElement* ik_names = Root->FirstChildElement("ik_names");
 		if (ik_names != nullptr)
 		{
 			const tinyxml2::XMLElement* elem = ik_names->FirstChildElement("ik");
@@ -2139,7 +2123,7 @@ bool ExportPMXPlugin::LoadBoneSettingFile()
 			}
 		}
 
-		const tinyxml2::XMLElement* groups = root->FirstChildElement("groups");
+		const tinyxml2::XMLElement* groups = Root->FirstChildElement("groups");
 		if (groups != nullptr)
 		{
 			const tinyxml2::XMLElement* elem = groups->FirstChildElement("group");
