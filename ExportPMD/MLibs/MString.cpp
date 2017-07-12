@@ -10,7 +10,7 @@
 #include "wchar.h"
 #include <algorithm>
 
-static wchar_t *null_str = L"";
+static wchar_t* null_str = L"";
 
 inline bool isHighSurrogate(wchar_t ch)
 {
@@ -22,12 +22,10 @@ inline bool isLowSurrogate(wchar_t ch)
 	return (ch >= 0xDC00) && (ch <= 0xDFFF);
 }
 
-inline bool isSurrogatePair(const wchar_t *str)
+inline bool isSurrogatePair(const wchar_t* str)
 {
 	return isHighSurrogate(str[0]) && isLowSurrogate(str[1]);
 }
-
-
 
 MString::MString()
 {
@@ -36,7 +34,7 @@ MString::MString()
 	mCapacity = 0;
 }
 
-MString::MString(const wchar_t *str)
+MString::MString(const wchar_t* str)
 {
 	mStr = null_str;
 	mLength = 0;
@@ -45,7 +43,7 @@ MString::MString(const wchar_t *str)
 	*this = str;
 }
 
-MString::MString(const wchar_t *str, size_t length)
+MString::MString(const wchar_t* str, size_t length)
 {
 	mStr = null_str;
 	mLength = 0;
@@ -89,7 +87,8 @@ MString::MString(MString&& str)
 
 MString::~MString()
 {
-	if(mStr != null_str){
+	if (mStr != null_str)
+	{
 		free(mStr);
 	}
 }
@@ -98,11 +97,15 @@ MString::~MString()
 size_t MString::count() const
 {
 	size_t num = 0;
-	for(wchar_t *ptr = mStr; ptr < mStr + mLength; ){
-		if(ptr + 2 <= mStr + mLength && isSurrogatePair(ptr)){
+	for (wchar_t* ptr = mStr; ptr < mStr + mLength;)
+	{
+		if (ptr + 2 <= mStr + mLength && isSurrogatePair(ptr))
+		{
 			num += 1;
 			ptr += 2;
-		}else{
+		}
+		else
+		{
 			num += 1;
 			ptr += 1;
 		}
@@ -111,27 +114,31 @@ size_t MString::count() const
 }
 
 // Get a pointer to the next character with care of surrogate
-wchar_t *MString::next(wchar_t *ptr) const
+wchar_t* MString::next(wchar_t* ptr) const
 {
 	assert(ptr >= mStr && ptr <= mStr + mLength);
-	if(ptr < mStr || ptr >= mStr + mLength){
-		return NULL;
+	if (ptr < mStr || ptr >= mStr + mLength)
+	{
+		return nullptr;
 	}
 
-	if(ptr + 2 <= mStr + mLength && isSurrogatePair(ptr)){
+	if (ptr + 2 <= mStr + mLength && isSurrogatePair(ptr))
+	{
 		return ptr + 2;
 	}
 	return ptr + 1;
 }
 
-const wchar_t *MString::next(const wchar_t *ptr) const
+const wchar_t* MString::next(const wchar_t* ptr) const
 {
 	assert(ptr >= mStr && ptr <= mStr + mLength);
-	if(ptr < mStr || ptr >= mStr + mLength){
-		return NULL;
+	if (ptr < mStr || ptr >= mStr + mLength)
+	{
+		return nullptr;
 	}
 
-	if(ptr + 2 <= mStr + mLength && isSurrogatePair(ptr)){
+	if (ptr + 2 <= mStr + mLength && isSurrogatePair(ptr))
+	{
 		return ptr + 2;
 	}
 	return ptr + 1;
@@ -139,32 +146,36 @@ const wchar_t *MString::next(const wchar_t *ptr) const
 
 size_t MString::next(size_t pos) const
 {
-	const wchar_t *ptr = next(mStr + pos);
-	return (ptr != NULL) ? ptr - mStr : kInvalid;
+	const wchar_t* ptr = next(mStr + pos);
+	return (ptr != nullptr) ? ptr - mStr : kInvalid;
 }
 
 // Get a pointer to the previous character with care of surrogate characters
-wchar_t *MString::prev(wchar_t *ptr) const
+wchar_t* MString::prev(wchar_t* ptr) const
 {
 	assert(ptr >= mStr && ptr <= mStr + mLength);
-	if(ptr <= mStr || ptr > mStr + mLength){
-		return NULL;
+	if (ptr <= mStr || ptr > mStr + mLength)
+	{
+		return nullptr;
 	}
 
-	if(ptr >= mStr + 2 && isSurrogatePair(ptr-2)){
+	if (ptr >= mStr + 2 && isSurrogatePair(ptr - 2))
+	{
 		return ptr - 2;
 	}
 	return ptr - 1;
 }
 
-const wchar_t *MString::prev(const wchar_t *ptr) const
+const wchar_t* MString::prev(const wchar_t* ptr) const
 {
 	assert(ptr >= mStr && ptr <= mStr + mLength);
-	if(ptr <= mStr || ptr > mStr + mLength){
-		return NULL;
+	if (ptr <= mStr || ptr > mStr + mLength)
+	{
+		return nullptr;
 	}
 
-	if(ptr >= mStr + 2 && isSurrogatePair(ptr-2)){
+	if (ptr >= mStr + 2 && isSurrogatePair(ptr - 2))
+	{
 		return ptr - 2;
 	}
 	return ptr - 1;
@@ -172,13 +183,14 @@ const wchar_t *MString::prev(const wchar_t *ptr) const
 
 size_t MString::prev(size_t pos) const
 {
-	const wchar_t *ptr = prev(mStr + pos);
-	return (ptr != NULL) ? ptr - mStr : kInvalid;
+	const wchar_t* ptr = prev(mStr + pos);
+	return (ptr != nullptr) ? ptr - mStr : kInvalid;
 }
 
 void MString::clear()
 {
-	if(mStr != null_str){
+	if (mStr != null_str)
+	{
 		free(mStr);
 		mStr = null_str;
 	}
@@ -188,54 +200,66 @@ void MString::clear()
 
 bool MString::resize(size_t size)
 {
-	if(size > 0 && size+1 > mCapacity){
-		size_t new_cap = ((size+1) + 3) & ~3;
-		if(mStr == null_str){
-			void *buf = malloc(sizeof(wchar_t) * new_cap);
-			if(buf == NULL){
+	if (size > 0 && size + 1 > mCapacity)
+	{
+		size_t new_cap = ((size + 1) + 3) & ~3;
+		if (mStr == null_str)
+		{
+			void* buf = malloc(sizeof(wchar_t) * new_cap);
+			if (buf == nullptr)
+			{
 				return false;
 			}
 			memset(buf, 0, sizeof(wchar_t) * new_cap);
 			mStr = (wchar_t*)buf;
-		}else{
-			void *buf = realloc(mStr, sizeof(wchar_t) * new_cap);
-			if(buf == NULL){
+		}
+		else
+		{
+			void* buf = realloc(mStr, sizeof(wchar_t) * new_cap);
+			if (buf == nullptr)
+			{
 				return false;
 			}
-			memset((wchar_t*)buf + mCapacity, 0, sizeof(wchar_t)*(new_cap - mCapacity));
+			memset((wchar_t*)buf + mCapacity, 0, sizeof(wchar_t) * (new_cap - mCapacity));
 			mStr = (wchar_t*)buf;
 		}
 		mCapacity = new_cap;
-	}else if(size == 0){
+	}
+	else if (size == 0)
+	{
 		clear();
 	}
 
 	mLength = size;
-	if(mStr != null_str){
+	if (mStr != null_str)
+	{
 		mStr[mLength] = L'\0';
 	}
 	return true;
 }
 
-void MString::append(const wchar_t *str, size_t len)
+void MString::append(const wchar_t* str, size_t len)
 {
-	if(str == nullptr){
+	if (str == nullptr)
+	{
 		return;
 	}
 	size_t len2 = wcsnlen(str, len);
-	if(len2 == 0){
+	if (len2 == 0)
+	{
 		return;
 	}
 
 	size_t len1 = length();
 	resize(len1 + len2);
-	memcpy_s(mStr + len1, sizeof(wchar_t)*(mCapacity-len1), str, sizeof(wchar_t)*len2);
+	memcpy_s(mStr + len1, sizeof(wchar_t) * (mCapacity - len1), str, sizeof(wchar_t) * len2);
 	mStr[len1 + len2] = L'\0';
 }
 
 MString MString::substring(size_t start) const
 {
-	if(start >= mLength){
+	if (start >= mLength)
+	{
 		return MString();
 	}
 	return MString(mStr + start, mLength - start);
@@ -243,7 +267,8 @@ MString MString::substring(size_t start) const
 
 MString MString::substring(size_t start, size_t len) const
 {
-	if(start >= mLength){
+	if (start >= mLength)
+	{
 		return MString();
 	}
 	size_t copy_len = std::min(mLength - start, len);
@@ -253,11 +278,13 @@ MString MString::substring(size_t start, size_t len) const
 size_t MString::indexOf(const MString& str, size_t start) const
 {
 	assert(start >= 0);
-	if(str.length() == 0) return kInvalid;
+	if (str.length() == 0) return kInvalid;
 
-	for(size_t i=(size_t)start; i<mLength; i++){
-		if(i + str.length() > mLength) break;
-		if(wcsncmp(&mStr[i], str.c_str(), str.length()) == 0){
+	for (size_t i = (size_t)start; i < mLength; i++)
+	{
+		if (i + str.length() > mLength) break;
+		if (wcsncmp(&mStr[i], str.c_str(), str.length()) == 0)
+		{
 			return i;
 		}
 	}
@@ -265,17 +292,19 @@ size_t MString::indexOf(const MString& str, size_t start) const
 	return kInvalid;
 }
 
-size_t MString::indexOf(const wchar_t *str, size_t start) const
+size_t MString::indexOf(const wchar_t* str, size_t start) const
 {
 	assert(start >= 0);
-	if(str == nullptr) return kInvalid;
-	
-	size_t length = wcslen(str);
-	if(length == 0) return kInvalid;
+	if (str == nullptr) return kInvalid;
 
-	for(size_t i=(size_t)start; i<mLength; i++){
-		if(i + length > mLength) break;
-		if(wcsncmp(&mStr[i], str, length) == 0){
+	size_t length = wcslen(str);
+	if (length == 0) return kInvalid;
+
+	for (size_t i = (size_t)start; i < mLength; i++)
+	{
+		if (i + length > mLength) break;
+		if (wcsncmp(&mStr[i], str, length) == 0)
+		{
 			return i;
 		}
 	}
@@ -286,8 +315,10 @@ size_t MString::indexOf(const wchar_t *str, size_t start) const
 size_t MString::indexOf(wchar_t character, size_t start) const
 {
 	assert(start >= 0);
-	for(size_t i=(size_t)start; i<mLength; i++){
-		if(mStr[i] == character){
+	for (size_t i = (size_t)start; i < mLength; i++)
+	{
+		if (mStr[i] == character)
+		{
 			return i;
 		}
 	}
@@ -297,8 +328,10 @@ size_t MString::indexOf(wchar_t character, size_t start) const
 size_t MString::indexOf(const std::vector<wchar_t>& characters, size_t start) const
 {
 	assert(start != kInvalid);
-	for(size_t i=(size_t)start; i<mLength; i++){
-		if(characters.end() != std::find(characters.begin(), characters.end(), mStr[i])){
+	for (size_t i = (size_t)start; i < mLength; i++)
+	{
+		if (characters.end() != find(characters.begin(), characters.end(), mStr[i]))
+		{
 			return i;
 		}
 	}
@@ -307,45 +340,52 @@ size_t MString::indexOf(const std::vector<wchar_t>& characters, size_t start) co
 
 size_t MString::lastIndexOf(const MString& str, size_t start) const
 {
-	if(str.length() == 0) return kInvalid;
-	if(mLength < str.length()) return kInvalid;
-	if(start == kInvalid || start > mLength - str.length()){
+	if (str.length() == 0) return kInvalid;
+	if (mLength < str.length()) return kInvalid;
+	if (start == kInvalid || start > mLength - str.length())
+	{
 		start = mLength - str.length();
 	}
 
-	for(size_t i = start; i >= 0 ; i--){
-		if(wcsncmp(&mStr[i], str.c_str(), str.length()) == 0){
+	for (size_t i = start; i >= 0; i--)
+	{
+		if (wcsncmp(&mStr[i], str.c_str(), str.length()) == 0)
+		{
 			return i;
 		}
-		if(i == 0) break;
-	}	
+		if (i == 0) break;
+	}
 	return kInvalid;
 }
 
 size_t MString::lastIndexOf(wchar_t character, size_t start) const
 {
-	if(mLength == 0) return kInvalid;
-	if(start == kInvalid || start >= mLength) start = mLength - 1;
+	if (mLength == 0) return kInvalid;
+	if (start == kInvalid || start >= mLength) start = mLength - 1;
 
-	for(size_t i = start; i >= 0 ; i--){
-		if(mStr[i] == character){
+	for (size_t i = start; i >= 0; i--)
+	{
+		if (mStr[i] == character)
+		{
 			return i;
 		}
-		if(i == 0) break;
+		if (i == 0) break;
 	}
 	return kInvalid;
 }
 
 size_t MString::lastIndexOf(const std::vector<wchar_t>& characters, size_t start) const
 {
-	if(mLength == 0) return kInvalid;
-	if(start == kInvalid || start >= mLength) start = mLength - 1;
+	if (mLength == 0) return kInvalid;
+	if (start == kInvalid || start >= mLength) start = mLength - 1;
 
-	for(size_t i = start; i >= 0 ; i--){
-		if(characters.end() != std::find(characters.begin(), characters.end(), mStr[i])){
+	for (size_t i = start; i >= 0; i--)
+	{
+		if (characters.end() != find(characters.begin(), characters.end(), mStr[i]))
+		{
 			return i;
 		}
-		if(i == 0) break;
+		if (i == 0) break;
 	}
 	return kInvalid;
 }
@@ -354,13 +394,15 @@ std::vector<MString> MString::split(const MString& separator) const
 {
 	std::vector<MString> ret;
 	size_t pos = 0;
-	while(1){
+	while (true)
+	{
 		size_t next = indexOf(separator, pos);
-		if(next == kInvalid){
+		if (next == kInvalid)
+		{
 			ret.push_back(substring(pos));
 			break;
 		}
-		ret.push_back(substring(pos, next-pos));
+		ret.push_back(substring(pos, next - pos));
 		pos = next + separator.length();
 	}
 	return ret;
@@ -370,13 +412,15 @@ std::vector<MString> MString::split(wchar_t separator) const
 {
 	std::vector<MString> ret;
 	size_t pos = 0;
-	while(1){
+	while (true)
+	{
 		size_t next = indexOf(separator, pos);
-		if(next == kInvalid){
+		if (next == kInvalid)
+		{
 			ret.push_back(substring(pos));
 			break;
 		}
-		ret.push_back(substring(pos, next-pos));
+		ret.push_back(substring(pos, next - pos));
 		pos = next + 1;
 	}
 	return ret;
@@ -386,13 +430,15 @@ std::vector<MString> MString::split(const std::vector<wchar_t>& separators) cons
 {
 	std::vector<MString> ret;
 	size_t pos = 0;
-	while(1){
+	while (true)
+	{
 		size_t next = indexOf(separators, pos);
-		if(next == kInvalid){
+		if (next == kInvalid)
+		{
 			ret.push_back(substring(pos));
 			break;
 		}
-		ret.push_back(substring(pos, next-pos));
+		ret.push_back(substring(pos, next - pos));
 		pos = next + 1;
 	}
 	return ret;
@@ -401,8 +447,9 @@ std::vector<MString> MString::split(const std::vector<wchar_t>& separators) cons
 MString MString::combine(const std::vector<MString>& strings, const MString& separator)
 {
 	MString ret;
-	for(size_t i=0; i<strings.size(); i++){
-		if(i > 0) ret += separator;
+	for (size_t i = 0; i < strings.size(); i++)
+	{
+		if (i > 0) ret += separator;
 		ret += strings[i];
 	}
 	return ret;
@@ -411,8 +458,9 @@ MString MString::combine(const std::vector<MString>& strings, const MString& sep
 MString MString::combine(const std::vector<MString>& strings, wchar_t separator)
 {
 	MString ret;
-	for(size_t i=0; i<strings.size(); i++){
-		if(i > 0) ret += separator;
+	for (size_t i = 0; i < strings.size(); i++)
+	{
+		if (i > 0) ret += separator;
 		ret += strings[i];
 	}
 	return ret;
@@ -423,7 +471,8 @@ MString MString::toLowerCase() const
 	size_t len = length();
 	MString ret;
 	ret.resize(len);
-	for(size_t i=0; i<len; i++) {
+	for (size_t i = 0; i < len; i++)
+	{
 		ret[i] = towlower(mStr[i]);
 	}
 
@@ -435,7 +484,8 @@ MString MString::toUpperCase() const
 	size_t len = length();
 	MString ret;
 	ret.resize(len);
-	for(size_t i=0; i<len; i++) {
+	for (size_t i = 0; i < len; i++)
+	{
 		ret[i] = towupper(mStr[i]);
 	}
 
@@ -444,11 +494,11 @@ MString MString::toUpperCase() const
 
 MAnsiString MString::toAnsiString() const
 {
-	if(length() == 0) return std::string();
+	if (length() == 0) return std::string();
 
-	int lenu = ::WideCharToMultiByte(CP_ACP,0,mStr,-1,NULL,0,NULL,NULL);
-	char *stru = (char*)malloc(lenu+1);
-	::WideCharToMultiByte(CP_ACP,0,mStr,-1,stru,lenu,NULL,NULL);
+	int lenu = WideCharToMultiByte(CP_ACP, 0, mStr, -1, nullptr, 0, nullptr, nullptr);
+	char* stru = (char*)malloc(lenu + 1);
+	WideCharToMultiByte(CP_ACP, 0, mStr, -1, stru, lenu, nullptr, nullptr);
 
 	MAnsiString str(stru);
 	free(stru);
@@ -457,28 +507,37 @@ MAnsiString MString::toAnsiString() const
 
 MAnsiString MString::toUtf8String() const
 {
-	if(length() == 0) return std::string();
+	if (length() == 0) return std::string();
 
-	int lenu = ::WideCharToMultiByte(CP_UTF8,0,mStr,-1,NULL,0,NULL,NULL);
-	char *stru = (char*)malloc(lenu+1);
-	::WideCharToMultiByte(CP_UTF8,0,mStr,-1,stru,lenu,NULL,NULL);
+	int lenu = WideCharToMultiByte(CP_UTF8, 0, mStr, -1, nullptr, 0, nullptr, nullptr);
+	char* stru = (char*)malloc(lenu + 1);
+	WideCharToMultiByte(CP_UTF8, 0, mStr, -1, stru, lenu, nullptr, nullptr);
 
 	MAnsiString str(stru);
 	free(stru);
 	return str;
 }
 
-template<typename T> T parseRadix16(const wchar_t *ptr, const wchar_t *end_ptr)
+template <typename T>
+T parseRadix16(const wchar_t* ptr, const wchar_t* end_ptr)
 {
 	T val = 0;
-	for(; ptr < end_ptr; ptr++){
-		if(*ptr >= L'0' && *ptr <= '9'){
+	for (; ptr < end_ptr; ptr++)
+	{
+		if (*ptr >= L'0' && *ptr <= '9')
+		{
 			val = (val << 4) | (*ptr - L'0');
-		}else if(*ptr >= L'A' && *ptr <= 'F'){
+		}
+		else if (*ptr >= L'A' && *ptr <= 'F')
+		{
 			val = (val << 4) | (*ptr - L'A' + 10);
-		}else if(*ptr >= L'a' && *ptr <= 'f'){
+		}
+		else if (*ptr >= L'a' && *ptr <= 'f')
+		{
 			val = (val << 4) | (*ptr - L'a' + 10);
-		}else{
+		}
+		else
+		{
 			break;
 		}
 	}
@@ -488,7 +547,8 @@ template<typename T> T parseRadix16(const wchar_t *ptr, const wchar_t *end_ptr)
 int MString::toInt() const
 {
 	// 0x** is treated as 16 radix number
-	if(mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X')){
+	if (mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X'))
+	{
 		return parseRadix16<int>(mStr + 2, mStr + mLength);
 	}
 
@@ -497,13 +557,14 @@ int MString::toInt() const
 
 int MString::toIntWithRadix(int base) const
 {
-	return wcstol(mStr, NULL, base);
+	return wcstol(mStr, nullptr, base);
 }
 
 unsigned int MString::toUInt() const
 {
 	// 0x** is treated as 16 radix number
-	if(mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X')){
+	if (mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X'))
+	{
 		return parseRadix16<unsigned int>(mStr + 2, mStr + mLength);
 	}
 
@@ -513,13 +574,14 @@ unsigned int MString::toUInt() const
 
 unsigned int MString::toUIntWithRadix(int base) const
 {
-	return wcstoul(mStr, NULL, base);
+	return wcstoul(mStr, nullptr, base);
 }
 
 __int64 MString::toInt64() const
 {
 	// 0x** is treated as 16 radix number
-	if(mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X')){
+	if (mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X'))
+	{
 		return parseRadix16<__int64>(mStr + 2, mStr + mLength);
 	}
 
@@ -528,13 +590,14 @@ __int64 MString::toInt64() const
 
 __int64 MString::toInt64WithRadix(int base) const
 {
-	return _wcstoi64(mStr, NULL, base);
+	return _wcstoi64(mStr, nullptr, base);
 }
 
 unsigned __int64 MString::toUInt64() const
 {
 	// 0x** is treated as 16 radix number
-	if(mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X')){
+	if (mLength >= 3 && mStr[0] == L'0' && (mStr[1] == L'x' || mStr[1] == L'X'))
+	{
 		return parseRadix16<unsigned __int64>(mStr + 2, mStr + mLength);
 	}
 
@@ -543,38 +606,38 @@ unsigned __int64 MString::toUInt64() const
 
 unsigned __int64 MString::toUInt64WithRadix(int base) const
 {
-	return _wcstoui64(mStr, NULL, base);
+	return _wcstoui64(mStr, nullptr, base);
 }
 
 float MString::toFloat(void) const
 {
-	double val = wcstod(mStr, NULL);
+	double val = wcstod(mStr, nullptr);
 	return (float)val;
 }
 
 double MString::toDouble(void) const
 {
-	double val = wcstod(mStr, NULL);
+	double val = wcstod(mStr, nullptr);
 	return val;
 }
 
 bool MString::canParseInt() const
 {
-	wchar_t *endptr;
+	wchar_t* endptr;
 	wcstol(mStr, &endptr, 10);
 	return (endptr == nullptr) || (endptr == mStr + mLength);
 }
 
 bool MString::canParseFloat() const
 {
-	wchar_t *endptr;
+	wchar_t* endptr;
 	wcstod(mStr, &endptr);
 	return (endptr == nullptr) || (endptr == mStr + mLength);
 }
 
 bool MString::canParseDouble() const
 {
-	wchar_t *endptr;
+	wchar_t* endptr;
 	wcstod(mStr, &endptr);
 	return (endptr == nullptr) || (endptr == mStr + mLength);
 }
@@ -588,26 +651,26 @@ MString MString::fromCharacter(wchar_t character)
 	return MString(str);
 }
 
-MString MString::fromAnsiString(const char *str)
+MString MString::fromAnsiString(const char* str)
 {
-	if(str == NULL) return MString();
+	if (str == nullptr) return MString();
 
-	int lenw = ::MultiByteToWideChar(CP_ACP,0,str,-1,NULL,0);
-	wchar_t *strw = (wchar_t*)malloc(sizeof(wchar_t) * (lenw+1));
-	::MultiByteToWideChar(CP_ACP,0,str,-1,strw,lenw);
+	int lenw = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+	wchar_t* strw = (wchar_t*)malloc(sizeof(wchar_t) * (lenw + 1));
+	MultiByteToWideChar(CP_ACP, 0, str, -1, strw, lenw);
 
 	MString ret(strw);
 	free(strw);
 	return ret;
 }
 
-MString MString::fromUtf8String(const char *str)
+MString MString::fromUtf8String(const char* str)
 {
-	if(str == NULL) return MString();
+	if (str == nullptr) return MString();
 
-	int lenw = ::MultiByteToWideChar(CP_UTF8,0,str,-1,NULL,0);
-	wchar_t *strw = (wchar_t*)malloc(sizeof(wchar_t) * (lenw+1));
-	::MultiByteToWideChar(CP_UTF8,0,str,-1,strw,lenw);
+	int lenw = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
+	wchar_t* strw = (wchar_t*)malloc(sizeof(wchar_t) * (lenw + 1));
+	MultiByteToWideChar(CP_UTF8, 0, str, -1, strw, lenw);
 
 	MString ret(strw);
 	free(strw);
@@ -620,7 +683,8 @@ MString MString::fromInt(int value, int radix)
 #if _MSC_VER >= 1400 || __BORLAND_C__ >= 0x0630
 	errno_t ret = _itow_s(value, buf, _countof(buf), radix);
 
-	if(ret != 0){
+	if (ret != 0)
+	{
 		return MString();
 	}
 	return MString(buf);
@@ -635,7 +699,8 @@ MString MString::fromUInt(unsigned int value, int radix)
 	wchar_t buf[30];
 #if _MSC_VER >= 1400 || __BORLAND_C__ >= 0x0630
 	errno_t ret = _ultow_s(value, buf, _countof(buf), radix);
-	if(ret != 0){
+	if (ret != 0)
+	{
 		return MString();
 	}
 #else
@@ -649,7 +714,8 @@ MString MString::fromInt64(__int64 value, int radix)
 	wchar_t buf[30];
 #if _MSC_VER >= 1400 || __BORLAND_C__ >= 0x0630
 	errno_t ret = _i64tow_s(value, buf, _countof(buf), radix);
-	if(ret != 0){
+	if (ret != 0)
+	{
 		return MString();
 	}
 #else
@@ -663,7 +729,8 @@ MString MString::fromUInt64(unsigned __int64 value, int radix)
 	wchar_t buf[30];
 #if _MSC_VER >= 1400 || __BORLAND_C__ >= 0x0630
 	errno_t ret = _ui64tow_s(value, buf, _countof(buf), radix);
-	if(ret != 0){
+	if (ret != 0)
+	{
 		return MString();
 	}
 #else
@@ -677,7 +744,7 @@ MString MString::fromFloat(float value, int digit, int max_digit)
 {
 	float absval = fabs(value);
 	int d = (absval > 0) ? (int)floor(log10(absval)) : 0;
-	MString format = MString::format(L"%%0.%df", std::min(std::max(0, digit-d-1), max_digit));
+	MString format = MString::format(L"%%0.%df", std::min(std::max(0, digit - d - 1), max_digit));
 	return MString::format(format.c_str(), value);
 }
 
@@ -686,7 +753,7 @@ MString MString::fromDouble(double value, int digit, int max_digit)
 {
 	double absval = fabs(value);
 	int d = (absval > 0) ? (int)floor(log10(absval)) : 0;
-	MString format = MString::format(L"%%0.%dlf", std::min(std::max(0, digit-d-1), max_digit));
+	MString format = MString::format(L"%%0.%dlf", std::min(std::max(0, digit - d - 1), max_digit));
 	return MString::format(format.c_str(), value);
 }
 
@@ -698,18 +765,21 @@ bool MString::isNumber() const
 	bool period = false;
 	bool exponent = false;
 	bool hex = false;
-	for(const wchar_t *ptr = mStr; ptr < mStr + mLength; ptr = next(ptr))
+	for (const wchar_t* ptr = mStr; ptr < mStr + mLength; ptr = next(ptr))
 	{
-		switch(*ptr){
+		switch (*ptr)
+		{
 		case '-':
 		case '+':
-			if(number || period || sign || hex){
+			if (number || period || sign || hex)
+			{
 				return false;
 			}
 			sign = true;
 			break;
 		case '.':
-			if(period || exponent || hex){
+			if (period || exponent || hex)
+			{
 				return false;
 			}
 			period = true;
@@ -728,8 +798,10 @@ bool MString::isNumber() const
 			break;
 		case 'e':
 		case 'E':
-			if(!hex){
-				if(!number || exponent){
+			if (!hex)
+			{
+				if (!number || exponent)
+				{
 					return false;
 				}
 				exponent = true;
@@ -748,16 +820,16 @@ bool MString::isNumber() const
 		case 'C':
 		case 'D':
 		case 'F':
-			if(!hex) return false;
+			if (!hex) return false;
 			number = true;
 			break;
 		case 'x':
 		case 'X':
-			if(hex) return false;
-			if(ptr == mStr) return false;
-			if(*(ptr - 1) != '0') return false;
-			if(ptr - 2 == mStr && (*(ptr - 2) != L'+' && *(ptr - 2) != L'-')) return false;
-			if(ptr - 3 >= mStr) return false;
+			if (hex) return false;
+			if (ptr == mStr) return false;
+			if (*(ptr - 1) != '0') return false;
+			if (ptr - 2 == mStr && (*(ptr - 2) != L'+' && *(ptr - 2) != L'-')) return false;
+			if (ptr - 3 >= mStr) return false;
 			hex = true;
 			break;
 		default:
@@ -771,41 +843,49 @@ bool MString::isNumber() const
 // Trim 0 for numeric string
 bool MString::trimNumber()
 {
-	if(!isNumber()) return false;
+	if (!isNumber()) return false;
 
 	bool trimmed = false;
 
 	// Remove end 0
 	size_t period = lastIndexOf('.');
-	if(period != kInvalid){
+	if (period != kInvalid)
+	{
 		int zero_count = 0;
 		size_t pos = mLength - 1;
-		for(; pos > period; pos--){
-			if(mStr[pos] == 'E' || mStr[pos] == 'e'){
+		for (; pos > period; pos--)
+		{
+			if (mStr[pos] == 'E' || mStr[pos] == 'e')
+			{
 				zero_count = 0;
 				break;
 			}
-			if(mStr[pos] >= '1' && mStr[pos] <= '9'){
+			if (mStr[pos] >= '1' && mStr[pos] <= '9')
+			{
 				break;
 			}
-			if(mStr[pos] != '0'){
+			if (mStr[pos] != '0')
+			{
 				zero_count = 0;
 				break;
 			}
 			zero_count++;
 		}
-		if(pos == period){
+		if (pos == period)
+		{
 			resize(pos);
 			trimmed = true;
 		}
-		else if(zero_count > 0){
+		else if (zero_count > 0)
+		{
 			resize(mLength - zero_count);
 			trimmed = true;
 		}
 	}
 
 	// Remove header '+'
-	if(mLength > 0 && mStr[0] == L'+'){
+	if (mLength > 0 && mStr[0] == L'+')
+	{
 		*this = substring(1);
 		trimmed = true;
 	}
@@ -817,23 +897,32 @@ MString MString::getTrimDecimalZero() const
 {
 	size_t pos = mLength;
 	bool other = false;
-	for(size_t i = mLength; ; ){
+	for (size_t i = mLength; ;)
+	{
 		i = prev(i);
-		if(i == kInvalid) break;
+		if (i == kInvalid) break;
 
-		if(mStr[i] == L'.'){
-			if(other){
+		if (mStr[i] == L'.')
+		{
+			if (other)
+			{
 				return substring(0, pos);
-			}else{
-				return substring(0, i);
 			}
-		}else if(mStr[i] == L'0'){
-			if(!other){
+			return substring(0, i);
+		}
+		if (mStr[i] == L'0')
+		{
+			if (!other)
+			{
 				pos = i;
 			}
-		}else if(mStr[i] >= L'1' && mStr[i] <= L'9'){
+		}
+		else if (mStr[i] >= L'1' && mStr[i] <= L'9')
+		{
 			other = true;
-		}else{
+		}
+		else
+		{
 			break;
 		}
 	}
@@ -843,19 +932,23 @@ MString MString::getTrimDecimalZero() const
 
 MString MString::getTrimSpace() const
 {
-	if(mLength == 0) return MString();
+	if (mLength == 0) return MString();
 
 	size_t pre_pos = mLength;
-	for(size_t i = 0; i < mLength && i != kInvalid; i = next(i)){
-		if(!(mStr[i] == L' ' || mStr[i] == L'\t')){
+	for (size_t i = 0; i < mLength && i != kInvalid; i = next(i))
+	{
+		if (!(mStr[i] == L' ' || mStr[i] == L'\t'))
+		{
 			pre_pos = i;
 			break;
 		}
 	}
 	size_t pst_pos = pre_pos;
-	for(size_t n = mLength; n > pre_pos && n != kInvalid; ){
+	for (size_t n = mLength; n > pre_pos && n != kInvalid;)
+	{
 		size_t i = prev(n);
-		if(i != kInvalid && !(mStr[i] == L' ' || mStr[i] == L'\t')){
+		if (i != kInvalid && !(mStr[i] == L' ' || mStr[i] == L'\t'))
+		{
 			pst_pos = n;
 			break;
 		}
@@ -865,14 +958,15 @@ MString MString::getTrimSpace() const
 	return substring(pre_pos, pst_pos - pre_pos);
 }
 
-MString MString::format(const wchar_t *format, ...)
+MString MString::format(const wchar_t* format, ...)
 {
 	va_list argp;
 	va_start(argp, format);
 
 #if _MSC_VER >= 1400
 	int num = _vscwprintf(format, argp);
-	if(num <= 0) {
+	if (num <= 0)
+	{
 		va_end(argp);
 		return MString();
 	}
@@ -880,7 +974,8 @@ MString MString::format(const wchar_t *format, ...)
 	MString ret;
 	ret.resize(num);
 	num = vswprintf_s(ret.c_str(), ret.capacity(), format, argp);
-	if(num < 0) {
+	if (num < 0)
+	{
 		va_end(argp);
 		return MString();
 	}
@@ -889,22 +984,22 @@ MString MString::format(const wchar_t *format, ...)
 #else
 	wchar_t *temp = NULL;
 	int num = 0;
-	for(size_t temp_len = 1024; temp_len < 1024 * 1024; temp_len *= 4){
+	for (size_t temp_len = 1024; temp_len < 1024 * 1024; temp_len *= 4) {
 		temp = (wchar_t*)malloc(sizeof(wchar_t)*temp_len);
-		if(temp == NULL){
+		if (temp == NULL) {
 			va_end(argp);
 			return MString();
 		}
 
 		num = _vsnwprintf(temp, temp_len, format, argp);
-		if(num >= 0){
+		if (num >= 0) {
 			break;
 		}
 
 		free(temp);
 		temp = NULL;
 	}
-	if(num <= 0) {
+	if (num <= 0) {
 		free(temp);
 		va_end(argp);
 		return MString();
@@ -912,21 +1007,22 @@ MString MString::format(const wchar_t *format, ...)
 
 	MString ret;
 	ret.resize(num);
-	memcpy_s(ret.c_str(), sizeof(wchar_t)*ret.mCapacity, temp, sizeof(wchar_t)*(num+1));
+	memcpy_s(ret.c_str(), sizeof(wchar_t)*ret.mCapacity, temp, sizeof(wchar_t)*(num + 1));
 	free(temp);
 	va_end(argp);
 	return ret;
 #endif
 }
 
-int MString::formatSet(const wchar_t *format, ...)
+int MString::formatSet(const wchar_t* format, ...)
 {
 	va_list argp;
 	va_start(argp, format);
 
 #if _MSC_VER >= 1400
 	int num = _vscwprintf(format, argp);
-	if(num <= 0) {
+	if (num <= 0)
+	{
 		va_end(argp);
 		return num;
 	}
@@ -938,29 +1034,29 @@ int MString::formatSet(const wchar_t *format, ...)
 #else
 	wchar_t *temp = NULL;
 	int num = 0;
-	for(size_t temp_len = 1024; temp_len < 1024 * 1024; temp_len *= 4){
+	for (size_t temp_len = 1024; temp_len < 1024 * 1024; temp_len *= 4) {
 		temp = (wchar_t*)malloc(sizeof(wchar_t)*temp_len);
-		if(temp == NULL){
+		if (temp == NULL) {
 			va_end(argp);
 			return -1;
 		}
 
 		num = _vsnwprintf(temp, temp_len, format, argp);
-		if(num >= 0){
+		if (num >= 0) {
 			break;
 		}
 
 		free(temp);
 		temp = NULL;
 	}
-	if(num <= 0) {
+	if (num <= 0) {
 		free(temp);
 		va_end(argp);
 		return num;
 	}
 
 	resize(num);
-	memcpy_s(c_str(), sizeof(wchar_t)*mCapacity, temp, sizeof(wchar_t)*(num+1));
+	memcpy_s(c_str(), sizeof(wchar_t)*mCapacity, temp, sizeof(wchar_t)*(num + 1));
 	free(temp);
 	va_end(argp);
 	return num;
@@ -987,53 +1083,65 @@ int MString::compareSubstringIgnoreCase(size_t start, const MString& str) const
 	return _wcsnicmp(mStr + start, str.c_str(), str.length());
 }
 
-MString& MString::operator = (const MString& str)
+MString& MString::operator =(const MString& str)
 {
-	if(mStr == str.c_str()){
+	if (mStr == str.c_str())
+	{
 		return *this;
 	}
 
 	size_t len = str.length();
-	if(len == 0){
+	if (len == 0)
+	{
 		clear();
-	}else{
+	}
+	else
+	{
 		resize(len);
-		memcpy_s(mStr, sizeof(wchar_t)*mCapacity, str.c_str(), sizeof(wchar_t)*len);
+		memcpy_s(mStr, sizeof(wchar_t) * mCapacity, str.c_str(), sizeof(wchar_t) * len);
 		mStr[len] = L'\0';
 	}
 	return *this;
 }
 
-MString& MString::operator = (const wchar_t *str)
+MString& MString::operator =(const wchar_t* str)
 {
-	if(mStr == str){
+	if (mStr == str)
+	{
 		return *this;
 	}
 
-	size_t len = (str != 0) ? wcslen(str) : 0;
-	if(len == 0){
+	size_t len = (str != nullptr) ? wcslen(str) : 0;
+	if (len == 0)
+	{
 		clear();
-	}else{
+	}
+	else
+	{
 		resize(len);
-		memcpy_s(mStr, sizeof(wchar_t)*mCapacity, str, sizeof(wchar_t)*len);
+		memcpy_s(mStr, sizeof(wchar_t) * mCapacity, str, sizeof(wchar_t) * len);
 		mStr[len] = L'\0';
 	}
 	return *this;
 }
 
 #ifndef MSTRING_DISABLE_STDSRING
-MString& MString::operator = (const std::wstring& str)
+MString& MString::operator =(const std::wstring& str)
 {
-	if(mStr == str.c_str()){
+	if (mStr == str.c_str())
+	{
 		return *this;
 	}
 
 	size_t len = str.length();
-	if(len == 0){
+	if (len == 0)
+	{
 		clear();
-	}else{
+	}
+	else
+	{
 		resize(len);
-		memcpy_s(mStr, sizeof(wchar_t)*mCapacity, str.c_str(), sizeof(wchar_t)*len);
+		memcpy_s(mStr, sizeof(wchar_t) * mCapacity, str.c_str(), sizeof(wchar_t) * len);
 		mStr[len] = L'\0';
 	}
 	return *this;
@@ -1041,13 +1149,15 @@ MString& MString::operator = (const std::wstring& str)
 #endif
 
 #if _MSC_VER >= 1600 || __BORLAND_C__ >= 0x0630
-MString& MString::operator = (MString&& str)
+MString& MString::operator =(MString&& str)
 {
-	if(mStr == str.c_str()){
+	if (mStr == str.c_str())
+	{
 		return *this;
 	}
 
-	if(mStr != null_str){
+	if (mStr != null_str)
+	{
 		free(mStr);
 	}
 
@@ -1063,35 +1173,37 @@ MString& MString::operator = (MString&& str)
 }
 #endif
 
-MString& MString::operator += (const MString& str)
+MString& MString::operator +=(const MString& str)
 {
 	size_t len2 = str.length();
-	if(len2 == 0){
+	if (len2 == 0)
+	{
 		return *this;
 	}
 
 	size_t len1 = length();
 	resize(len1 + len2);
-	memcpy_s(mStr + len1, sizeof(wchar_t)*(mCapacity-len1), str.c_str(), sizeof(wchar_t)*len2);
+	memcpy_s(mStr + len1, sizeof(wchar_t) * (mCapacity - len1), str.c_str(), sizeof(wchar_t) * len2);
 	mStr[len1 + len2] = L'\0';
 	return *this;
 }
 
-MString& MString::operator += (const wchar_t *str)
+MString& MString::operator +=(const wchar_t* str)
 {
 	size_t len2 = (str != nullptr) ? wcslen(str) : 0;
-	if(len2 == 0){
+	if (len2 == 0)
+	{
 		return *this;
 	}
 
 	size_t len1 = length();
 	resize(len1 + len2);
-	memcpy_s(mStr + len1, sizeof(wchar_t)*(mCapacity-len1), str, sizeof(wchar_t)*len2);
+	memcpy_s(mStr + len1, sizeof(wchar_t) * (mCapacity - len1), str, sizeof(wchar_t) * len2);
 	mStr[len1 + len2] = L'\0';
 	return *this;
 }
 
-MString& MString::operator += (wchar_t character)
+MString& MString::operator +=(wchar_t character)
 {
 	size_t len1 = length();
 	resize(len1 + 1);
@@ -1100,21 +1212,21 @@ MString& MString::operator += (wchar_t character)
 	return *this;
 }
 
-MString MString::operator + (const MString& str) const
+MString MString::operator +(const MString& str) const
 {
 	MString ret(*this);
 	ret += str;
 	return ret;
 }
 
-MString MString::operator + (const wchar_t *str) const
+MString MString::operator +(const wchar_t* str) const
 {
 	MString ret(*this);
 	ret += str;
 	return ret;
 }
 
-MString MString::operator + (wchar_t character) const
+MString MString::operator +(wchar_t character) const
 {
 	MString ret(*this);
 	ret += character;
@@ -1122,109 +1234,108 @@ MString MString::operator + (wchar_t character) const
 }
 
 #if _MSC_VER >= 1600 || __BORLAND_C__ >= 0x0630
-MString operator + (MString&& str1, const MString& str2)
+MString operator +(MString&& str1, const MString& str2)
 {
 	str1 += str2;
 	return std::move(str1);
 }
 
-MString operator + (MString&& str1, const wchar_t *str2)
+MString operator +(MString&& str1, const wchar_t* str2)
 {
 	str1 += str2;
 	return std::move(str1);
 }
 #endif
 
-MString operator + (const wchar_t *str1, const MString& str2)
+MString operator +(const wchar_t* str1, const MString& str2)
 {
 	MString ret(str1);
 	ret += str2;
 	return ret;
 }
 
-bool MString::operator == (const MString& str) const
+bool MString::operator ==(const MString& str) const
 {
-	if(length() != str.length()) return false;
+	if (length() != str.length()) return false;
 
 	return (wmemcmp(mStr, str.c_str(), length()) == 0);
 }
 
-bool MString::operator == (const wchar_t *str) const
+bool MString::operator ==(const wchar_t* str) const
 {
 	size_t len = (str != nullptr) ? wcslen(str) : 0;
-	if(length() != len) return false;
+	if (length() != len) return false;
 
 	return (wmemcmp(mStr, str, length()) == 0);
 }
 
 #ifndef MSTRING_DISABLE_STDSRING
-bool MString::operator == (const std::wstring& str) const
+bool MString::operator ==(const std::wstring& str) const
 {
 	size_t len = str.length();
-	if(length() != len) return false;
+	if (length() != len) return false;
 
 	return (wmemcmp(mStr, str.c_str(), length()) == 0);
 }
 #endif
 
-bool operator == (const wchar_t *str1, const MString& str2)
+bool operator ==(const wchar_t* str1, const MString& str2)
 {
 	size_t len = (str1 != nullptr) ? wcslen(str1) : 0;
-	if(len != str2.length()) return false;
+	if (len != str2.length()) return false;
 
 	return (wmemcmp(str1, str2.c_str(), len) == 0);
 }
 
 #ifndef MSTRING_DISABLE_STDSRING
-bool operator == (const std::wstring& str1, const MString& str2)
+bool operator ==(const std::wstring& str1, const MString& str2)
 {
 	size_t len = str1.length();
-	if(len != str2.length()) return false;
+	if (len != str2.length()) return false;
 
 	return (wmemcmp(str1.c_str(), str2.c_str(), len) == 0);
 }
 #endif
 
-bool MString::operator != (const MString& str) const
+bool MString::operator !=(const MString& str) const
 {
-	if(length() != str.length()) return true;
+	if (length() != str.length()) return true;
 
 	return (wmemcmp(mStr, str.c_str(), length()) != 0);
 }
 
-bool MString::operator != (const wchar_t *str) const
+bool MString::operator !=(const wchar_t* str) const
 {
 	size_t len = (str != nullptr) ? wcslen(str) : 0;
-	if(length() != len) return true;
+	if (length() != len) return true;
 
 	return (wmemcmp(mStr, str, length()) != 0);
 }
 
 #ifndef MSTRING_DISABLE_STDSRING
-bool MString::operator != (const std::wstring& str) const
+bool MString::operator !=(const std::wstring& str) const
 {
 	size_t len = str.length();
-	if(length() != len) return false;
+	if (length() != len) return false;
 
 	return (wmemcmp(mStr, str.c_str(), length()) != 0);
 }
 #endif
 
-bool operator != (const wchar_t *str1, const MString& str2)
+bool operator !=(const wchar_t* str1, const MString& str2)
 {
 	size_t len = (str1 != nullptr) ? wcslen(str1) : 0;
-	if(len != str2.length()) return false;
+	if (len != str2.length()) return false;
 
 	return (wmemcmp(str1, str2.c_str(), len) != 0);
 }
 
 #ifndef MSTRING_DISABLE_STDSRING
-bool operator != (const std::wstring& str1, const MString& str2)
+bool operator !=(const std::wstring& str1, const MString& str2)
 {
 	size_t len = str1.length();
-	if(len != str2.length()) return false;
+	if (len != str2.length()) return false;
 
 	return (wmemcmp(str1.c_str(), str2.c_str(), len) != 0);
 }
 #endif
-

@@ -8,20 +8,20 @@
 #include <string>
 #include <vector>
 
-
 // String for ANSI character
 class MLIBS_API MAnsiString
 {
 public:
-	enum {
+	enum
+	{
 		kInvalid = (size_t)-1,
 	};
 
 public:
 	// Constructor
 	MAnsiString();
-	MAnsiString(const char *str);
-	MAnsiString(const char *str, size_t length);
+	MAnsiString(const char* str);
+	MAnsiString(const char* str, size_t length);
 #ifndef MSTRING_DISABLE_STDSRING
 	MAnsiString(const std::string& str);
 #endif
@@ -35,27 +35,27 @@ public:
 	// Get a row pointer
 	operator char*();
 	operator const char*() const;
-	char *c_str();
-	const char *c_str() const;
+	char* c_str();
+	const char* c_str() const;
 	//char& operator[](size_t index);
 	//const char& operator[](size_t index) const;
 
 	// Get a pointer to the next character with care of multi-byte string characters
-	char *next(char *ptr) const;
-	const char *next(const char *ptr) const;
+	char* next(char* ptr) const;
+	const char* next(const char* ptr) const;
 	size_t next(size_t pos) const;
 
 	// Get a pointer to the previous character with care of multi-byte string characters
-	char *prev(char *ptr) const;
-	const char *prev(const char *ptr) const;
+	char* prev(char* ptr) const;
+	const char* prev(const char* ptr) const;
 	size_t prev(size_t pos) const;
 
 	// Get a length of the character by the header byte.
 	static int get_utf8_lead_bytes(char ch);
 
 	// Get a pointer to the next character with care of utf8 string characters
-	char *next_utf8(char *ptr) const;
-	const char *next_utf8(const char *ptr) const;
+	char* next_utf8(char* ptr) const;
+	const char* next_utf8(const char* ptr) const;
 	size_t next_utf8(size_t pos) const;
 
 	// Get a length without end-termination in char units
@@ -68,7 +68,7 @@ public:
 	void clear();
 
 	// Add a string to the end
-	void append(const char *str, size_t len);
+	void append(const char* str, size_t len);
 
 	// Get a part of this string
 	MAnsiString substring(size_t start) const;
@@ -76,7 +76,7 @@ public:
 
 	// Find an index of the specified character/string
 	size_t indexOf(const MAnsiString& str, size_t start = 0) const;
-	size_t indexOf(const char *str, size_t start = 0) const;
+	size_t indexOf(const char* str, size_t start = 0) const;
 	size_t indexOf(char character, size_t start = 0) const;
 	size_t indexOf(const std::vector<char>& characters, size_t start = 0) const;
 
@@ -90,7 +90,7 @@ public:
 	std::vector<MAnsiString> split(const MAnsiString& separator) const;
 	std::vector<MAnsiString> split(char separator) const;
 	std::vector<MAnsiString> split(const std::vector<char>& separators) const;
-	
+
 	// Combine strings
 	//   ex. {"abc","de","","f"}, "\t" -> "abc\tde\t\tf"
 	static MAnsiString combine(const std::vector<MAnsiString>& strings, const MAnsiString& separator);
@@ -147,9 +147,9 @@ public:
 	MAnsiString getTrimSpace() const;
 
 	// Format variables by the printf format
-	static MAnsiString format(const char *format, ...);
+	static MAnsiString format(const char* format, ...);
 	// Format variables by the printf format
-	int formatSet(const char *format, ...);
+	int formatSet(const char* format, ...);
 
 	// Compare strings
 	//    0 is returned when two strings are same.
@@ -164,56 +164,54 @@ public:
 	//    0 is returned when two strings are same.
 	int compareSubstringIgnoreCase(size_t start, const MAnsiString& str) const;
 
-	MAnsiString& operator = (const MAnsiString& str);
-	MAnsiString& operator = (const char *str);
+	MAnsiString& operator =(const MAnsiString& str);
+	MAnsiString& operator =(const char* str);
 #ifndef MSTRING_DISABLE_STDSRING
-	MAnsiString& operator = (const std::string& str);
+	MAnsiString& operator =(const std::string& str);
 #endif
 #if _MSC_VER >= 1600 || __BORLAND_C__ >= 0x0630
-	MAnsiString& operator = (MAnsiString&& str);
+	MAnsiString& operator =(MAnsiString&& str);
 #endif
 
-	MAnsiString& operator += (const MAnsiString& str);
-	MAnsiString& operator += (const char *str);
-	MAnsiString& operator += (char character);
-	MAnsiString operator + (const MAnsiString& str) const;
-	MAnsiString operator + (const char *str) const;
-	MAnsiString operator + (char character) const;
+	MAnsiString& operator +=(const MAnsiString& str);
+	MAnsiString& operator +=(const char* str);
+	MAnsiString& operator +=(char character);
+	MAnsiString operator +(const MAnsiString& str) const;
+	MAnsiString operator +(const char* str) const;
+	MAnsiString operator +(char character) const;
 
 #if _MSC_VER >= 1600 || __BORLAND_C__ >= 0x0630
-	friend MLIBS_API MAnsiString operator + (MAnsiString&& str1, const MAnsiString& str2);
-	friend MLIBS_API MAnsiString operator + (MAnsiString&& str1, const char *str2);
+	friend MLIBS_API MAnsiString operator +(MAnsiString&& str1, const MAnsiString& str2);
+	friend MLIBS_API MAnsiString operator +(MAnsiString&& str1, const char* str2);
 #endif
-	friend MLIBS_API MAnsiString operator + (const char *str1, const MAnsiString& str2);
+	friend MLIBS_API MAnsiString operator +(const char* str1, const MAnsiString& str2);
 
-	bool operator == (const MAnsiString& str) const;
-	bool operator == (const char *str) const;
-	friend MLIBS_API bool operator == (const char *str1, const MAnsiString& str2);
+	bool operator ==(const MAnsiString& str) const;
+	bool operator ==(const char* str) const;
+	friend MLIBS_API bool operator ==(const char* str1, const MAnsiString& str2);
 
-	bool operator != (const MAnsiString& str) const;
-	bool operator != (const char *str) const;
-	friend MLIBS_API bool operator != (const char *str1, const MAnsiString& str2);
+	bool operator !=(const MAnsiString& str) const;
+	bool operator !=(const char* str) const;
+	friend MLIBS_API bool operator !=(const char* str1, const MAnsiString& str2);
 
 #ifndef MSTRING_DISABLE_STDSRING
-	bool operator == (const std::string& str) const;
-	bool operator != (const std::string& str) const;
-	friend MLIBS_API bool operator == (const std::string& str1, const MAnsiString& str2);
-	friend MLIBS_API bool operator != (const std::string& str1, const MAnsiString& str2);
+	bool operator ==(const std::string& str) const;
+	bool operator !=(const std::string& str) const;
+	friend MLIBS_API bool operator ==(const std::string& str1, const MAnsiString& str2);
+	friend MLIBS_API bool operator !=(const std::string& str1, const MAnsiString& str2);
 #endif
 
-	bool operator < (const MAnsiString& str) const { return compare(str) < 0; }
-	bool operator > (const MAnsiString& str) const { return compare(str) > 0; }
+	bool operator <(const MAnsiString& str) const { return compare(str) < 0; }
+	bool operator >(const MAnsiString& str) const { return compare(str) > 0; }
 
 private:
-	char *mStr;
+	char* mStr;
 	size_t mLength;
 	size_t mCapacity;
 
 	bool resize(size_t size);
 	size_t capacity() const;
 };
-
-
 
 inline MAnsiString::operator char*()
 {
@@ -225,25 +223,26 @@ inline MAnsiString::operator const char*() const
 	return mStr;
 }
 
-inline char *MAnsiString::c_str()
+inline char* MAnsiString::c_str()
 {
 	return mStr;
 }
 
-inline const char *MAnsiString::c_str() const
+inline const char* MAnsiString::c_str() const
 {
 	return mStr;
 }
+
 /*
 inline char& MAnsiString::operator[](size_t index)
 {
-	assert(index <= mLength); 
+	assert(index <= mLength);
 	return mStr[index];
 }
 
 inline const char& MAnsiString::operator[](size_t index) const
 {
-	assert(index <= mLength); 
+	assert(index <= mLength);
 	return mStr[index];
 }
 */
@@ -256,6 +255,5 @@ inline size_t MAnsiString::capacity() const
 {
 	return mCapacity;
 }
-
 
 #endif _MANSISTRING_H_

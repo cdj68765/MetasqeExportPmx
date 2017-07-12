@@ -45,8 +45,8 @@ namespace oguna
 			int size;
 			size = ::MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, NULL, NULL);
 			buffer.resize(size * sizeof(wchar_t) * 2);
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, (LPWSTR) buffer.data(), buffer.size() * 2);
-			out->assign((wchar_t*) buffer.data(), size);
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, (LPWSTR)buffer.data(), buffer.size() * 2);
+			out->assign((wchar_t*)buffer.data(), size);
 			return size;
 		}
 
@@ -56,7 +56,7 @@ namespace oguna
 			int size;
 			size = WideCharToMultiByte(CP_ACP, NULL, src, length, NULL, NULL, NULL, NULL);
 			buffer.resize(size);
-			WideCharToMultiByte(CP_ACP, NULL, src, length, (LPSTR) buffer.data(), buffer.size(), NULL, NULL);
+			WideCharToMultiByte(CP_ACP, NULL, src, length, (LPSTR)buffer.data(), buffer.size(), NULL, NULL);
 			out->assign(buffer.data(), size);
 			return size;
 		}
@@ -67,8 +67,8 @@ namespace oguna
 			int size;
 			size = ::MultiByteToWideChar(CP_UTF8, 0, src, length, NULL, NULL);
 			buffer.resize(size * sizeof(wchar_t));
-			MultiByteToWideChar(CP_UTF8, 0, src, length, (LPWSTR) buffer.data(), buffer.size());
-			out->swap(std::wstring((wchar_t*) buffer.data(), size));
+			MultiByteToWideChar(CP_UTF8, 0, src, length, (LPWSTR)buffer.data(), buffer.size());
+			out->swap(std::wstring((wchar_t*)buffer.data(), size));
 			return size;
 		}
 
@@ -78,7 +78,7 @@ namespace oguna
 			int size;
 			size = WideCharToMultiByte(CP_UTF8, NULL, src, length, NULL, NULL, NULL, NULL);
 			buffer.resize(size);
-			WideCharToMultiByte(CP_UTF8, NULL, src, length, (LPSTR) buffer.data(), buffer.size(), NULL, NULL);
+			WideCharToMultiByte(CP_UTF8, NULL, src, length, (LPSTR)buffer.data(), buffer.size(), NULL, NULL);
 			out->assign(buffer.data(), size);
 			return size;
 		}

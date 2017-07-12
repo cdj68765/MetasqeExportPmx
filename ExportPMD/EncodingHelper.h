@@ -24,7 +24,7 @@ namespace oguna
 		}
 
 		/// UTF8¤«¤éCP932(std::string)¤Ø‰ä“Q¤¹¤ë
-		int Utf8ToCp932(const char* src, int size, std::string *out)
+		int Utf8ToCp932(const char* src, int size, std::string* out)
 		{
 			std::wstring unicode;
 			Utf8ToUtf16(src, size, &unicode);
@@ -32,7 +32,7 @@ namespace oguna
 		}
 
 		/// CP932¤«¤éUTF8(std::string)¤Ø‰ä“Q¤¹¤ë
-		int Cp932ToUtf8(const char* src, int length, std::string *out)
+		int Cp932ToUtf8(const char* src, int length, std::string* out)
 		{
 			std::wstring unicode;
 			Cp932ToUtf16(src, length, &unicode);
@@ -40,21 +40,21 @@ namespace oguna
 		}
 
 		/// CP932¤«¤éUTF16(std::wstring)¤Ø‰ä“Q¤¹¤ë
-		int Cp932ToUtf16(const char *src, int length, std::wstring *out)
+		int Cp932ToUtf16(const char* src, int length, std::wstring* out)
 		{
 			int size;
-			size = ::MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, NULL, NULL);
+			size = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, nullptr, NULL);
 			buffer.resize(size * sizeof(wchar_t) * 2);
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, (LPWSTR) buffer.data(), buffer.size() * 2);
-			out->assign((wchar_t*) buffer.data(), size);
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, (LPWSTR)buffer.data(), buffer.size() * 2);
+			out->assign((wchar_t*)buffer.data(), size);
 			return size;
 		}
 
 		/// CP932¤«¤éUTF16(std::wstring)¤Ø‰ä“Q¤¹¤ë
-		int Cp936ToUtf16(const char *src, int length, std::wstring *out)
+		int Cp936ToUtf16(const char* src, int length, std::wstring* out)
 		{
 			int size;
-			size = ::MultiByteToWideChar(936, MB_PRECOMPOSED, src, length, NULL, NULL);
+			size = MultiByteToWideChar(936, MB_PRECOMPOSED, src, length, nullptr, NULL);
 			buffer.resize(size * sizeof(wchar_t) * 2);
 			MultiByteToWideChar(936, MB_PRECOMPOSED, src, length, (LPWSTR)buffer.data(), buffer.size() * 2);
 			out->assign((wchar_t*)buffer.data(), size);
@@ -62,34 +62,34 @@ namespace oguna
 		}
 
 		/// UTF16¤«¤éCP932(std::string)¤Ø‰ä“Q¤¹¤ë
-		int Utf16ToCp932(const wchar_t *src, int length, std::string *out)
+		int Utf16ToCp932(const wchar_t* src, int length, std::string* out)
 		{
 			int size;
-			size = WideCharToMultiByte(CP_ACP, NULL, src, length, NULL, NULL, NULL, NULL);
+			size = WideCharToMultiByte(CP_ACP, NULL, src, length, nullptr, NULL, nullptr, nullptr);
 			buffer.resize(size);
-			WideCharToMultiByte(CP_ACP, NULL, src, length, (LPSTR) buffer.data(), buffer.size(), NULL, NULL);
+			WideCharToMultiByte(CP_ACP, NULL, src, length, (LPSTR)buffer.data(), buffer.size(), nullptr, nullptr);
 			out->assign(buffer.data(), size);
 			return size;
 		}
 
 		/// UTF8¤«¤éUTF16(std::wstring)¤Ø‰ä“Q¤¹¤ë
-		int Utf8ToUtf16(const char *src, int length, std::wstring *out)
+		int Utf8ToUtf16(const char* src, int length, std::wstring* out)
 		{
 			int size;
-			size = ::MultiByteToWideChar(CP_UTF8, 0, src, length, NULL, NULL);
+			size = MultiByteToWideChar(CP_UTF8, 0, src, length, nullptr, NULL);
 			buffer.resize(size * sizeof(wchar_t));
-			MultiByteToWideChar(CP_UTF8, 0, src, length, (LPWSTR) buffer.data(), buffer.size());
-			out->swap(std::wstring((wchar_t*) buffer.data(), size));
+			MultiByteToWideChar(CP_UTF8, 0, src, length, (LPWSTR)buffer.data(), buffer.size());
+			out->swap(std::wstring((wchar_t*)buffer.data(), size));
 			return size;
 		}
 
 		/// UTF16¤«¤éUTF8(std::string)¤Ø‰ä“Q¤¹¤ë
-		int Utf16ToUtf8(const wchar_t *src, int length, std::string *out)
+		int Utf16ToUtf8(const wchar_t* src, int length, std::string* out)
 		{
 			int size;
-			size = WideCharToMultiByte(CP_UTF8, NULL, src, length, NULL, NULL, NULL, NULL);
+			size = WideCharToMultiByte(CP_UTF8, NULL, src, length, nullptr, NULL, nullptr, nullptr);
 			buffer.resize(size);
-			WideCharToMultiByte(CP_UTF8, NULL, src, length, (LPSTR) buffer.data(), buffer.size(), NULL, NULL);
+			WideCharToMultiByte(CP_UTF8, NULL, src, length, (LPSTR)buffer.data(), buffer.size(), nullptr, nullptr);
 			out->assign(buffer.data(), size);
 			return size;
 		}

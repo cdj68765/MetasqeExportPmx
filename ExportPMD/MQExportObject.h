@@ -6,26 +6,30 @@
 #include "MQ3DLib.h"
 #include <vector>
 
-
-class MQExportObject {
+class MQExportObject
+{
 public:
-	struct MExportVertex {
+	struct MExportVertex
+	{
 		int vi; // original vertex index
 		MQPoint normal;
 		MQCoordinate t;
 		DWORD col;
 	};
 
-	struct MTexFace {
+	struct MTexFace
+	{
 		int count;
 	};
 
-	struct MSeparateParam {
+	struct MSeparateParam
+	{
 		bool SeparateUV;
 		bool SeparateVertexColor;
 		bool SeparateNormal;
 
-		MSeparateParam(){
+		MSeparateParam()
+		{
 			SeparateUV = false;
 			SeparateVertexColor = false;
 			SeparateNormal = false;
@@ -41,21 +45,22 @@ public:
 	MQPoint GetVertexNormal(int vi);
 	MQCoordinate GetVertexCoordinate(int vi);
 	DWORD GetVertexColor(int vi);
-	int GetVertexRelatedFaces(int vi, int *array);
+	int GetVertexRelatedFaces(int vi, int* array);
 
 	int GetFaceCount() const { return m_fc; }
 	int GetFacePointCount(int fi);
-	void GetFacePointArray(int fi, int *array);
+	void GetFacePointArray(int fi, int* array);
 
 private:
-	MExportVertex *m_v;
-	MTexFace *m_f;
+	MExportVertex* m_v;
+	MTexFace* m_f;
 	MQApexValueBase<int> m_vi;
-	std::vector< std::vector<int> > vert_faces;
-	int m_vc,m_fc;
+	std::vector<std::vector<int>> vert_faces;
+	int m_vc, m_fc;
 
 private:
-	struct MVertexHash {
+	struct MVertexHash
+	{
 		int vi;
 		MQPoint normal;
 		MQCoordinate uv;
@@ -63,4 +68,3 @@ private:
 		int next;
 	};
 };
-

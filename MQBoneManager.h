@@ -16,7 +16,7 @@
 class MQBoneManager
 {
 public:
-	MQBoneManager(MQBasePlugin *plugin, MQDocument doc);
+	MQBoneManager(MQBasePlugin* plugin, MQDocument doc);
 
 	static DWORD GetProductID();
 	static DWORD GetPluginID();
@@ -28,7 +28,8 @@ public:
 	// Must call last in a 'Import' plugin.
 	void EndImport();
 
-	struct ADD_BONE_PARAM {
+	struct ADD_BONE_PARAM
+	{
 		MQPoint root_pos;
 		MQPoint tip_pos;
 		std::wstring name;
@@ -37,9 +38,10 @@ public:
 		bool is_dummy;
 		bool end_point;
 
-		ADD_BONE_PARAM(){
-			root_pos = MQPoint(0,0,0);
-			tip_pos = MQPoint(0,0,0);
+		ADD_BONE_PARAM()
+		{
+			root_pos = MQPoint(0, 0, 0);
+			tip_pos = MQPoint(0, 0, 0);
 			parent_id = 0;
 			ik_chain = -1;
 			is_dummy = false;
@@ -47,13 +49,15 @@ public:
 		}
 	};
 
-	struct LINK_PARAM {
+	struct LINK_PARAM
+	{
 		UINT link_bone_id;
 		float rotate;
 		float move;
 		float scale;
 
-		LINK_PARAM(){
+		LINK_PARAM()
+		{
 			link_bone_id = 0;
 			rotate = move = scale = 100.f;
 		}
@@ -90,8 +94,8 @@ public:
 	bool GetEndPoint(UINT bone_id, bool& end_point);
 	bool GetMovable(UINT bone_id, bool& movable);
 
-	void SetName(UINT bone_id, const wchar_t *name);
-	void SetTipName(UINT bone_id, const wchar_t *tip_name);
+	void SetName(UINT bone_id, const wchar_t* name);
+	void SetTipName(UINT bone_id, const wchar_t* tip_name);
 	void SetParent(UINT bone_id, UINT parent_id);
 	void SetBaseRootPos(UINT bone_id, const MQPoint& pos);
 	void SetBaseTipPos(UINT bone_id, const MQPoint& pos);
@@ -105,15 +109,15 @@ public:
 	void SetEndPoint(UINT bone_id, bool end_point);
 	void SetIKChain(UINT bone_id, int chain);
 	void SetMovable(UINT bone_id, bool movable);
-	
+
 	// Skin object
 	int GetSkinObjectNum();
 	int EnumSkinObjectID(std::vector<UINT>& obj_id_array);
 	bool AddSkinObject(MQObject obj);
-	int GetVertexWeightArray(MQObject obj, UINT vertex_id, int array_num, UINT *bone_ids, float *weights);
+	int GetVertexWeightArray(MQObject obj, UINT vertex_id, int array_num, UINT* bone_ids, float* weights);
 	bool SetVertexWeight(MQObject obj, UINT vertex_id, UINT bone_id, float weight);
 	int GetWeightedVertexArray(UINT bone_id, MQObject obj, std::vector<UINT>& vertex_ids, std::vector<float>& weights);
-	
+
 	// for PMD
 	bool GetTipBone(UINT bone_id, UINT& tip_bone_id);
 	bool GetIKName(UINT bone_id, std::wstring& ik_name, std::wstring& ik_tip_name);
@@ -121,33 +125,34 @@ public:
 	bool GetLink(UINT bone_id, LINK_PARAM& param);
 	bool GetGroupID(UINT bone_id, UINT& group_id);
 	void SetTipBone(UINT bone_id, UINT tip_bone_id);
-	void SetIKName(UINT bone_id, const wchar_t *ik_name, const wchar_t *ik_tip_name);
+	void SetIKName(UINT bone_id, const wchar_t* ik_name, const wchar_t* ik_tip_name);
 	void SetIKParent(UINT bone_id, UINT ik_parent_bone_id, bool isIK);
 	void SetLink(UINT bone_id, const LINK_PARAM& param);
 	void SetGroupID(UINT bone_id, UINT group_id);
 
 	// for PMD group
 	int EnumGroups(std::vector<UINT>& group_ids);
-	UINT AddGroup(const wchar_t *name); // ANSI string
+	UINT AddGroup(const wchar_t* name); // ANSI string
 	bool GetGroupName(UINT group_id, std::wstring& name);
 
 	// Configurations
 	int GetEffectLimitNum();
 
-	enum LIST_MODE {
+	enum LIST_MODE
+	{
 		LIST_MODE_BONE,
 		LIST_MODE_NODE,
 	};
+
 	void SetListMode(LIST_MODE mode);
 
 	// Deform
-	bool DeformObject(MQObject obj, MQObject target); 	// 'obj' must be a skin object, and 'target' must be a cloned object from 'obj'
+	bool DeformObject(MQObject obj, MQObject target); // 'obj' must be a skin object, and 'target' must be a cloned object from 'obj'
 
 private:
-	MQBasePlugin *m_Plugin;
+	MQBasePlugin* m_Plugin;
 	MQDocument m_Doc;
 	bool m_Verified;
 };
-
 
 #endif //_MQBONEMANAGER_H_

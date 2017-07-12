@@ -4,10 +4,10 @@
 //
 //          Copyright(C) 1999-2016, tetraface Inc.
 //
-//     This is a wrapper for using C++ classes without taking care of 
+//     This is a wrapper for using C++ classes without taking care of
 //    Metasequoia plug-in interface API.
-//     The API functions for each type of a plug-in are defined as the 
-//    pure virtual functions, and it is necessary to implement them 
+//     The API functions for each type of a plug-in are defined as the
+//    pure virtual functions, and it is necessary to implement them
 //    in an inherited class.
 //
 //    　Metasequoia用プラグインインターフェースをAPIレベルを隠蔽して
@@ -24,25 +24,23 @@
 #include "MQBasePlugin.h"
 #include "MQSetting.h"
 
+static void* ExtractEventOption(void* option, const char* name);
+static BOOL ExtractEventOptionBool(void* option, const char* name, BOOL defval);
+static int ExtractEventOptionInt(void* option, const char* name, int defval);
+static float ExtractEventOptionFloat(void* option, const char* name, float defval);
 
-static void *ExtractEventOption(void *option, const char *name);
-static BOOL ExtractEventOptionBool(void *option, const char *name, BOOL defval);
-static int ExtractEventOptionInt(void *option, const char *name, int defval);
-static float ExtractEventOptionFloat(void *option, const char *name, float defval);
-
-
-class MQBasePluginMediator {
+class MQBasePluginMediator
+{
 public:
-	static void ImportSetOptions(MQImportPlugin *plugin, BOOL background, void *args);
+	static void ImportSetOptions(MQImportPlugin* plugin, BOOL background, void* args);
 };
 
- 
 //---------------------------------------------------------------------------
 //  MQGetPlugInID
 //    プラグインIDを返す。
 //    この関数は起動時に呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT void MQGetPlugInID(DWORD *Product, DWORD *ID)
+MQPLUGIN_EXPORT void MQGetPlugInID(DWORD* Product, DWORD* ID)
 {
 	// プロダクト名(制作者名)とIDを、全部で64bitの値として返す
 	// 値は他と重複しないようなランダムなもので良い
@@ -54,9 +52,9 @@ MQPLUGIN_EXPORT void MQGetPlugInID(DWORD *Product, DWORD *ID)
 //    プラグイン名を返す。
 //    この関数は[プラグインについて]表示時に呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT const char *MQGetPlugInName(void)
+MQPLUGIN_EXPORT const char* MQGetPlugInName(void)
 {
-	// プラグイン名	
+	// プラグイン名
 	return GetPluginClass()->GetPlugInName();
 }
 
@@ -75,10 +73,11 @@ MQPLUGIN_EXPORT int MQGetPlugInType(void)
 //    ポップアップメニューまたはボタンに表示される文字列を返す。
 //    この関数は起動時に呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT const char *MQEnumString(int index)
+MQPLUGIN_EXPORT const char* MQEnumString(int index)
 {
-	MQBasePlugin *plugin = GetPluginClass();
-	switch(plugin->GetPlugInType()){
+	MQBasePlugin* plugin = GetPluginClass();
+	switch (plugin->GetPlugInType())
+	{
 	case MQPLUGIN_TYPE_OBJECT:
 	case MQPLUGIN_TYPE_SELECT:
 	case MQPLUGIN_TYPE_CREATE:
@@ -89,7 +88,7 @@ MQPLUGIN_EXPORT const char *MQEnumString(int index)
 			return static_cast<MQStationPlugin*>(plugin)->EnumString();
 		break;
 	}
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -98,16 +97,17 @@ MQPLUGIN_EXPORT const char *MQEnumString(int index)
 //    ファイルタイプは別名保存時のダイアログに表示される。
 //    この関数は起動時に呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT const char *MQEnumFileType(int index)
+MQPLUGIN_EXPORT const char* MQEnumFileType(int index)
 {
-	MQBasePlugin *plugin = GetPluginClass();
-	switch(plugin->GetPlugInType()){
+	MQBasePlugin* plugin = GetPluginClass();
+	switch (plugin->GetPlugInType())
+	{
 	case MQPLUGIN_TYPE_IMPORT:
 		return static_cast<MQImportPlugin*>(plugin)->EnumFileType(index);
 	case MQPLUGIN_TYPE_EXPORT:
 		return static_cast<MQExportPlugin*>(plugin)->EnumFileType(index);
 	}
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -115,23 +115,24 @@ MQPLUGIN_EXPORT const char *MQEnumFileType(int index)
 //    入力または出力可能な拡張子を返す。
 //    この関数は起動時に呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT const char *MQEnumFileExt(int index)
+MQPLUGIN_EXPORT const char* MQEnumFileExt(int index)
 {
-	MQBasePlugin *plugin = GetPluginClass();
-	switch(plugin->GetPlugInType()){
+	MQBasePlugin* plugin = GetPluginClass();
+	switch (plugin->GetPlugInType())
+	{
 	case MQPLUGIN_TYPE_IMPORT:
 		return static_cast<MQImportPlugin*>(plugin)->EnumFileExt(index);
 	case MQPLUGIN_TYPE_EXPORT:
 		return static_cast<MQExportPlugin*>(plugin)->EnumFileExt(index);
 	}
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
 //  MQImportFile
 //    [読み込み]やドラッグ＆ドロップで読み込むときに呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT BOOL MQImportFile(int index, const char *filename, MQDocument doc)
+MQPLUGIN_EXPORT BOOL MQImportFile(int index, const char* filename, MQDocument doc)
 {
 	return static_cast<MQImportPlugin*>(GetPluginClass())->ImportFile(index, filename, doc);
 }
@@ -140,7 +141,7 @@ MQPLUGIN_EXPORT BOOL MQImportFile(int index, const char *filename, MQDocument do
 //  MQExportFile
 //    [別名で保存]で保存するときに呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT BOOL MQExportFile(int index, const char *filename, MQDocument doc)
+MQPLUGIN_EXPORT BOOL MQExportFile(int index, const char* filename, MQDocument doc)
 {
 	return static_cast<MQExportPlugin*>(GetPluginClass())->ExportFile(index, filename, doc);
 }
@@ -176,72 +177,73 @@ MQPLUGIN_EXPORT BOOL MQModifyObject(int index, MQDocument doc)
 //  MQOnEvent
 //    イベント発生時に呼び出される。
 //---------------------------------------------------------------------------
-MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void *option)
+MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void* option)
 {
-	MQBasePlugin *base_plugin = static_cast<MQBasePlugin*>(GetPluginClass());
+	MQBasePlugin* base_plugin = static_cast<MQBasePlugin*>(GetPluginClass());
 
-	MQStationPlugin *plugin = dynamic_cast<MQStationPlugin*>(base_plugin);
-	if(plugin != NULL)
+	MQStationPlugin* plugin = dynamic_cast<MQStationPlugin*>(base_plugin);
+	if (plugin != nullptr)
 	{
-		switch(event_type){
-		case MQEVENT_INITIALIZE:	// プラグインの初期化
+		switch (event_type)
+		{
+		case MQEVENT_INITIALIZE: // プラグインの初期化
 			return plugin->Initialize();
 
-		case MQEVENT_EXIT:			// プラグインの終了
+		case MQEVENT_EXIT: // プラグインの終了
 			plugin->Exit();
 			return TRUE;
 
-		case MQEVENT_ENUM_SUBCOMMAND:	// サブコマンドの列挙
+		case MQEVENT_ENUM_SUBCOMMAND: // サブコマンドの列挙
 			{
 				int index = ExtractEventOptionInt(option, "index", 0);
-				const char **result = (const char**)ExtractEventOption(option, "result");
+				const char** result = (const char**)ExtractEventOption(option, "result");
 				*result = plugin->EnumSubCommand(index);
 				return TRUE;
 			}
 
-		case MQEVENT_SUBCOMMAND_STRING:	// サブコマンドの表示名
+		case MQEVENT_SUBCOMMAND_STRING: // サブコマンドの表示名
 			{
 				int index = ExtractEventOptionInt(option, "index", 0);
-				const wchar_t **result = (const wchar_t**)ExtractEventOption(option, "result");
+				const wchar_t** result = (const wchar_t**)ExtractEventOption(option, "result");
 				*result = plugin->GetSubCommandString(index);
 				return TRUE;
 			}
 
-		case MQEVENT_ACTIVATE:		// 表示・非表示切り替え要求
+		case MQEVENT_ACTIVATE: // 表示・非表示切り替え要求
 			{
 				BOOL flag = *(BOOL *)option;
 				return plugin->Activate(doc, flag);
 			}
 
-		case MQEVENT_IS_ACTIVATED:	// 表示・非表示状態の返答
+		case MQEVENT_IS_ACTIVATED: // 表示・非表示状態の返答
 			return plugin->IsActivated(doc);
 
-		case MQEVENT_MINIMIZE:		// ウインドウの最小化
+		case MQEVENT_MINIMIZE: // ウインドウの最小化
 			{
 				BOOL flag = *(BOOL *)option;
 				plugin->OnMinimize(doc, flag);
 				return TRUE;
 			}
 
-		case MQEVENT_SUBCOMMAND:	// サブコマンドの呼び出し
+		case MQEVENT_SUBCOMMAND: // サブコマンドの呼び出し
 			{
 				int index = ExtractEventOptionInt(option, "index", 0);
 				return plugin->OnSubCommand(doc, index);
 			}
 
-		case MQEVENT_USER_MESSAGE:	// プラグイン独自のメッセージ
+		case MQEVENT_USER_MESSAGE: // プラグイン独自のメッセージ
 			{
 				DWORD product = (DWORD)ExtractEventOptionInt(option, "src_product", 0);
 				DWORD id = (DWORD)ExtractEventOptionInt(option, "src_id", 0);
-				const char *description = (const char *)ExtractEventOption(option, "description");
-				void *message = ExtractEventOption(option, "message");
-				int *result = (int*)ExtractEventOption(option, "result");
+				const char* description = (const char *)ExtractEventOption(option, "description");
+				void* message = ExtractEventOption(option, "message");
+				int* result = (int*)ExtractEventOption(option, "result");
 				int ret = plugin->OnReceiveUserMessage(doc, product, id, description, message);
-				if (result != NULL) *result = ret;
+				if (result != nullptr) *result = ret;
 				return TRUE;
 			}
 
-		case MQEVENT_DRAW:	// 描画時の処理
+		case MQEVENT_DRAW: // 描画時の処理
 			{
 				MQScene scene = (MQScene)ExtractEventOption(option, "scene");
 				int width = ExtractEventOptionInt(option, "width", 1);
@@ -250,20 +252,20 @@ MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void *option)
 				return TRUE;
 			}
 
-		case MQEVENT_LBUTTON_DOWN:	// 左ボタンが押されたとき
-		case MQEVENT_LBUTTON_MOVE:	// 左ボタンが押されながらマウスが移動したとき
-		case MQEVENT_LBUTTON_UP:	// 左ボタンが離されたとき
-		case MQEVENT_MBUTTON_DOWN:	// 中ボタンが押されたとき
-		case MQEVENT_MBUTTON_MOVE:	// 中ボタンが押されながらマウスが移動したとき
-		case MQEVENT_MBUTTON_UP:	// 中ボタンが離されたとき
-		case MQEVENT_RBUTTON_DOWN:	// 右ボタンが押されたとき
-		case MQEVENT_RBUTTON_MOVE:	// 右ボタンが押されながらマウスが移動したとき
-		case MQEVENT_RBUTTON_UP:	// 右ボタンが離されたとき
-		case MQEVENT_MOUSE_MOVE:	// マウスが移動したとき
-		case MQEVENT_MOUSE_WHEEL:	// マウスのホイールが回転したとき
+		case MQEVENT_LBUTTON_DOWN: // 左ボタンが押されたとき
+		case MQEVENT_LBUTTON_MOVE: // 左ボタンが押されながらマウスが移動したとき
+		case MQEVENT_LBUTTON_UP: // 左ボタンが離されたとき
+		case MQEVENT_MBUTTON_DOWN: // 中ボタンが押されたとき
+		case MQEVENT_MBUTTON_MOVE: // 中ボタンが押されながらマウスが移動したとき
+		case MQEVENT_MBUTTON_UP: // 中ボタンが離されたとき
+		case MQEVENT_RBUTTON_DOWN: // 右ボタンが押されたとき
+		case MQEVENT_RBUTTON_MOVE: // 右ボタンが押されながらマウスが移動したとき
+		case MQEVENT_RBUTTON_UP: // 右ボタンが離されたとき
+		case MQEVENT_MOUSE_MOVE: // マウスが移動したとき
+		case MQEVENT_MOUSE_WHEEL: // マウスのホイールが回転したとき
 			{
-				MQCommandPlugin *com_plugin = dynamic_cast<MQCommandPlugin*>(plugin);
-				if (com_plugin == NULL)
+				MQCommandPlugin* com_plugin = dynamic_cast<MQCommandPlugin*>(plugin);
+				if (com_plugin == nullptr)
 					return FALSE;
 
 				MQScene scene = (MQScene)ExtractEventOption(option, "scene");
@@ -279,38 +281,39 @@ MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void *option)
 				button.Shift = (button_state & MK_SHIFT) ? TRUE : FALSE;
 				button.Ctrl = (button_state & MK_CONTROL) ? TRUE : FALSE;
 				button.Alt = (button_state & MK_ALT) ? TRUE : FALSE;
-				switch(event_type){
-				case MQEVENT_LBUTTON_DOWN:	// 左ボタンが押されたとき
+				switch (event_type)
+				{
+				case MQEVENT_LBUTTON_DOWN: // 左ボタンが押されたとき
 					return com_plugin->OnLeftButtonDown(doc, scene, button);
-				case MQEVENT_LBUTTON_MOVE:	// 左ボタンが押されながらマウスが移動したとき
+				case MQEVENT_LBUTTON_MOVE: // 左ボタンが押されながらマウスが移動したとき
 					return com_plugin->OnLeftButtonMove(doc, scene, button);
-				case MQEVENT_LBUTTON_UP:	// 左ボタンが離されたとき
+				case MQEVENT_LBUTTON_UP: // 左ボタンが離されたとき
 					return com_plugin->OnLeftButtonUp(doc, scene, button);
-				case MQEVENT_MBUTTON_DOWN:	// 中ボタンが押されたとき
+				case MQEVENT_MBUTTON_DOWN: // 中ボタンが押されたとき
 					return com_plugin->OnMiddleButtonDown(doc, scene, button);
-				case MQEVENT_MBUTTON_MOVE:	// 中ボタンが押されながらマウスが移動したとき
+				case MQEVENT_MBUTTON_MOVE: // 中ボタンが押されながらマウスが移動したとき
 					return com_plugin->OnMiddleButtonMove(doc, scene, button);
-				case MQEVENT_MBUTTON_UP:	// 中ボタンが離されたとき
+				case MQEVENT_MBUTTON_UP: // 中ボタンが離されたとき
 					return com_plugin->OnMiddleButtonUp(doc, scene, button);
-				case MQEVENT_RBUTTON_DOWN:	// 右ボタンが押されたとき
+				case MQEVENT_RBUTTON_DOWN: // 右ボタンが押されたとき
 					return com_plugin->OnRightButtonDown(doc, scene, button);
-				case MQEVENT_RBUTTON_MOVE:	// 右ボタンが押されながらマウスが移動したとき
+				case MQEVENT_RBUTTON_MOVE: // 右ボタンが押されながらマウスが移動したとき
 					return com_plugin->OnRightButtonMove(doc, scene, button);
-				case MQEVENT_RBUTTON_UP:	// 右ボタンが離されたとき
+				case MQEVENT_RBUTTON_UP: // 右ボタンが離されたとき
 					return com_plugin->OnRightButtonUp(doc, scene, button);
-				case MQEVENT_MOUSE_MOVE:	// マウスが移動したとき
+				case MQEVENT_MOUSE_MOVE: // マウスが移動したとき
 					return com_plugin->OnMouseMove(doc, scene, button);
-				case MQEVENT_MOUSE_WHEEL:	// マウスのホイールが回転したとき
+				case MQEVENT_MOUSE_WHEEL: // マウスのホイールが回転したとき
 					return com_plugin->OnMouseWheel(doc, scene, button);
 				}
 				return FALSE;
 			}
 
-		case MQEVENT_KEY_DOWN:		// キーが押されたとき
-		case MQEVENT_KEY_UP:		// キーが離されたとき
+		case MQEVENT_KEY_DOWN: // キーが押されたとき
+		case MQEVENT_KEY_UP: // キーが離されたとき
 			{
-				MQCommandPlugin *com_plugin = dynamic_cast<MQCommandPlugin*>(plugin);
-				if (com_plugin == NULL)
+				MQCommandPlugin* com_plugin = dynamic_cast<MQCommandPlugin*>(plugin);
+				if (com_plugin == nullptr)
 					return FALSE;
 
 				MQScene scene = (MQScene)ExtractEventOption(option, "scene");
@@ -326,16 +329,17 @@ MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void *option)
 				button.Shift = (button_state & MK_SHIFT) ? TRUE : FALSE;
 				button.Ctrl = (button_state & MK_CONTROL) ? TRUE : FALSE;
 				button.Alt = (button_state & MK_ALT) ? TRUE : FALSE;
-				switch(event_type){
-				case MQEVENT_KEY_DOWN:		// キーが押されたとき
+				switch (event_type)
+				{
+				case MQEVENT_KEY_DOWN: // キーが押されたとき
 					return com_plugin->OnKeyDown(doc, scene, key, button);
-				case MQEVENT_KEY_UP:		// キーが離されたとき
+				case MQEVENT_KEY_UP: // キーが離されたとき
 					return com_plugin->OnKeyUp(doc, scene, key, button);
 				}
 				return FALSE;
 			}
 
-		case MQEVENT_NEW_DOCUMENT:	// ドキュメント初期化時
+		case MQEVENT_NEW_DOCUMENT: // ドキュメント初期化時
 			{
 				MQStationPlugin::NEW_DOCUMENT_PARAM param;
 				//param.root = (MQXmlElement)ExtractEventOption(option, "root_elem"); // ※APIとして提供しないが本当は利用可
@@ -344,69 +348,70 @@ MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void *option)
 			}
 			return TRUE;
 
-		case MQEVENT_END_DOCUMENT:	// ドキュメント終了時
+		case MQEVENT_END_DOCUMENT: // ドキュメント終了時
 			plugin->OnEndDocument(doc);
 			return TRUE;
 
-		case MQEVENT_SAVE_DOCUMENT:	// ドキュメント保存時
+		case MQEVENT_SAVE_DOCUMENT: // ドキュメント保存時
 			{
 				MQStationPlugin::SAVE_DOCUMENT_PARAM param;
 				//param.root = (MQXmlElement)ExtractEventOption(option, "root_elem"); // ※APIとして提供しないが本当は利用可
 				param.elem = (MQXmlElement)ExtractEventOption(option, "xml_elem");
 				param.bSaveUniqueID = FALSE;
 				plugin->OnSaveDocument(doc, (const char *)ExtractEventOption(option, "filename"), param);
-				if (param.bSaveUniqueID){
-					BOOL *save_uid = (BOOL*)ExtractEventOption(option, "save_uid");
-					if (save_uid != NULL)
+				if (param.bSaveUniqueID)
+				{
+					BOOL* save_uid = (BOOL*)ExtractEventOption(option, "save_uid");
+					if (save_uid != nullptr)
 						*save_uid = TRUE;
 				}
 			}
 			return TRUE;
 
-		case MQEVENT_UNDO:	// アンドゥ実行時
+		case MQEVENT_UNDO: // アンドゥ実行時
 			return plugin->OnUndo(doc, ExtractEventOptionInt(option, "state", 0));
 
-		case MQEVENT_REDO:	// リドゥ実行時
+		case MQEVENT_REDO: // リドゥ実行時
 			return plugin->OnRedo(doc, ExtractEventOptionInt(option, "state", 0));
 
-		case MQEVENT_UNDO_UPDATED:	// アンドゥ状態更新時
+		case MQEVENT_UNDO_UPDATED: // アンドゥ状態更新時
 			plugin->OnUpdateUndo(doc, ExtractEventOptionInt(option, "state", 0), ExtractEventOptionInt(option, "size", 0));
 			return TRUE;
 
-		case MQEVENT_OBJECT_MODIFIED:	// オブジェクトの編集時
+		case MQEVENT_OBJECT_MODIFIED: // オブジェクトの編集時
 			plugin->OnObjectModified(doc);
 			return TRUE;
 
-		case MQEVENT_OBJECT_SELECTED:	// オブジェクトの選択状態の変更時
+		case MQEVENT_OBJECT_SELECTED: // オブジェクトの選択状態の変更時
 			plugin->OnObjectSelected(doc);
 			return TRUE;
 
-		case MQEVENT_OBJECT_LIST:		// カレントオブジェクトの変更時
+		case MQEVENT_OBJECT_LIST: // カレントオブジェクトの変更時
 			plugin->OnUpdateObjectList(doc);
 			return TRUE;
 
-		case MQEVENT_MATERIAL_MODIFIED:	// マテリアルのパラメータ変更時
+		case MQEVENT_MATERIAL_MODIFIED: // マテリアルのパラメータ変更時
 			plugin->OnMaterialModified(doc);
 			return TRUE;
 
-		case MQEVENT_MATERIAL_LIST:		// カレントマテリアルの変更時
+		case MQEVENT_MATERIAL_LIST: // カレントマテリアルの変更時
 			plugin->OnUpdateMaterialList(doc);
 			return TRUE;
 
-		case MQEVENT_SCENE:	// シーン情報の変更時
+		case MQEVENT_SCENE: // シーン情報の変更時
 			{
 				MQScene scene = (MQScene)ExtractEventOption(option, "scene");
 				plugin->OnUpdateScene(doc, scene);
 				return TRUE;
 			}
 
-		case MQEVENT_EDIT_OPTION:	// シーン情報の変更時
+		case MQEVENT_EDIT_OPTION: // シーン情報の変更時
 			{
-				const char *trigger = (char*)ExtractEventOption(option, "trigger");
+				const char* trigger = (char*)ExtractEventOption(option, "trigger");
 				MQStationPlugin::EDITOPTION_TYPE type = MQStationPlugin::EDITOPTION_UNKNOWN;
-				if(strcmp(trigger, "screen") == 0) type = MQStationPlugin::EDITOPTION_SCREEN;
-				else if(strcmp(trigger, "world") == 0) type = MQStationPlugin::EDITOPTION_WORLD;
-				else if(strcmp(trigger, "local") == 0) type = MQStationPlugin::EDITOPTION_LOCAL;
+				if (strcmp(trigger, "screen") == 0) type = MQStationPlugin::EDITOPTION_SCREEN;
+				else if (strcmp(trigger, "world") == 0) type = MQStationPlugin::EDITOPTION_WORLD;
+				else if (strcmp(trigger, "local") == 0) type = MQStationPlugin::EDITOPTION_LOCAL;
 				plugin->OnChangeEditOption(doc, type);
 				return TRUE;
 			}
@@ -416,16 +421,17 @@ MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void *option)
 		}
 	}
 
-	MQImportPlugin *import_plugin = dynamic_cast<MQImportPlugin*>(base_plugin);
-	if(import_plugin != NULL)
+	MQImportPlugin* import_plugin = dynamic_cast<MQImportPlugin*>(base_plugin);
+	if (import_plugin != nullptr)
 	{
-		switch(event_type){
+		switch (event_type)
+		{
 		case MQEVENT_IMPORT_SUPPORT_BACKGROUND:
 			return import_plugin->SupportBackground();
 		case MQEVENT_IMPORT_SET_OPTIONS:
 			{
 				BOOL background = ExtractEventOptionBool(option, "background", FALSE);
-				void *args = ExtractEventOption(option, "args");
+				void* args = ExtractEventOption(option, "args");
 
 				MQBasePluginMediator::ImportSetOptions(import_plugin, background, args);
 				return TRUE;
@@ -436,37 +442,37 @@ MQPLUGIN_EXPORT BOOL MQOnEvent(MQDocument doc, int event_type, void *option)
 	return FALSE;
 }
 
-
-void *ExtractEventOption(void *option, const char *name)
+void* ExtractEventOption(void* option, const char* name)
 {
-	if (option != NULL){
-		void **array = (void**)option;
-		for (int i=0; array[i]!=NULL; i+=2){
+	if (option != nullptr)
+	{
+		void** array = (void**)option;
+		for (int i = 0; array[i] != nullptr; i += 2)
+		{
 			if (strcmp((char*)array[i], name) == 0)
-				return array[i+1];
+				return array[i + 1];
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
-BOOL ExtractEventOptionBool(void *option, const char *name, BOOL defval)
+BOOL ExtractEventOptionBool(void* option, const char* name, BOOL defval)
 {
-	BOOL *ptr = (BOOL*)ExtractEventOption(option, name);
-	return (ptr != NULL) ? *ptr : defval;
+	BOOL* ptr = (BOOL*)ExtractEventOption(option, name);
+	return (ptr != nullptr) ? *ptr : defval;
 }
 
-int ExtractEventOptionInt(void *option, const char *name, int defval)
+int ExtractEventOptionInt(void* option, const char* name, int defval)
 {
-	int *ptr = (int*)ExtractEventOption(option, name);
-	return (ptr != NULL) ? *ptr : defval;
+	int* ptr = (int*)ExtractEventOption(option, name);
+	return (ptr != nullptr) ? *ptr : defval;
 }
 
-float ExtractEventOptionFloat(void *option, const char *name, float defval)
+float ExtractEventOptionFloat(void* option, const char* name, float defval)
 {
-	float *ptr = (float*)ExtractEventOption(option, name);
-	return (ptr != NULL) ? *ptr : defval;
+	float* ptr = (float*)ExtractEventOption(option, name);
+	return (ptr != nullptr) ? *ptr : defval;
 }
-
 
 //---------------------------------------------------------------------------
 //
@@ -489,16 +495,16 @@ MQBasePlugin::~MQBasePlugin()
 
 // Open a setting file
 // 設定ファイルを開く
-MQSetting *MQBasePlugin::OpenSetting(void)
+MQSetting* MQBasePlugin::OpenSetting(void)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 
 	array[0] = "root";
-	array[1] = NULL;
+	array[1] = nullptr;
 	array[2] = "pluginsettings";
-	array[3] = NULL;
-	array[4] = NULL;
+	array[3] = nullptr;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -506,8 +512,9 @@ MQSetting *MQBasePlugin::OpenSetting(void)
 	MQ_SendMessage(MQMESSAGE_GET_SETTING_ELEMENT, &info);
 
 	MQXmlElement root_elem = (MQXmlElement)array[3];
-	if(root_elem == NULL){
-		return NULL;
+	if (root_elem == nullptr)
+	{
+		return nullptr;
 	}
 
 	// Determine the section name.
@@ -524,21 +531,21 @@ MQSetting *MQBasePlugin::OpenSetting(void)
 
 // Close a setting file
 // 設定ファイルを閉じる
-void MQBasePlugin::CloseSetting(MQSetting *setting)
+void MQBasePlugin::CloseSetting(MQSetting* setting)
 {
 	delete setting;
 }
 
 // Get a resource string in command.xml
 // command.xmlファイル内に定義されるリソース文字列を取得する
-std::wstring MQBasePlugin::GetResourceString(const char *id)
+std::wstring MQBasePlugin::GetResourceString(const char* id)
 {
 	MQSendMessageInfo info;
-	void *array[7];
+	void* array[7];
 
 	int result_size = 4096;
-	wchar_t *result = new(std::nothrow) wchar_t[4096];
-	if(result == NULL) return std::wstring();
+	wchar_t* result = new(std::nothrow) wchar_t[4096];
+	if (result == nullptr) return std::wstring();
 
 	array[0] = "id";
 	array[1] = (void*)id;
@@ -546,7 +553,7 @@ std::wstring MQBasePlugin::GetResourceString(const char *id)
 	array[3] = result;
 	array[4] = "result_size";
 	array[5] = &result_size;
-	array[6] = NULL;
+	array[6] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -558,14 +565,14 @@ std::wstring MQBasePlugin::GetResourceString(const char *id)
 	return ret;
 }
 
-std::wstring MQBasePlugin::GetResourceString(const char *id, DWORD productID, DWORD pluginID)
+std::wstring MQBasePlugin::GetResourceString(const char* id, DWORD productID, DWORD pluginID)
 {
 	MQSendMessageInfo info;
-	void *array[7];
+	void* array[7];
 
 	int result_size = 4096;
-	wchar_t *result = new(std::nothrow) wchar_t[4096];
-	if(result == NULL) return std::wstring();
+	wchar_t* result = new(std::nothrow) wchar_t[4096];
+	if (result == nullptr) return std::wstring();
 
 	array[0] = "id";
 	array[1] = (void*)id;
@@ -573,7 +580,7 @@ std::wstring MQBasePlugin::GetResourceString(const char *id, DWORD productID, DW
 	array[3] = result;
 	array[4] = "result_size";
 	array[5] = &result_size;
-	array[6] = NULL;
+	array[6] = nullptr;
 
 	info.Product = productID;
 	info.ID = pluginID;
@@ -608,15 +615,16 @@ std::vector<float> MQBasePlugin::GetSettingFloatArray(MQSETTINGVALUE_TYPE type)
 	GetPlugInID(&productID, &pluginID);
 	std::wstring str = GetSettingValue(type, productID, pluginID);
 	std::vector<float> array;
-	for(std::wstring::size_type st = 0; st < str.length(); ){
+	for (std::wstring::size_type st = 0; st < str.length();)
+	{
 		std::wstring::size_type ed = str.find(L',', st);
-		if(ed == std::wstring::npos){
+		if (ed == std::wstring::npos)
+		{
 			array.push_back((float)_wtof(str.substr(st).c_str()));
 			break;
-		}else{
-			array.push_back((float)_wtof(str.substr(st, ed-st).c_str()));
-			st = ed + 1;
 		}
+		array.push_back((float)_wtof(str.substr(st, ed - st).c_str()));
+		st = ed + 1;
 	}
 	return array;
 }
@@ -631,38 +639,41 @@ std::wstring MQBasePlugin::GetSettingValue(MQSETTINGVALUE_TYPE type)
 std::wstring MQBasePlugin::GetSettingValue(MQSETTINGVALUE_TYPE type, DWORD productID, DWORD pluginID)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 
 	int length = 100;
-	switch(type){
+	switch (type)
+	{
 	case MQSETTINGVALUE_LANGUAGE:
 		array[0] = "name";
 		array[1] = "language.length";
 		array[2] = "result_i";
 		array[3] = &length;
-		array[4] = NULL;
+		array[4] = nullptr;
 
 		info.Product = productID;
 		info.ID = pluginID;
 		info.option = array;
 
-		if(!MQ_SendMessage(MQMESSAGE_GET_TEXT_VALUE, &info)){
+		if (!MQ_SendMessage(MQMESSAGE_GET_TEXT_VALUE, &info))
+		{
 			return std::wstring();
 		}
 		break;
 	}
 
-	wchar_t *result = new(std::nothrow) wchar_t[length+1];
-	if(result == NULL) return std::wstring();
+	wchar_t* result = new(std::nothrow) wchar_t[length + 1];
+	if (result == nullptr) return std::wstring();
 	*result = L'\0';
 
-	switch(type){
+	switch (type)
+	{
 	case MQSETTINGVALUE_LANGUAGE:
 		array[0] = "name";
 		array[1] = "language";
 		array[2] = "result_w";
 		array[3] = result;
-		array[4] = NULL;
+		array[4] = nullptr;
 
 		info.Product = productID;
 		info.ID = pluginID;
@@ -675,7 +686,7 @@ std::wstring MQBasePlugin::GetSettingValue(MQSETTINGVALUE_TYPE type, DWORD produ
 		array[1] = "rotation_handle";
 		array[2] = "result_w";
 		array[3] = result;
-		array[4] = NULL;
+		array[4] = nullptr;
 
 		info.Product = productID;
 		info.ID = pluginID;
@@ -688,7 +699,7 @@ std::wstring MQBasePlugin::GetSettingValue(MQSETTINGVALUE_TYPE type, DWORD produ
 		array[1] = "handle_size";
 		array[2] = "result_w";
 		array[3] = result;
-		array[4] = NULL;
+		array[4] = nullptr;
 
 		info.Product = productID;
 		info.ID = pluginID;
@@ -701,7 +712,7 @@ std::wstring MQBasePlugin::GetSettingValue(MQSETTINGVALUE_TYPE type, DWORD produ
 		array[1] = "handle_scale";
 		array[2] = "result_w";
 		array[3] = result;
-		array[4] = NULL;
+		array[4] = nullptr;
 
 		info.Product = productID;
 		info.ID = pluginID;
@@ -714,7 +725,7 @@ std::wstring MQBasePlugin::GetSettingValue(MQSETTINGVALUE_TYPE type, DWORD produ
 		array[1] = "normalmap_flip";
 		array[2] = "result_w";
 		array[3] = result;
-		array[4] = NULL;
+		array[4] = nullptr;
 
 		info.Product = productID;
 		info.ID = pluginID;
@@ -736,33 +747,51 @@ MQColor MQBasePlugin::GetSystemColor(MQSYSTEMCOLOR_TYPE color_type)
 {
 	float color[3] = {1,1,1};
 	MQSendMessageInfo info;
-	void *array[5];
-	
+	void* array[5];
+
 	array[0] = "name";
-	switch(color_type){
-	case MQSYSTEMCOLOR_OBJECT: array[1] = "object"; break;
-	case MQSYSTEMCOLOR_SELECT: array[1] = "select"; break;
-	case MQSYSTEMCOLOR_TEMP: array[1] = "temp"; break;
-	case MQSYSTEMCOLOR_HIGHLIGHT: array[1] = "highlight"; break;
-	case MQSYSTEMCOLOR_UNACTIVE: array[1] = "unactive"; break;
-	case MQSYSTEMCOLOR_MESH_YZ: array[1] = "mesh_yz"; break;
-	case MQSYSTEMCOLOR_MESH_ZX: array[1] = "mesh_zx"; break;
-	case MQSYSTEMCOLOR_MESH_XY: array[1] = "mesh_xy"; break;
-	case MQSYSTEMCOLOR_BLOB_PLUS: array[1] = "blob_plus"; break;
-	case MQSYSTEMCOLOR_BLOB_MINUS: array[1] = "blob_minus"; break;
-	case MQSYSTEMCOLOR_UV: array[1] = "uv"; break;
-	case MQSYSTEMCOLOR_AXIS_X: array[1] = "axis_x"; break;
-	case MQSYSTEMCOLOR_AXIS_Y: array[1] = "axis_y"; break;
-	case MQSYSTEMCOLOR_AXIS_Z: array[1] = "axis_z"; break;
-	case MQSYSTEMCOLOR_AXIS_W: array[1] = "axis_w"; break;
-	case MQSYSTEMCOLOR_AXIS_ACTIVE: array[1] = "axis_active"; break;
-	case MQSYSTEMCOLOR_PREVIEW_BACK: array[1] = "preview_back"; break;
-	default: return MQColor(1,1,1);
+	switch (color_type)
+	{
+	case MQSYSTEMCOLOR_OBJECT: array[1] = "object";
+		break;
+	case MQSYSTEMCOLOR_SELECT: array[1] = "select";
+		break;
+	case MQSYSTEMCOLOR_TEMP: array[1] = "temp";
+		break;
+	case MQSYSTEMCOLOR_HIGHLIGHT: array[1] = "highlight";
+		break;
+	case MQSYSTEMCOLOR_UNACTIVE: array[1] = "unactive";
+		break;
+	case MQSYSTEMCOLOR_MESH_YZ: array[1] = "mesh_yz";
+		break;
+	case MQSYSTEMCOLOR_MESH_ZX: array[1] = "mesh_zx";
+		break;
+	case MQSYSTEMCOLOR_MESH_XY: array[1] = "mesh_xy";
+		break;
+	case MQSYSTEMCOLOR_BLOB_PLUS: array[1] = "blob_plus";
+		break;
+	case MQSYSTEMCOLOR_BLOB_MINUS: array[1] = "blob_minus";
+		break;
+	case MQSYSTEMCOLOR_UV: array[1] = "uv";
+		break;
+	case MQSYSTEMCOLOR_AXIS_X: array[1] = "axis_x";
+		break;
+	case MQSYSTEMCOLOR_AXIS_Y: array[1] = "axis_y";
+		break;
+	case MQSYSTEMCOLOR_AXIS_Z: array[1] = "axis_z";
+		break;
+	case MQSYSTEMCOLOR_AXIS_W: array[1] = "axis_w";
+		break;
+	case MQSYSTEMCOLOR_AXIS_ACTIVE: array[1] = "axis_active";
+		break;
+	case MQSYSTEMCOLOR_PREVIEW_BACK: array[1] = "preview_back";
+		break;
+	default: return MQColor(1, 1, 1);
 	}
 
 	array[2] = "result.rgb";
 	array[3] = color;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -780,13 +809,13 @@ MQColor MQBasePlugin::GetSystemColor(MQSYSTEMCOLOR_TYPE color_type)
 HCURSOR MQBasePlugin::GetResourceCursor(MQCURSOR_TYPE cursor_type)
 {
 	MQSendMessageInfo info;
-	void *array[5];
-	
+	void* array[5];
+
 	array[0] = "index";
 	array[1] = &cursor_type;
 	array[2] = "result";
-	array[3] = NULL;
-	array[4] = NULL;
+	array[3] = nullptr;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -804,13 +833,13 @@ HCURSOR MQBasePlugin::GetResourceCursor(MQCURSOR_TYPE cursor_type)
 HCURSOR MQBasePlugin::GetScreenMouseCursor()
 {
 	MQSendMessageInfo info;
-	void *array[3];
+	void* array[3];
 
-	HCURSOR cursor = NULL;
-	
+	HCURSOR cursor = nullptr;
+
 	array[0] = "cursor";
 	array[1] = &cursor;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -834,11 +863,11 @@ HCURSOR MQBasePlugin::GetScreenMouseCursor()
 void MQBasePlugin::SetScreenMouseCursor(HCURSOR cursor)
 {
 	MQSendMessageInfo info;
-	void *array[3];
-	
+	void* array[3];
+
 	array[0] = "cursor";
 	array[1] = cursor;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -849,12 +878,12 @@ void MQBasePlugin::SetScreenMouseCursor(HCURSOR cursor)
 int MQBasePlugin::GetLUTCount()
 {
 	MQSendMessageInfo info;
-	void *array[3];
+	void* array[3];
 	int num = 0;
-	
+
 	array[0] = "number";
 	array[1] = &num;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -867,14 +896,14 @@ int MQBasePlugin::GetLUTCount()
 std::wstring MQBasePlugin::GetLUTName(int index)
 {
 	MQSendMessageInfo info;
-	void *array[5];
-	const wchar_t *name = nullptr;
-	
+	void* array[5];
+	const wchar_t* name = nullptr;
+
 	array[0] = "get_name";
 	array[1] = &name;
 	array[2] = "index";
 	array[3] = &index;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -884,17 +913,17 @@ std::wstring MQBasePlugin::GetLUTName(int index)
 	return std::wstring(name);
 }
 
-const unsigned char *MQBasePlugin::GetLUTData(int index)
+const unsigned char* MQBasePlugin::GetLUTData(int index)
 {
 	MQSendMessageInfo info;
-	void *array[5];
-	const unsigned char *lut = nullptr;
-	
+	void* array[5];
+	const unsigned char* lut = nullptr;
+
 	array[0] = "get_lut";
 	array[1] = &lut;
 	array[2] = "index";
 	array[3] = &index;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -904,15 +933,15 @@ const unsigned char *MQBasePlugin::GetLUTData(int index)
 	return lut;
 }
 
-const unsigned char *MQBasePlugin::GetDefaultLUTData()
+const unsigned char* MQBasePlugin::GetDefaultLUTData()
 {
 	MQSendMessageInfo info;
-	void *array[3];
-	const unsigned char *lut = nullptr;
-	
+	void* array[3];
+	const unsigned char* lut = nullptr;
+
 	array[0] = "get_default_lut";
 	array[1] = &lut;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -938,10 +967,10 @@ const unsigned char *MQBasePlugin::GetDefaultLUTData()
 //    message			- 任意のメッセージ
 //    戻り値			- プラグインから返された値
 //---------------------------------------------------------------------------
-int MQBasePlugin::SendUserMessage(MQDocument doc, DWORD target_product, DWORD target_id, const char *description, void *message)
+int MQBasePlugin::SendUserMessage(MQDocument doc, DWORD target_product, DWORD target_id, const char* description, void* message)
 {
 	MQSendMessageInfo info;
-	void *array[13];
+	void* array[13];
 	int result = 0;
 
 	array[0] = "document";
@@ -956,7 +985,7 @@ int MQBasePlugin::SendUserMessage(MQDocument doc, DWORD target_product, DWORD ta
 	array[9] = message;
 	array[10] = "result";
 	array[11] = &result;
-	array[12] = NULL;
+	array[12] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -965,8 +994,6 @@ int MQBasePlugin::SendUserMessage(MQDocument doc, DWORD target_product, DWORD ta
 
 	return result;
 }
-
-
 
 //---------------------------------------------------------------------------
 //
@@ -983,7 +1010,7 @@ int MQBasePlugin::SendUserMessage(MQDocument doc, DWORD target_product, DWORD ta
 MQImportPlugin::MQImportPlugin()
 {
 	m_ImportBackground = FALSE;
-	m_ImportOptions = NULL;
+	m_ImportOptions = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -996,7 +1023,7 @@ BOOL MQImportPlugin::IsBackground(void)
 	return m_ImportBackground;
 }
 
-void *MQImportPlugin::GetImportOptions(void)
+void* MQImportPlugin::GetImportOptions(void)
 {
 	return m_ImportOptions;
 }
@@ -1009,14 +1036,14 @@ void *MQImportPlugin::GetImportOptions(void)
 BOOL MQImportPlugin::IsCanceled(void)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 	BOOL result = FALSE;
 
 	array[0] = "options";
 	array[1] = m_ImportOptions;
 	array[2] = "result";
 	array[3] = &result;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1034,21 +1061,20 @@ BOOL MQImportPlugin::IsCanceled(void)
 void MQImportPlugin::SetProgress(float progress)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 	BOOL result = FALSE;
 
 	array[0] = "options";
 	array[1] = m_ImportOptions;
 	array[2] = "progress";
 	array[3] = &progress;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
 
 	MQ_SendMessage(MQMESSAGE_IMPORT_PROGRESS, &info);
 }
-
 
 //---------------------------------------------------------------------------
 //
@@ -1070,9 +1096,9 @@ MQStationPlugin::MQStationPlugin()
 //    Enumerate sub command's name.
 //    サブコマンドの名前を列挙
 //---------------------------------------------------------------------------
-const char *MQStationPlugin::EnumSubCommand(int index)
+const char* MQStationPlugin::EnumSubCommand(int index)
 {
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1080,9 +1106,9 @@ const char *MQStationPlugin::EnumSubCommand(int index)
 //    Get a sub command string for GUI.
 //    サブコマンドの表示名の取得
 //---------------------------------------------------------------------------
-const wchar_t *MQStationPlugin::GetSubCommandString(int index)
+const wchar_t* MQStationPlugin::GetSubCommandString(int index)
 {
-	return NULL;
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1114,11 +1140,10 @@ BOOL MQStationPlugin::OnSubCommand(MQDocument doc, int index)
 //    message		- メッセージの内容
 //    戻り値        - 送出元プラグインに返す任意の値
 //---------------------------------------------------------------------------
-int MQStationPlugin::OnReceiveUserMessage(MQDocument doc, DWORD src_product, DWORD src_id, const char *description, void *message)
+int MQStationPlugin::OnReceiveUserMessage(MQDocument doc, DWORD src_product, DWORD src_id, const char* description, void* message)
 {
 	return 0;
 }
-
 
 //---------------------------------------------------------------------------
 //  MQStationPlugin::OnDraw
@@ -1137,7 +1162,7 @@ void MQStationPlugin::OnDraw(MQDocument doc, MQScene scene, int width, int heigh
 //                 [NULL] 新規ドキュメントとして生成された、またはXML要素は
 //                        保存されていない。
 //---------------------------------------------------------------------------
-void MQStationPlugin::OnNewDocument(MQDocument doc, const char *filename, NEW_DOCUMENT_PARAM& param)
+void MQStationPlugin::OnNewDocument(MQDocument doc, const char* filename, NEW_DOCUMENT_PARAM& param)
 {
 }
 
@@ -1155,7 +1180,7 @@ void MQStationPlugin::OnEndDocument(MQDocument doc)
 //    param.elemはプラグイン独自の情報を保存するためのXML要素で、この要素に
 //    子要素を付加することができます。
 //---------------------------------------------------------------------------
-void MQStationPlugin::OnSaveDocument(MQDocument doc, const char *filename, SAVE_DOCUMENT_PARAM& param)
+void MQStationPlugin::OnSaveDocument(MQDocument doc, const char* filename, SAVE_DOCUMENT_PARAM& param)
 {
 }
 
@@ -1287,7 +1312,7 @@ void MQStationPlugin::WindowClose()
 //    ExecuteCallback()が呼び出され、MQDocumentに対する処理を
 //    行うことができます。
 //---------------------------------------------------------------------------
-void MQStationPlugin::BeginCallback(void *option)
+void MQStationPlugin::BeginCallback(void* option)
 {
 	StationCallbackInnerOption inner;
 	inner.this_ptr = this;
@@ -1302,12 +1327,11 @@ void MQStationPlugin::BeginCallback(void *option)
 //    コールバック関数です。
 //    この関数はさらに純粋仮想関数ExecuteCallback()を呼び出します。
 //---------------------------------------------------------------------------
-BOOL __stdcall MQStationPlugin::StationCallback(MQDocument doc, void *option)
+BOOL __stdcall MQStationPlugin::StationCallback(MQDocument doc, void* option)
 {
-	StationCallbackInnerOption *inner = (StationCallbackInnerOption*)option;
+	StationCallbackInnerOption* inner = (StationCallbackInnerOption*)option;
 	return inner->this_ptr->ExecuteCallback(doc, inner->option) ? TRUE : FALSE;
 }
-
 
 //---------------------------------------------------------------------------
 //  MQStationPlugin::CreateDrawingObject
@@ -1323,7 +1347,7 @@ BOOL __stdcall MQStationPlugin::StationCallback(MQDocument doc, void *option)
 MQObject MQStationPlugin::CreateDrawingObject(MQDocument doc, DRAW_OBJECT_VISIBILITY visibility, BOOL instant)
 {
 	MQSendMessageInfo info;
-	void *array[9];
+	void* array[9];
 
 	array[0] = "document";
 	array[1] = doc;
@@ -1332,8 +1356,8 @@ MQObject MQStationPlugin::CreateDrawingObject(MQDocument doc, DRAW_OBJECT_VISIBI
 	array[4] = "instant";
 	array[5] = &instant;
 	array[6] = "result";
-	array[7] = NULL;
-	array[8] = NULL;
+	array[7] = nullptr;
+	array[8] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1346,7 +1370,7 @@ MQObject MQStationPlugin::CreateDrawingObject(MQDocument doc, DRAW_OBJECT_VISIBI
 MQObject MQStationPlugin::CreateDrawingObjectByClone(MQDocument doc, MQObject clone_source, DRAW_OBJECT_VISIBILITY visibility, BOOL instant)
 {
 	MQSendMessageInfo info;
-	void *array[11];
+	void* array[11];
 
 	array[0] = "document";
 	array[1] = doc;
@@ -1357,8 +1381,8 @@ MQObject MQStationPlugin::CreateDrawingObjectByClone(MQDocument doc, MQObject cl
 	array[6] = "instant";
 	array[7] = &instant;
 	array[8] = "result";
-	array[9] = NULL;
-	array[10] = NULL;
+	array[9] = nullptr;
+	array[10] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1367,7 +1391,6 @@ MQObject MQStationPlugin::CreateDrawingObjectByClone(MQDocument doc, MQObject cl
 
 	return (MQObject)array[9];
 }
-
 
 //---------------------------------------------------------------------------
 //  MQStationPlugin::CreateDrawingMaterial
@@ -1385,8 +1408,8 @@ MQObject MQStationPlugin::CreateDrawingObjectByClone(MQDocument doc, MQObject cl
 MQMaterial MQStationPlugin::CreateDrawingMaterial(MQDocument doc, int& index, BOOL instant)
 {
 	MQSendMessageInfo info;
-	void *array[9];
-	int i=-1;
+	void* array[9];
+	int i = -1;
 
 	array[0] = "document";
 	array[1] = doc;
@@ -1395,8 +1418,8 @@ MQMaterial MQStationPlugin::CreateDrawingMaterial(MQDocument doc, int& index, BO
 	array[4] = "instant";
 	array[5] = &instant;
 	array[6] = "result";
-	array[7] = NULL;
-	array[8] = NULL;
+	array[7] = nullptr;
+	array[8] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1407,14 +1430,13 @@ MQMaterial MQStationPlugin::CreateDrawingMaterial(MQDocument doc, int& index, BO
 	return (MQMaterial)array[7];
 }
 
-
 //---------------------------------------------------------------------------
 //  MQStationPlugin::CreateDrawingText
 //---------------------------------------------------------------------------
-MQDrawingText MQStationPlugin::CreateDrawingText(MQDocument doc, const wchar_t *text, DRAWING_TEXT_PARAM& param, BOOL instant)
+MQDrawingText MQStationPlugin::CreateDrawingText(MQDocument doc, const wchar_t* text, DRAWING_TEXT_PARAM& param, BOOL instant)
 {
 	MQSendMessageInfo info;
-	void *array[19];
+	void* array[19];
 	float pos[3] = {param.ScreenPos.x, param.ScreenPos.y, param.ScreenPos.z};
 	float col[3] = {param.Color.r, param.Color.g, param.Color.b};
 
@@ -1427,23 +1449,26 @@ MQDrawingText MQStationPlugin::CreateDrawingText(MQDocument doc, const wchar_t *
 	array[ai++] = pos; // 6
 	array[ai++] = "color";
 	array[ai++] = col;
-	if(param.FontScale != 1){
+	if (param.FontScale != 1)
+	{
 		array[ai++] = "font_scale";
 		array[ai++] = &param.FontScale;
 	}
-	if(param.HorzAlign != TEXT_ALIGN_LEFT){
+	if (param.HorzAlign != TEXT_ALIGN_LEFT)
+	{
 		array[ai++] = "horz_align";
 		array[ai++] = &param.HorzAlign; // 12
 	}
-	if(param.VertAlign != TEXT_ALIGN_TOP){
+	if (param.VertAlign != TEXT_ALIGN_TOP)
+	{
 		array[ai++] = "vert_align";
 		array[ai++] = &param.VertAlign;
 	}
 	array[ai++] = "instant";
 	array[ai++] = &instant;
 	array[ai++] = "result";
-	array[ai++] = NULL; // 18
-	array[ai++] = NULL; // 19
+	array[ai++] = nullptr; // 18
+	array[ai++] = nullptr; // 19
 	assert(ai <= _countof(array));
 
 	GetPlugInID(&info.Product, &info.ID);
@@ -1454,7 +1479,6 @@ MQDrawingText MQStationPlugin::CreateDrawingText(MQDocument doc, const wchar_t *
 	return (MQDrawingText)array[11];
 }
 
-
 //---------------------------------------------------------------------------
 //  MQStationPlugin::DeleteDrawingObject
 //    CreateDrawingObject()でinstantをFALSEにして作成したオブジェクトを削除
@@ -1463,20 +1487,19 @@ MQDrawingText MQStationPlugin::CreateDrawingText(MQDocument doc, const wchar_t *
 void MQStationPlugin::DeleteDrawingObject(MQDocument doc, MQObject obj)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 
 	array[0] = "document";
 	array[1] = doc;
 	array[2] = "object";
 	array[3] = obj;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
 
 	MQ_SendMessage(MQMESSAGE_DELETE_DRAW_OBJECT, &info);
 }
-
 
 //---------------------------------------------------------------------------
 //  MQStationPlugin::DeleteDrawingMaterial
@@ -1486,20 +1509,19 @@ void MQStationPlugin::DeleteDrawingObject(MQDocument doc, MQObject obj)
 void MQStationPlugin::DeleteDrawingMaterial(MQDocument doc, MQMaterial mat)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 
 	array[0] = "document";
 	array[1] = doc;
 	array[2] = "material";
 	array[3] = mat;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
 
 	MQ_SendMessage(MQMESSAGE_DELETE_DRAW_MATERIAL, &info);
 }
-
 
 //---------------------------------------------------------------------------
 //  MQStationPlugin::DeleteDrawingText
@@ -1509,20 +1531,19 @@ void MQStationPlugin::DeleteDrawingMaterial(MQDocument doc, MQMaterial mat)
 void MQStationPlugin::DeleteDrawingText(MQDocument doc, MQDrawingText text)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 
 	array[0] = "document";
 	array[1] = doc;
 	array[2] = "text";
 	array[3] = text;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
 
 	MQ_SendMessage(MQMESSAGE_DELETE_DRAW_MATERIAL, &info);
 }
-
 
 //---------------------------------------------------------------------------
 //  MQStationPlugin::SetDrawProxyObject
@@ -1531,20 +1552,19 @@ void MQStationPlugin::DeleteDrawingText(MQDocument doc, MQDrawingText text)
 void MQStationPlugin::SetDrawProxyObject(MQObject obj, MQObject proxy)
 {
 	MQSendMessageInfo info;
-	void *array[5];
+	void* array[5];
 
 	array[0] = "object";
 	array[1] = obj;
 	array[2] = "proxy";
 	array[3] = proxy;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
 
 	MQ_SendMessage(MQMESSAGE_SET_DRAW_PROXY_OBJECT, &info);
 }
-
 
 //---------------------------------------------------------------------------
 //  MQStationPlugin::GetCurrentUndoState
@@ -1553,14 +1573,14 @@ void MQStationPlugin::SetDrawProxyObject(MQObject obj, MQObject proxy)
 int MQStationPlugin::GetCurrentUndoState(MQDocument doc)
 {
 	MQSendMessageInfo info;
-	void *array[5];
-	int state=-1;
+	void* array[5];
+	int state = -1;
 
 	array[0] = "document";
 	array[1] = doc;
 	array[2] = "result";
 	array[3] = &state;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1577,10 +1597,10 @@ int MQStationPlugin::GetCurrentUndoState(MQDocument doc)
 void MQStationPlugin::GetSceneOption(MQScene scene, SCENE_OPTION& option)
 {
 	MQSendMessageInfo info;
-	void *array[13];
+	void* array[13];
 
 	memset(&option, 0, sizeof(SCENE_OPTION));
-	
+
 	array[0] = "scene";
 	array[1] = scene;
 	array[2] = "show_vertex";
@@ -1593,16 +1613,13 @@ void MQStationPlugin::GetSceneOption(MQScene scene, SCENE_OPTION& option)
 	array[9] = &option.FrontOnly;
 	array[10] = "show_bkimg";
 	array[11] = &option.ShowBkimg;
-	array[12] = NULL;
+	array[12] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
 
 	MQ_SendMessage(MQMESSAGE_GET_SCENE_OPTION, &info);
 }
-
-
-
 
 //---------------------------------------------------------------------------
 //
@@ -1634,7 +1651,7 @@ BOOL MQCommandPlugin::IsActivated(MQDocument doc)
 //  MQCommandPlugin::ExecuteCallback
 //    コールバックに対する実装部
 //---------------------------------------------------------------------------
-bool MQCommandPlugin::ExecuteCallback(MQDocument doc, void *option)
+bool MQCommandPlugin::ExecuteCallback(MQDocument doc, void* option)
 {
 	// コマンドプラグインではExecuteCallback()は必ずしも実装する必要は
 	// ないので、標準動作としてtrueを返す
@@ -1774,14 +1791,13 @@ BOOL MQCommandPlugin::OnKeyUp(MQDocument doc, MQScene scene, int key, MOUSE_BUTT
 	return FALSE;
 }
 
-
 // アンドゥバッファを更新する
 void MQCommandPlugin::UpdateUndo()
 {
 	MQSendMessageInfo info;
-	void *array[1];
+	void* array[1];
 
-	array[0] = NULL;
+	array[0] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1789,14 +1805,14 @@ void MQCommandPlugin::UpdateUndo()
 	MQ_SendMessage(MQMESSAGE_UPDATE_UNDO, &info);
 }
 
-void MQCommandPlugin::UpdateUndo(const wchar_t *str)
+void MQCommandPlugin::UpdateUndo(const wchar_t* str)
 {
 	MQSendMessageInfo info;
-	void *array[3];
+	void* array[3];
 
 	array[0] = "string";
 	array[1] = (void*)str;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1808,11 +1824,11 @@ void MQCommandPlugin::UpdateUndo(const wchar_t *str)
 void MQCommandPlugin::RedrawScene(MQScene scene)
 {
 	MQSendMessageInfo info;
-	void *array[3];
+	void* array[3];
 
 	array[0] = "scene";
 	array[1] = scene;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1824,9 +1840,9 @@ void MQCommandPlugin::RedrawScene(MQScene scene)
 void MQCommandPlugin::RedrawAllScene()
 {
 	MQSendMessageInfo info;
-	void *array[1];
+	void* array[1];
 
-	array[0] = NULL;
+	array[0] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1841,12 +1857,12 @@ void MQCommandPlugin::RedrawAllScene()
 void MQCommandPlugin::GetEditOption(EDIT_OPTION& option)
 {
 	MQSendMessageInfo info;
-	void *array[39];
+	void* array[39];
 	int plane = 0;
 	float plane_pos[3] = {0,0,0}, plane_dir[3] = {0,0,0};
 
 	memset(&option, 0, sizeof(EDIT_OPTION));
-	
+
 	array[0] = "edit_vertex";
 	array[1] = &option.EditVertex;
 	array[2] = "edit_line";
@@ -1874,7 +1890,7 @@ void MQCommandPlugin::GetEditOption(EDIT_OPTION& option)
 	array[24] = "snap_grid";
 	array[25] = &option.SnapGrid;
 	array[26] = "snap_plane";
-	array[27] = &plane;;
+	array[27] = &plane;
 	array[28] = "snap_plane_pos";
 	array[29] = plane_pos;
 	array[30] = "snap_plane_dir";
@@ -1885,7 +1901,7 @@ void MQCommandPlugin::GetEditOption(EDIT_OPTION& option)
 	array[35] = &option.SnapLine;
 	array[36] = "snap_face";
 	array[37] = &option.SnapFace;
-	array[38] = NULL;
+	array[38] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1905,9 +1921,9 @@ MQPoint MQCommandPlugin::GetSnappedPos(MQScene scene, const MQPoint& p, SNAP_GRI
 {
 	MQSendMessageInfo info;
 	float pos[3], result[3];
-	void *array[9];
+	void* array[9];
 	int itype = type;
-	
+
 	pos[0] = p.x;
 	pos[1] = p.y;
 	pos[2] = p.z;
@@ -1921,7 +1937,7 @@ MQPoint MQCommandPlugin::GetSnappedPos(MQScene scene, const MQPoint& p, SNAP_GRI
 	array[5] = pos;
 	array[6] = "result";
 	array[7] = result;
-	array[8] = NULL;
+	array[8] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1936,13 +1952,14 @@ MQPoint MQCommandPlugin::GetSnappedPos(MQScene scene, const MQPoint& p, const ED
 	MQSendMessageInfo info;
 	int itype, iplane;
 	float pos[3], plane_pos[3], plane_dir[3], result[3];
-	void *array[27];
+	void* array[27];
 
-	if(option.SnapGrid == 0 && option.SnapPlane == SNAP_PLANE_NONE 
-	&& !option.SnapVertex && !option.SnapLine && !option.SnapFace){
+	if (option.SnapGrid == 0 && option.SnapPlane == SNAP_PLANE_NONE
+		&& !option.SnapVertex && !option.SnapLine && !option.SnapFace)
+	{
 		return p;
 	}
-	
+
 	itype = option.SnapGrid;
 	iplane = option.SnapPlane;
 	pos[0] = p.x;
@@ -1982,7 +1999,7 @@ MQPoint MQCommandPlugin::GetSnappedPos(MQScene scene, const MQPoint& p, const ED
 	array[23] = (void*)&snap_param.IgnoreCurObj;
 	array[24] = "result";
 	array[25] = result;
-	array[26] = NULL;
+	array[26] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -1992,7 +2009,6 @@ MQPoint MQCommandPlugin::GetSnappedPos(MQScene scene, const MQPoint& p, const ED
 	return MQPoint(result[0], result[1], result[2]);
 }
 
-
 //---------------------------------------------------------------------------
 //  MQCommandPlugin::HitTest
 //    シーン内の指定された位置にあるものを検知
@@ -2000,16 +2016,16 @@ MQPoint MQCommandPlugin::GetSnappedPos(MQScene scene, const MQPoint& p, const ED
 bool MQCommandPlugin::HitTest(MQScene scene, POINT p, HIT_TEST_PARAM& param)
 {
 	MQSendMessageInfo info;
-	void *array[21];
+	void* array[21];
 	int test_type = 0;
 
-	if(param.TestVertex) test_type |= 1;
-	if(param.TestLine)   test_type |= 2;
-	if(param.TestFace)   test_type |= 4;
-	if(param.DisableFrontOnly) test_type |= 8;
+	if (param.TestVertex) test_type |= 1;
+	if (param.TestLine) test_type |= 2;
+	if (param.TestFace) test_type |= 4;
+	if (param.DisableFrontOnly) test_type |= 8;
 
 	param.HitType = HIT_TYPE_NONE;
-	
+
 	array[0] = "scene";
 	array[1] = scene;
 	array[2] = "x";
@@ -2030,7 +2046,7 @@ bool MQCommandPlugin::HitTest(MQScene scene, POINT p, HIT_TEST_PARAM& param)
 	array[17] = &param.LineIndex;
 	array[18] = "hit_face";
 	array[19] = &param.FaceIndex;
-	array[20] = NULL;
+	array[20] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -2040,7 +2056,6 @@ bool MQCommandPlugin::HitTest(MQScene scene, POINT p, HIT_TEST_PARAM& param)
 	return (param.HitType != HIT_TYPE_NONE);
 }
 
-
 //---------------------------------------------------------------------------
 //  MQCommandPlugin::HitTestObjects
 //    シーン内の指定された位置にあるものを検知
@@ -2048,20 +2063,20 @@ bool MQCommandPlugin::HitTest(MQScene scene, POINT p, HIT_TEST_PARAM& param)
 bool MQCommandPlugin::HitTestObjects(MQScene scene, POINT p, const std::vector<MQObject>& objects, HIT_TEST_PARAM& param)
 {
 	MQSendMessageInfo info;
-	void *array[25];
+	void* array[25];
 	int test_type = 0;
 	int objects_num = (int)objects.size();
 
-	if(objects.empty()) return HIT_TYPE_NONE;
+	if (objects.empty()) return HIT_TYPE_NONE;
 
-	if(param.TestVertex) test_type |= 1;
-	if(param.TestLine)   test_type |= 2;
-	if(param.TestFace)   test_type |= 4;
-	if(param.DisableFrontOnly) test_type |= 8;
-	if(param.DisableCoverByFace) test_type |= 16;
+	if (param.TestVertex) test_type |= 1;
+	if (param.TestLine) test_type |= 2;
+	if (param.TestFace) test_type |= 4;
+	if (param.DisableFrontOnly) test_type |= 8;
+	if (param.DisableCoverByFace) test_type |= 16;
 
 	param.HitType = HIT_TYPE_NONE;
-	
+
 	array[0] = "scene";
 	array[1] = scene;
 	array[2] = "x";
@@ -2086,7 +2101,7 @@ bool MQCommandPlugin::HitTestObjects(MQScene scene, POINT p, const std::vector<M
 	array[21] = (void**)&(*objects.begin());
 	array[22] = "objects.num";
 	array[23] = &objects_num;
-	array[24] = NULL;
+	array[24] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -2110,11 +2125,11 @@ bool MQCommandPlugin::HitTestObjects(MQScene scene, POINT p, const std::vector<M
 void MQCommandPlugin::SetMouseCursor(HCURSOR cursor)
 {
 	MQSendMessageInfo info;
-	void *array[3];
-	
+	void* array[3];
+
 	array[0] = "cursor";
 	array[1] = cursor;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -2126,14 +2141,14 @@ void MQCommandPlugin::SetMouseCursor(HCURSOR cursor)
 //  MQCommandPlugin::SetStatusString
 //    ステータスバーの文字列を設定
 //---------------------------------------------------------------------------
-void MQCommandPlugin::SetStatusString(const char *str)
+void MQCommandPlugin::SetStatusString(const char* str)
 {
 	MQSendMessageInfo info;
-	void *array[3];
-	
+	void* array[3];
+
 	array[0] = "string";
 	array[1] = (void*)str;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -2141,14 +2156,14 @@ void MQCommandPlugin::SetStatusString(const char *str)
 	MQ_SendMessage(MQMESSAGE_SET_STATUS_STRING, &info);
 }
 
-void MQCommandPlugin::SetStatusString(const wchar_t *str)
+void MQCommandPlugin::SetStatusString(const wchar_t* str)
 {
 	MQSendMessageInfo info;
-	void *array[3];
-	
+	void* array[3];
+
 	array[0] = "wstring";
 	array[1] = (void*)str;
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -2160,16 +2175,16 @@ void MQCommandPlugin::SetStatusString(const wchar_t *str)
 //  MQCommandPlugin::SetHelpPage
 //    ヘルプページを設定
 //---------------------------------------------------------------------------
-void MQCommandPlugin::SetHelpPage(const wchar_t *url)
+void MQCommandPlugin::SetHelpPage(const wchar_t* url)
 {
 	MQSendMessageInfo info;
-	void *array[5];
-	
+	void* array[5];
+
 	array[0] = "name";
 	array[1] = "helppage";
 	array[2] = "wstring";
 	array[3] = (void*)url;
-	array[4] = NULL;
+	array[4] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -2183,11 +2198,11 @@ void MQCommandPlugin::SetHelpPage(const wchar_t *url)
 void MQCommandPlugin::ApplyLayoutToOptionPanel()
 {
 	MQSendMessageInfo info;
-	void *array[5];
-	
+	void* array[5];
+
 	array[0] = "name";
 	array[1] = "applylayout";
-	array[2] = NULL;
+	array[2] = nullptr;
 
 	GetPlugInID(&info.Product, &info.ID);
 	info.option = array;
@@ -2195,11 +2210,8 @@ void MQCommandPlugin::ApplyLayoutToOptionPanel()
 	MQ_SendMessage(MQMESSAGE_SET_TEXT_VALUE, &info);
 }
 
-
-
-void MQBasePluginMediator::ImportSetOptions(MQImportPlugin *plugin, BOOL background, void *options)
+void MQBasePluginMediator::ImportSetOptions(MQImportPlugin* plugin, BOOL background, void* options)
 {
 	plugin->m_ImportBackground = background;
 	plugin->m_ImportOptions = options;
 }
-

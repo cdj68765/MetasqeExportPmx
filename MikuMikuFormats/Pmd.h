@@ -58,7 +58,7 @@ namespace pmd
 		/// 関連ボーンインデックス
 		uint16_t bone_index[2];
 
-		/// ボーンウェイト
+		/// ボーンウェイ�?
 		uint8_t bone_weight;
 
 		/// エッジ不可視
@@ -66,12 +66,12 @@ namespace pmd
 
 		bool Read(std::ifstream* stream)
 		{
-			stream->read((char*) position, sizeof(float) * 3);
-			stream->read((char*) normal, sizeof(float) * 3);
-			stream->read((char*) uv, sizeof(float) * 2);
-			stream->read((char*) bone_index, sizeof(uint16_t) * 2);
-			stream->read((char*) &bone_weight, sizeof(uint8_t));
-			stream->read((char*) &edge_invisible, sizeof(uint8_t));
+			stream->read((char*)position, sizeof(float) * 3);
+			stream->read((char*)normal, sizeof(float) * 3);
+			stream->read((char*)uv, sizeof(float) * 2);
+			stream->read((char*)bone_index, sizeof(uint16_t) * 2);
+			stream->read((char*)&bone_weight, sizeof(uint8_t));
+			stream->read((char*)&edge_invisible, sizeof(uint8_t));
 			return true;
 		}
 	};
@@ -80,36 +80,36 @@ namespace pmd
 	class PmdMaterial
 	{
 	public:
-		/// 減衰色
+		/// 減衰�?
 		float diffuse[4];
-		/// 光沢度
+		/// 光沢�?
 		float power;
-		/// 光沢色
+		/// 光沢�?
 		float specular[3];
-		/// 環境色
+		/// 環境�?
 		float ambient[3];
-		/// トーンインデックス
+		/// トーンインデック�?
 		uint8_t toon_index;
-		/// エッジ
+		/// エッ�?
 		uint8_t edge_flag;
-		/// インデックス数
+		/// インデックス�?
 		uint32_t index_count;
 		/// テクスチャファイル名
 		std::string texture_filename;
-		/// スフィアファイル名
+		/// スフィアファイル�?
 		std::string sphere_filename;
 
 		bool Read(std::ifstream* stream)
 		{
 			char buffer[20];
-			stream->read((char*) &diffuse, sizeof(float) * 4);
-			stream->read((char*) &power, sizeof(float));
-			stream->read((char*) &specular, sizeof(float) * 3);
-			stream->read((char*) &ambient, sizeof(float) * 3);
-			stream->read((char*) &toon_index, sizeof(uint8_t));
-			stream->read((char*) &edge_flag, sizeof(uint8_t));
-			stream->read((char*) &index_count, sizeof(uint32_t));
-			stream->read((char*) &buffer, sizeof(char) * 20);
+			stream->read((char*)&diffuse, sizeof(float) * 4);
+			stream->read((char*)&power, sizeof(float));
+			stream->read((char*)&specular, sizeof(float) * 3);
+			stream->read((char*)&ambient, sizeof(float) * 3);
+			stream->read((char*)&toon_index, sizeof(uint8_t));
+			stream->read((char*)&edge_flag, sizeof(uint8_t));
+			stream->read((char*)&index_count, sizeof(uint32_t));
+			stream->read((char*)&buffer, sizeof(char) * 20);
 			char* pstar = strchr(buffer, '*');
 			if (NULL == pstar)
 			{
@@ -119,7 +119,7 @@ namespace pmd
 			else {
 				*pstar = NULL;
 				texture_filename = std::string(buffer);
-				sphere_filename = std::string(pstar+1);
+				sphere_filename = std::string(pstar + 1);
 			}
 			return true;
 		}
@@ -139,7 +139,7 @@ namespace pmd
 		RotationMovement
 	};
 
-	/// ボーン
+	/// ボー�?
 	class PmdBone
 	{
 	public:
@@ -149,11 +149,11 @@ namespace pmd
 		std::string name_english;
 		/// 親ボーン番号
 		uint16_t parent_bone_index;
-		/// 末端ボーン番号
+		/// 末端ボーン番�?
 		uint16_t tail_pos_bone_index;
-		/// ボーン種類
+		/// ボーン種�?
 		BoneType bone_type;
-		/// IKボーン番号
+		/// IKボーン番�?
 		uint16_t ik_parent_bone_index;
 		/// ボーンのヘッドの位置
 		float bone_head_pos[3];
@@ -163,11 +163,11 @@ namespace pmd
 			char buffer[20];
 			stream->read(buffer, 20);
 			name = std::string(buffer);
-			stream->read((char*) &parent_bone_index, sizeof(uint16_t));
-			stream->read((char*) &tail_pos_bone_index, sizeof(uint16_t));
-			stream->read((char*) &bone_type, sizeof(uint8_t));
-			stream->read((char*) &ik_parent_bone_index, sizeof(uint16_t));
-			stream->read((char*) &bone_head_pos, sizeof(float) * 3);
+			stream->read((char*)&parent_bone_index, sizeof(uint16_t));
+			stream->read((char*)&tail_pos_bone_index, sizeof(uint16_t));
+			stream->read((char*)&bone_type, sizeof(uint8_t));
+			stream->read((char*)&ik_parent_bone_index, sizeof(uint16_t));
+			stream->read((char*)&bone_head_pos, sizeof(float) * 3);
 		}
 
 		void ReadExpantion(std::istream *stream)
@@ -182,7 +182,7 @@ namespace pmd
 	class PmdIk
 	{
 	public:
-		/// IKボーン番号
+		/// IKボーン番�?
 		uint16_t ik_bone_index;
 		/// IKターゲットボーン番号
 		uint16_t target_bone_index;
@@ -195,16 +195,16 @@ namespace pmd
 
 		void Read(std::istream *stream)
 		{
-			stream->read((char *) &ik_bone_index, sizeof(uint16_t));
-			stream->read((char *) &target_bone_index, sizeof(uint16_t));
+			stream->read((char *)&ik_bone_index, sizeof(uint16_t));
+			stream->read((char *)&target_bone_index, sizeof(uint16_t));
 			uint8_t ik_chain_length;
-			stream->read((char*) &ik_chain_length, sizeof(uint8_t));
-			stream->read((char *) &interations, sizeof(uint16_t));
-			stream->read((char *) &angle_limit, sizeof(float));
+			stream->read((char*)&ik_chain_length, sizeof(uint8_t));
+			stream->read((char *)&interations, sizeof(uint16_t));
+			stream->read((char *)&angle_limit, sizeof(float));
 			ik_child_bone_index.resize(ik_chain_length);
 			for (int i = 0; i < ik_chain_length; i++)
 			{
-				stream->read((char *) &ik_child_bone_index[i], sizeof(uint16_t));
+				stream->read((char *)&ik_child_bone_index[i], sizeof(uint16_t));
 			}
 		}
 	};
@@ -217,8 +217,8 @@ namespace pmd
 
 		void Read(std::istream *stream)
 		{
-			stream->read((char *) &vertex_index, sizeof(int));
-			stream->read((char *) position, sizeof(float) * 3);
+			stream->read((char *)&vertex_index, sizeof(int));
+			stream->read((char *)position, sizeof(float) * 3);
 		}
 	};
 
@@ -245,8 +245,8 @@ namespace pmd
 			stream->read(buffer, 20);
 			name = std::string(buffer);
 			int vertex_count;
-			stream->read((char*) &vertex_count, sizeof(int));
-			stream->read((char*) &type, sizeof(uint8_t));
+			stream->read((char*)&vertex_count, sizeof(int));
+			stream->read((char*)&type, sizeof(uint8_t));
 			vertices.resize(vertex_count);
 			for (int i = 0; i < vertex_count; i++)
 			{
@@ -292,26 +292,26 @@ namespace pmd
 
 		void Read(std::istream *stream)
 		{
-			stream->read((char*) &bone_index, sizeof(uint16_t));
-			stream->read((char*) &bone_disp_index, sizeof(uint8_t));
+			stream->read((char*)&bone_index, sizeof(uint16_t));
+			stream->read((char*)&bone_disp_index, sizeof(uint8_t));
 		}
 	};
 
 	/// 衝突形状
 	enum class RigidBodyShape : uint8_t
 	{
-		/// 球
+		/// �?
 		Sphere = 0,
-		/// 直方体
+		/// 直方�?
 		Box = 1,
 		/// カプセル
 		Cpusel = 2
 	};
 
-	/// 剛体タイプ
+	/// 剛体タイ�?
 	enum class RigidBodyType : uint8_t
 	{
-		/// ボーン追従
+		/// ボーン追�?
 		BoneConnected = 0,
 		/// 物理演算
 		Physics = 1,
@@ -329,11 +329,11 @@ namespace pmd
 		uint16_t related_bone_index;
 		/// グループ番号
 		uint8_t group_index;
-		/// マスク
+		/// マス�?
 		uint16_t mask;
 		/// 形状
 		RigidBodyShape shape;
-		/// 大きさ
+		/// 大き�?
 		float size[3];
 		/// 位置
 		float position[3];
@@ -357,47 +357,47 @@ namespace pmd
 			char buffer[20];
 			stream->read(buffer, sizeof(char) * 20);
 			name = (std::string(buffer));
-			stream->read((char*) &related_bone_index, sizeof(uint16_t));
-			stream->read((char*) &group_index, sizeof(uint8_t));
-			stream->read((char*) &mask, sizeof(uint16_t));
-			stream->read((char*) &shape, sizeof(uint8_t));
-			stream->read((char*) size, sizeof(float) * 3);
-			stream->read((char*) position, sizeof(float) * 3);
-			stream->read((char*) orientation, sizeof(float) * 3);
-			stream->read((char*) &weight, sizeof(float));
-			stream->read((char*) &linear_damping, sizeof(float));
-			stream->read((char*) &anglar_damping, sizeof(float));
-			stream->read((char*) &restitution, sizeof(float));
-			stream->read((char*) &friction, sizeof(float));
-			stream->read((char*) &rigid_type, sizeof(char));
+			stream->read((char*)&related_bone_index, sizeof(uint16_t));
+			stream->read((char*)&group_index, sizeof(uint8_t));
+			stream->read((char*)&mask, sizeof(uint16_t));
+			stream->read((char*)&shape, sizeof(uint8_t));
+			stream->read((char*)size, sizeof(float) * 3);
+			stream->read((char*)position, sizeof(float) * 3);
+			stream->read((char*)orientation, sizeof(float) * 3);
+			stream->read((char*)&weight, sizeof(float));
+			stream->read((char*)&linear_damping, sizeof(float));
+			stream->read((char*)&anglar_damping, sizeof(float));
+			stream->read((char*)&restitution, sizeof(float));
+			stream->read((char*)&friction, sizeof(float));
+			stream->read((char*)&rigid_type, sizeof(char));
 		}
 	};
 
-	/// 剛体の拘束
+	/// 剛体の拘�?
 	class PmdConstraint
 	{
 	public:
 		/// 名前
 		std::string name;
-		/// 剛体Aのインデックス
+		/// 剛体Aのインデック�?
 		uint32_t rigid_body_index_a;
-		/// 剛体Bのインデックス
+		/// 剛体Bのインデック�?
 		uint32_t rigid_body_index_b;
 		/// 位置
 		float position[3];
 		/// 回転
 		float orientation[3];
-		/// 最小移動制限
+		/// 最小移動制�?
 		float linear_lower_limit[3];
-		/// 最大移動制限
+		/// 最大移動制�?
 		float linear_upper_limit[3];
-		/// 最小回転制限
+		/// 最小回転制�?
 		float angular_lower_limit[3];
-		/// 最大回転制限
+		/// 最大回転制�?
 		float angular_upper_limit[3];
-		/// 移動に対する復元力
+		/// 移動に対する復元�?
 		float linear_stiffness[3];
-		/// 回転に対する復元力
+		/// 回転に対する復元�?
 		float angular_stiffness[3];
 
 		void Read(std::istream *stream)
@@ -405,20 +405,20 @@ namespace pmd
 			char buffer[20];
 			stream->read(buffer, 20);
 			name = std::string(buffer);
-			stream->read((char *) &rigid_body_index_a, sizeof(uint32_t));
-			stream->read((char *) &rigid_body_index_b, sizeof(uint32_t));
-			stream->read((char *) position, sizeof(float) * 3);
-			stream->read((char *) orientation, sizeof(float) * 3);
-			stream->read((char *) linear_lower_limit, sizeof(float) * 3);
-			stream->read((char *) linear_upper_limit, sizeof(float) * 3);
-			stream->read((char *) angular_lower_limit, sizeof(float) * 3);
-			stream->read((char *) angular_upper_limit, sizeof(float) * 3);
-			stream->read((char *) linear_stiffness, sizeof(float) * 3);
-			stream->read((char *) angular_stiffness, sizeof(float) * 3);
+			stream->read((char *)&rigid_body_index_a, sizeof(uint32_t));
+			stream->read((char *)&rigid_body_index_b, sizeof(uint32_t));
+			stream->read((char *)position, sizeof(float) * 3);
+			stream->read((char *)orientation, sizeof(float) * 3);
+			stream->read((char *)linear_lower_limit, sizeof(float) * 3);
+			stream->read((char *)linear_upper_limit, sizeof(float) * 3);
+			stream->read((char *)angular_lower_limit, sizeof(float) * 3);
+			stream->read((char *)angular_upper_limit, sizeof(float) * 3);
+			stream->read((char *)linear_stiffness, sizeof(float) * 3);
+			stream->read((char *)angular_stiffness, sizeof(float) * 3);
 		}
 	};
 
-	/// PMDモデル
+	/// PMDモデ�?
 	class PmdModel
 	{
 	public:
@@ -450,7 +450,7 @@ namespace pmd
 			return result;
 		}
 
-		/// ファイルからPmdModelを生成する
+		/// ファイルからPmdModelを生成す�?
 		static std::unique_ptr<PmdModel> LoadFromStream(std::ifstream *stream)
 		{
 			auto result = std::make_unique<PmdModel>();
@@ -467,7 +467,7 @@ namespace pmd
 
 			// version
 			stream->read((char*) &(result->version), sizeof(float));
-			if (result ->version != 1.0f)
+			if (result->version != 1.0f)
 			{
 				std::cerr << "invalid version" << std::endl;
 				return nullptr;
@@ -478,7 +478,7 @@ namespace pmd
 
 			// vertices
 			uint32_t vertex_num;
-			stream->read((char*) &vertex_num, sizeof(uint32_t));
+			stream->read((char*)&vertex_num, sizeof(uint32_t));
 			result->vertices.resize(vertex_num);
 			for (uint32_t i = 0; i < vertex_num; i++)
 			{
@@ -487,16 +487,16 @@ namespace pmd
 
 			// indices
 			uint32_t index_num;
-			stream->read((char*) &index_num, sizeof(uint32_t));
+			stream->read((char*)&index_num, sizeof(uint32_t));
 			result->indices.resize(index_num);
 			for (uint32_t i = 0; i < index_num; i++)
 			{
-				stream->read((char*) &result->indices[i], sizeof(uint16_t));
+				stream->read((char*)&result->indices[i], sizeof(uint16_t));
 			}
 
 			// materials
 			uint32_t material_num;
-			stream->read((char*) &material_num, sizeof(uint32_t));
+			stream->read((char*)&material_num, sizeof(uint32_t));
 			result->materials.resize(material_num);
 			for (uint32_t i = 0; i < material_num; i++)
 			{
@@ -505,7 +505,7 @@ namespace pmd
 
 			// bones
 			uint16_t bone_num;
-			stream->read((char*) &bone_num, sizeof(uint16_t));
+			stream->read((char*)&bone_num, sizeof(uint16_t));
 			result->bones.resize(bone_num);
 			for (uint32_t i = 0; i < bone_num; i++)
 			{
@@ -514,7 +514,7 @@ namespace pmd
 
 			// iks
 			uint16_t ik_num;
-			stream->read((char*) &ik_num, sizeof(uint16_t));
+			stream->read((char*)&ik_num, sizeof(uint16_t));
 			result->iks.resize(ik_num);
 			for (uint32_t i = 0; i < ik_num; i++)
 			{
@@ -523,7 +523,7 @@ namespace pmd
 
 			// faces
 			uint16_t face_num;
-			stream->read((char*) &face_num, sizeof(uint16_t));
+			stream->read((char*)&face_num, sizeof(uint16_t));
 			result->faces.resize(face_num);
 			for (uint32_t i = 0; i < face_num; i++)
 			{
@@ -532,16 +532,16 @@ namespace pmd
 
 			// face frames
 			uint8_t face_frame_num;
-			stream->read((char*) &face_frame_num, sizeof(uint8_t));
+			stream->read((char*)&face_frame_num, sizeof(uint8_t));
 			result->faces_indices.resize(face_frame_num);
 			for (uint32_t i = 0; i < face_frame_num; i++)
 			{
-				stream->read((char*) &result->faces_indices[i], sizeof(uint16_t));
+				stream->read((char*)&result->faces_indices[i], sizeof(uint16_t));
 			}
 
 			// bone names
 			uint8_t bone_disp_num;
-			stream->read((char*) &bone_disp_num, sizeof(uint8_t));
+			stream->read((char*)&bone_disp_num, sizeof(uint8_t));
 			result->bone_disp_name.resize(bone_disp_num);
 			for (uint32_t i = 0; i < bone_disp_num; i++)
 			{
@@ -550,7 +550,7 @@ namespace pmd
 
 			// bone frame
 			uint32_t bone_frame_num;
-			stream->read((char*) &bone_frame_num, sizeof(uint32_t));
+			stream->read((char*)&bone_frame_num, sizeof(uint32_t));
 			result->bone_disp.resize(bone_frame_num);
 			for (uint32_t i = 0; i < bone_frame_num; i++)
 			{
@@ -559,7 +559,7 @@ namespace pmd
 
 			// english name
 			bool english;
-			stream->read((char*) &english, sizeof(char));
+			stream->read((char*)&english, sizeof(char));
 			if (english)
 			{
 				result->header.ReadExtension(stream);
@@ -603,14 +603,14 @@ namespace pmd
 			}
 			else {
 				uint32_t rigid_body_num;
-				stream->read((char*) &rigid_body_num, sizeof(uint32_t));
+				stream->read((char*)&rigid_body_num, sizeof(uint32_t));
 				result->rigid_bodies.resize(rigid_body_num);
 				for (uint32_t i = 0; i < rigid_body_num; i++)
 				{
 					result->rigid_bodies[i].Read(stream);
 				}
 				uint32_t constraint_num;
-				stream->read((char*) &constraint_num, sizeof(uint32_t));
+				stream->read((char*)&constraint_num, sizeof(uint32_t));
 				result->constraints.resize(constraint_num);
 				for (uint32_t i = 0; i < constraint_num; i++)
 				{

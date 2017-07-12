@@ -4,10 +4,10 @@
 //
 //          Copyright(C) 1999-2016, tetraface Inc.
 //
-//     This is a wrapper for using C++ classes without taking care of 
+//     This is a wrapper for using C++ classes without taking care of
 //    Metasequoia plug-in interface API.
-//     The API functions for each type of a plug-in are defined as the 
-//    pure virtual functions, and it is necessary to implement them 
+//     The API functions for each type of a plug-in are defined as the
+//    pure virtual functions, and it is necessary to implement them
 //    in an inherited class.
 //
 //    　Metasequoia用プラグインインターフェースをAPIレベルから隠蔽して
@@ -26,8 +26,8 @@
 
 class MQSetting;
 
-
-enum MQSYSTEMCOLOR_TYPE {
+enum MQSYSTEMCOLOR_TYPE
+{
 	MQSYSTEMCOLOR_OBJECT,
 	MQSYSTEMCOLOR_SELECT,
 	MQSYSTEMCOLOR_TEMP,
@@ -47,17 +47,16 @@ enum MQSYSTEMCOLOR_TYPE {
 	MQSYSTEMCOLOR_PREVIEW_BACK,
 };
 
-
-enum MQSETTINGVALUE_TYPE {
-	MQSETTINGVALUE_LANGUAGE,         // string
-	MQSETTINGVALUE_ROTATION_HANDLE,  // string ("arrow" or "ring")
-	MQSETTINGVALUE_HANDLE_SIZE,      // float
-	MQSETTINGVALUE_HANDLE_SCALE,     // float
-	MQSETTINGVALUE_NORMALMAP_FLIP,   // float array [x,y,z]
+enum MQSETTINGVALUE_TYPE
+{
+	MQSETTINGVALUE_LANGUAGE, // string
+	MQSETTINGVALUE_ROTATION_HANDLE, // string ("arrow" or "ring")
+	MQSETTINGVALUE_HANDLE_SIZE, // float
+	MQSETTINGVALUE_HANDLE_SCALE, // float
+	MQSETTINGVALUE_NORMALMAP_FLIP, // float array [x,y,z]
 };
 
-typedef void *MQDrawingText;
-
+typedef void* MQDrawingText;
 
 // Base class for all plug-ins
 // すべてのプラグインの基底クラス
@@ -66,25 +65,26 @@ class MQBasePlugin
 public:
 	// Options for GetResourceCursor()
 	// GetResourceCursor()の引数
-	enum MQCURSOR_TYPE {
-		MQCURSOR_SIZEALL	= -22,		// ４方向矢印
-		MQCURSOR_HANDPOINT	= -21,		// 指先
-		MQCURSOR_HELP		= -20,		// 疑問符付き
-		MQCURSOR_NO			= -18,		// 禁止
-		MQCURSOR_WAIT		= -11,		// 砂時計
-		MQCURSOR_UPARROW	= -10,		// 上向き矢印
-		MQCURSOR_SIZEWE		= -9,		// 左右を指す両方向矢印
-		MQCURSOR_SIZENWSE	= -8,		// 左上と右下を指す両方向矢印
-		MQCURSOR_SIZENS		= -7,		// 上下を指す両方向矢印
-		MQCURSOR_SIZENESW	= -6,		// 右上と左下を指す両方向矢印
-		MQCURSOR_CROSS		= -3,		// 十字
-		MQCURSOR_NONE		= -1,		// 非表示
-		MQCURSOR_DEFAULT	= 0,		// 標準
-		MQCURSOR_RECT		= 1,		// 範囲
-		MQCURSOR_ROPE		= 2,		// 投げ縄
-		MQCURSOR_MOVE		= 3,		// 移動
-		MQCURSOR_SCALE		= 4, 		// 拡大
-		MQCURSOR_ROTATE		= 5,		// 回転
+	enum MQCURSOR_TYPE
+	{
+		MQCURSOR_SIZEALL = -22, // ４方向矢印
+		MQCURSOR_HANDPOINT = -21, // 指先
+		MQCURSOR_HELP = -20, // 疑問符付き
+		MQCURSOR_NO = -18, // 禁止
+		MQCURSOR_WAIT = -11, // 砂時計
+		MQCURSOR_UPARROW = -10, // 上向き矢印
+		MQCURSOR_SIZEWE = -9, // 左右を指す両方向矢印
+		MQCURSOR_SIZENWSE = -8, // 左上と右下を指す両方向矢印
+		MQCURSOR_SIZENS = -7, // 上下を指す両方向矢印
+		MQCURSOR_SIZENESW = -6, // 右上と左下を指す両方向矢印
+		MQCURSOR_CROSS = -3, // 十字
+		MQCURSOR_NONE = -1, // 非表示
+		MQCURSOR_DEFAULT = 0, // 標準
+		MQCURSOR_RECT = 1, // 範囲
+		MQCURSOR_ROPE = 2, // 投げ縄
+		MQCURSOR_MOVE = 3, // 移動
+		MQCURSOR_SCALE = 4, // 拡大
+		MQCURSOR_ROTATE = 5, // 回転
 	};
 
 public:
@@ -98,11 +98,11 @@ public:
 
 	// Get a plug-in ID
 	// プラグインIDを返す。
-	virtual void GetPlugInID(DWORD *Product, DWORD *ID) = 0;
+	virtual void GetPlugInID(DWORD* Product, DWORD* ID) = 0;
 
 	// Get a plug-in name
 	// プラグイン名を返す。
-	virtual const char *GetPlugInName(void) = 0;
+	virtual const char* GetPlugInName(void) = 0;
 
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
@@ -110,16 +110,16 @@ public:
 
 	// Open a setting file
 	// 設定ファイルを開く
-	MQSetting *OpenSetting(void);
+	MQSetting* OpenSetting(void);
 
 	// Close a setting file
 	// 設定ファイルを閉じる
-	void CloseSetting(MQSetting *setting);
+	void CloseSetting(MQSetting* setting);
 
 	// Get a resource string in command.xml
 	// command.xmlファイル内に定義されるリソース文字列を取得する
-	std::wstring GetResourceString(const char *id);
-	static std::wstring GetResourceString(const char *id, DWORD productID, DWORD pluginID);
+	std::wstring GetResourceString(const char* id);
+	static std::wstring GetResourceString(const char* id, DWORD productID, DWORD pluginID);
 
 	// Get a setting value
 	// 設定値をを取得する
@@ -147,15 +147,13 @@ public:
 
 	int GetLUTCount();
 	std::wstring GetLUTName(int index);
-	const unsigned char *GetLUTData(int index);
-	const unsigned char *GetDefaultLUTData();
+	const unsigned char* GetLUTData(int index);
+	const unsigned char* GetDefaultLUTData();
 
 	// Send a plug-in own mesage to other plug-ins
 	// 他のプラグインにプラグイン独自のメッセージを送る
-	int SendUserMessage(MQDocument doc, DWORD target_product, DWORD target_id, const char *description, void *param);
-
+	int SendUserMessage(MQDocument doc, DWORD target_product, DWORD target_id, const char* description, void* param);
 };
-
 
 // Import plug-in class
 // インポートプラグインクラス
@@ -170,19 +168,19 @@ public:
 
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
-	virtual int GetPlugInType(void) { return MQPLUGIN_TYPE_IMPORT; }
+	int GetPlugInType(void) override { return MQPLUGIN_TYPE_IMPORT; }
 
 	// Get a file type for importing
 	// 入力出力可能なファイルタイプを返す。
-	virtual const char *EnumFileType(int index) = 0;
+	virtual const char* EnumFileType(int index) = 0;
 
 	// Get a file extension for importing
 	// 入力可能な拡張子を返す。
-	virtual const char *EnumFileExt(int index) = 0;
+	virtual const char* EnumFileExt(int index) = 0;
 
 	// Import a file
 	// ファイルの読み込み
-	virtual BOOL ImportFile(int index, const char *filename, MQDocument doc) = 0;
+	virtual BOOL ImportFile(int index, const char* filename, MQDocument doc) = 0;
 
 	// Get whether a background loading can be processed or not.
 	// バックグラウンド読み込みが可能かどうかを返す。
@@ -194,7 +192,7 @@ public:
 
 	// Get import options for MQ_ShowFileDialog()
 	// MQ_ShowFileDialog()用の読み込みオプションの取得
-	void *GetImportOptions(void);
+	void* GetImportOptions(void);
 
 	// Get whether the current loading has been canceled or not.
 	// 現在の読み込みがキャンセルされたかどうかを返す。
@@ -206,7 +204,7 @@ public:
 
 private:
 	BOOL m_ImportBackground;
-	void *m_ImportOptions;
+	void* m_ImportOptions;
 };
 
 // Export plug-in class
@@ -216,30 +214,29 @@ class MQExportPlugin : public MQBasePlugin
 public:
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
-	virtual int GetPlugInType(void) { return MQPLUGIN_TYPE_EXPORT; }
+	int GetPlugInType(void) override { return MQPLUGIN_TYPE_EXPORT; }
 
 	// Get a file type for exporting
 	// 出力可能なファイルタイプを返す。
-	virtual const char *EnumFileType(int index) = 0;
+	virtual const char* EnumFileType(int index) = 0;
 
 	// Get a file extension for exporting
 	// 出力可能な拡張子を返す。
-	virtual const char *EnumFileExt(int index) = 0;
+	virtual const char* EnumFileExt(int index) = 0;
 
 	// Export a file
 	// ファイルの出力
-	virtual BOOL ExportFile(int index, const char *filename, MQDocument doc) = 0;
-
+	virtual BOOL ExportFile(int index, const char* filename, MQDocument doc) = 0;
 };
 
-// Plug-in class using a menu 
+// Plug-in class using a menu
 // メニュー型プラグインの基底クラス
 class MQMenuBasePlugin : public MQBasePlugin
 {
 public:
 	// Get a string displayed in a menu
 	// ポップアップメニューに表示される文字列を返す。
-	virtual const char *EnumString(int index) = 0;
+	virtual const char* EnumString(int index) = 0;
 
 	virtual BOOL Execute(int index, MQDocument doc) = 0;
 };
@@ -251,7 +248,7 @@ class MQCreatePlugin : public MQMenuBasePlugin
 public:
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
-	virtual int GetPlugInType(void) { return MQPLUGIN_TYPE_CREATE; }
+	int GetPlugInType(void) override { return MQPLUGIN_TYPE_CREATE; }
 };
 
 // Select plug-in class
@@ -261,7 +258,7 @@ class MQSelectPlugin : public MQMenuBasePlugin
 public:
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
-	virtual int GetPlugInType(void) { return MQPLUGIN_TYPE_SELECT; }
+	int GetPlugInType(void) override { return MQPLUGIN_TYPE_SELECT; }
 };
 
 // Object plug-in class
@@ -271,7 +268,7 @@ class MQObjectPlugin : public MQMenuBasePlugin
 public:
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
-	virtual int GetPlugInType(void) { return MQPLUGIN_TYPE_OBJECT; }
+	int GetPlugInType(void) override { return MQPLUGIN_TYPE_OBJECT; }
 };
 
 // Station plug-in class
@@ -286,58 +283,67 @@ class MQStationPlugin : public MQBasePlugin
 public:
 	// Parameters for OnNewDocument()
 	// OnNewDocument()のパラメータ
-	struct NEW_DOCUMENT_PARAM {
-		MQXmlElement elem;	// XML element for saved plugin's information | プラグインによって保存されたXML要素
+	struct NEW_DOCUMENT_PARAM
+	{
+		MQXmlElement elem; // XML element for saved plugin's information | プラグインによって保存されたXML要素
 	};
 
 	// Parameters for OnSaveDocument()
 	// OnSaveDocument()のパラメータ
-	struct SAVE_DOCUMENT_PARAM {
-		MQXmlElement elem;	// XML element for saving plugin's information | プラグインに割り当てられた保存用XML要素
-		BOOL bSaveUniqueID;	// Whether to save unique IDs | ユニークIDを保存するかどうか
+	struct SAVE_DOCUMENT_PARAM
+	{
+		MQXmlElement elem; // XML element for saving plugin's information | プラグインに割り当てられた保存用XML要素
+		BOOL bSaveUniqueID; // Whether to save unique IDs | ユニークIDを保存するかどうか
 	};
 
-	enum DRAWING_TEXT_ALIGNMENT {
-		TEXT_ALIGN_LEFT   = 0,
-		TEXT_ALIGN_TOP    = 0,
+	enum DRAWING_TEXT_ALIGNMENT
+	{
+		TEXT_ALIGN_LEFT = 0,
+		TEXT_ALIGN_TOP = 0,
 		TEXT_ALIGN_CENTER = 1,
-		TEXT_ALIGN_RIGHT  = 2,
+		TEXT_ALIGN_RIGHT = 2,
 		TEXT_ALIGN_BOTTOM = 2,
 	};
 
 	// Parameters for CreateDrawingText()
 	// CreateDrawingText()のパラメータ
-	struct DRAWING_TEXT_PARAM {
-		MQPoint ScreenPos;  // Position on a screen coordinate | スクリーン座標での位置
-		MQColor Color;      // Text color   | 文字色
-		float FontScale;	// Text scaling | 文字の拡大率
+	struct DRAWING_TEXT_PARAM
+	{
+		MQPoint ScreenPos; // Position on a screen coordinate | スクリーン座標での位置
+		MQColor Color; // Text color   | 文字色
+		float FontScale; // Text scaling | 文字の拡大率
 		DRAWING_TEXT_ALIGNMENT HorzAlign; // Text horizontal alignment | 横方向の配置
 		DRAWING_TEXT_ALIGNMENT VertAlign; // Text vertical alignment   | 縦方向の配置
 
-		DRAWING_TEXT_PARAM() : ScreenPos(0,0,0), Color(0,0,0), FontScale(1.0f), HorzAlign(TEXT_ALIGN_LEFT), VertAlign(TEXT_ALIGN_TOP) { }
+		DRAWING_TEXT_PARAM() : ScreenPos(0, 0, 0), Color(0, 0, 0), FontScale(1.0f), HorzAlign(TEXT_ALIGN_LEFT), VertAlign(TEXT_ALIGN_TOP)
+		{
+		}
 	};
 
 	// Parameters for GetSceneOption()
 	// GetSceneOption()のパラメータ
-	struct SCENE_OPTION {
-		BOOL ShowVertex;	// Show vertices         | 頂点を表示
-		BOOL ShowLine;		// Show lines            | 辺を表示
-		BOOL ShowFace;		// Show faces            | 面を表示
-		BOOL FrontOnly;		// Show front faces only | 前面のみ表示
-		BOOL ShowBkimg;		// Show backgound images | 下絵を表示
+	struct SCENE_OPTION
+	{
+		BOOL ShowVertex; // Show vertices         | 頂点を表示
+		BOOL ShowLine; // Show lines            | 辺を表示
+		BOOL ShowFace; // Show faces            | 面を表示
+		BOOL FrontOnly; // Show front faces only | 前面のみ表示
+		BOOL ShowBkimg; // Show backgound images | 下絵を表示
 	};
 
 	// Coordinate type
 	// 座標タイプ
-	enum COORDINATE_TYPE {
-		COORDINATE_SCREEN	= 0,	// Screen coordinate | スクリーン座標
-		COORDINATE_WORLD	= 1,	// World coordinate  | ワールド座標
-		COORDINATE_LOCAL	= 2,	// Local coordinate  | ローカル座標
+	enum COORDINATE_TYPE
+	{
+		COORDINATE_SCREEN = 0, // Screen coordinate | スクリーン座標
+		COORDINATE_WORLD = 1, // World coordinate  | ワールド座標
+		COORDINATE_LOCAL = 2, // Local coordinate  | ローカル座標
 	};
 
 	// Edit option type
 	// 編集オプションタイプ
-	enum EDITOPTION_TYPE {
+	enum EDITOPTION_TYPE
+	{
 		EDITOPTION_UNKNOWN,
 		EDITOPTION_SCREEN,
 		EDITOPTION_WORLD,
@@ -351,17 +357,17 @@ public:
 
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
-	virtual int GetPlugInType(void) { return MQPLUGIN_TYPE_STATION; }
+	int GetPlugInType(void) override { return MQPLUGIN_TYPE_STATION; }
 
 	// Get a string displayed in a menu or on a button
 	// ポップアップメニューまたはボタンに表示される文字列を返す。
-	virtual const char *EnumString(void) = 0;
+	virtual const char* EnumString(void) = 0;
 	// Enumerate a sub command.
 	// サブコマンドの名前を列挙
-	virtual const char *EnumSubCommand(int index);
+	virtual const char* EnumSubCommand(int index);
 	// Get a sub command string for GUI.
 	// サブコマンドの表示名の取得
-	virtual const wchar_t *GetSubCommandString(int index);
+	virtual const wchar_t* GetSubCommandString(int index);
 
 	// Initialize an application
 	// アプリケーションの初期化
@@ -384,20 +390,20 @@ public:
 	virtual void OnMinimize(MQDocument doc, BOOL flag);
 	// A message for receiving a plug-in own message
 	// プラグイン独自のメッセージの受け取り
-	virtual int OnReceiveUserMessage(MQDocument doc, DWORD src_product, DWORD src_id, const char *description, void *message);
+	virtual int OnReceiveUserMessage(MQDocument doc, DWORD src_product, DWORD src_id, const char* description, void* message);
 	// A message for drawing
 	// 描画時の処理
 	virtual void OnDraw(MQDocument doc, MQScene scene, int width, int height);
 
 	// A message for initializing a document
 	// ドキュメント初期化時
-	virtual void OnNewDocument(MQDocument doc, const char *filename, NEW_DOCUMENT_PARAM& param);
+	virtual void OnNewDocument(MQDocument doc, const char* filename, NEW_DOCUMENT_PARAM& param);
 	// A message for exiting a document
 	// ドキュメント終了時
 	virtual void OnEndDocument(MQDocument doc);
 	// A message for saving a document
 	// ドキュメント保存時
-	virtual void OnSaveDocument(MQDocument doc, const char *filename, SAVE_DOCUMENT_PARAM& param);
+	virtual void OnSaveDocument(MQDocument doc, const char* filename, SAVE_DOCUMENT_PARAM& param);
 	// A message for an undo
 	// アンドゥ実行時
 	virtual BOOL OnUndo(MQDocument doc, int undo_state);
@@ -429,54 +435,55 @@ public:
 	// 編集オプションの変更時
 	virtual void OnChangeEditOption(MQDocument doc, EDITOPTION_TYPE trigger);
 
-
 	// Begin the callback procedure
 	// コールバック処理の開始
-	void BeginCallback(void *option);
+	void BeginCallback(void* option);
 
 	// Close a window
 	// ウインドウを閉じる
 	void WindowClose();
 
-
 private:
-	struct StationCallbackInnerOption {
-		MQStationPlugin *this_ptr;
-		void *option;
+	struct StationCallbackInnerOption
+	{
+		MQStationPlugin* this_ptr;
+		void* option;
 	};
 
 	// Callback for a procedure by the plug-in
 	// プラグイン内からの処理に対するコールバック
-	static BOOL __stdcall StationCallback(MQDocument doc, void *option);
+	static BOOL __stdcall StationCallback(MQDocument doc, void* option);
 
 protected:
 	// Implementation for the callback
 	// コールバックに対する実装部
-	virtual bool ExecuteCallback(MQDocument doc, void *option) = 0;
+	virtual bool ExecuteCallback(MQDocument doc, void* option) = 0;
 
 public:
 	// Options for visibility in CreateDrawObject() (Multiple values are enabled.)
 	// CreateDrawObject()のvisibilityに渡す引数（複数指定可）
-	enum DRAW_OBJECT_VISIBILITY {
-		DRAW_OBJECT_POINT = 1,		// Show vertices | 頂点を表示
-		DRAW_OBJECT_LINE = 2,		// Show lines    | ラインを表示
-		DRAW_OBJECT_FACE = 4,		// Show faces    | 面を表示
+	enum DRAW_OBJECT_VISIBILITY
+	{
+		DRAW_OBJECT_POINT = 1, // Show vertices | 頂点を表示
+		DRAW_OBJECT_LINE = 2, // Show lines    | ラインを表示
+		DRAW_OBJECT_FACE = 4, // Show faces    | 面を表示
 		DRAW_FORCE_DWORD = 0xFFFFFFFF,
 	};
+
 	__declspec(deprecated) typedef DRAW_OBJECT_VISIBILITY DRAW_OBJECT_VIISIBILITY;
 
 	// Add a drawing object in OnDraw()
 	// OnDraw()時に描画オブジェクトを追加
-	MQObject CreateDrawingObject(MQDocument doc, DRAW_OBJECT_VISIBILITY visibility, BOOL instant=TRUE);
-	MQObject CreateDrawingObjectByClone(MQDocument doc, MQObject clone_source, DRAW_OBJECT_VISIBILITY visibility, BOOL instant=TRUE);
+	MQObject CreateDrawingObject(MQDocument doc, DRAW_OBJECT_VISIBILITY visibility, BOOL instant = TRUE);
+	MQObject CreateDrawingObjectByClone(MQDocument doc, MQObject clone_source, DRAW_OBJECT_VISIBILITY visibility, BOOL instant = TRUE);
 
 	// Add a material for a drawing object in OnDraw()
 	// OnDraw()時に描画オブジェクト用マテリアルを追加
-	MQMaterial CreateDrawingMaterial(MQDocument doc, int& index, BOOL instant=TRUE);
+	MQMaterial CreateDrawingMaterial(MQDocument doc, int& index, BOOL instant = TRUE);
 
 	// Add a drawing text in OnDraw()
 	// OnDraw()時に描画テキストを追加
-	MQDrawingText CreateDrawingText(MQDocument doc, const wchar_t *text, DRAWING_TEXT_PARAM& param, BOOL instant=TRUE);
+	MQDrawingText CreateDrawingText(MQDocument doc, const wchar_t* text, DRAWING_TEXT_PARAM& param, BOOL instant = TRUE);
 
 	// Delete a drawing object
 	// 描画オブジェクトを削除する
@@ -501,9 +508,7 @@ public:
 	// Get display options of the scene
 	// シーンの表示オプションを取得
 	void GetSceneOption(MQScene scene, SCENE_OPTION& option);
-
 };
-
 
 // Command plug-in class
 // コマンド型プラグインクラス
@@ -517,66 +522,72 @@ class MQCommandPlugin : public MQStationPlugin
 public:
 	// Parameters for mouse events
 	// マウスイベント時のパラメータ
-	struct MOUSE_BUTTON_STATE {
-		POINT MousePos;	// Mouse cursor position | マウスカーソルの位置
-		int Wheel;		// Wheel rotation        | マウスホイールの回転量（WHEEL_DELTAの倍数または約数）
-		BOOL LButton;	// Left button           | 左ボタンが押されているか
-		BOOL MButton;	// Middle button         | 中ボタンが押されているか
-		BOOL RButton;	// Right button          | 右ボタンが押されているか
-		BOOL Shift;		// Shift key             | Shiftキーが押されているか
-		BOOL Ctrl;		// Ctrl key              | Ctrlキーが押されているか
-		BOOL Alt;		// Alt key               | Altキーが押されているか
-		float Pressure;	// For tablet or touch   | タブレットやタッチ操作時の圧力 (0-1)
+	struct MOUSE_BUTTON_STATE
+	{
+		POINT MousePos; // Mouse cursor position | マウスカーソルの位置
+		int Wheel; // Wheel rotation        | マウスホイールの回転量（WHEEL_DELTAの倍数または約数）
+		BOOL LButton; // Left button           | 左ボタンが押されているか
+		BOOL MButton; // Middle button         | 中ボタンが押されているか
+		BOOL RButton; // Right button          | 右ボタンが押されているか
+		BOOL Shift; // Shift key             | Shiftキーが押されているか
+		BOOL Ctrl; // Ctrl key              | Ctrlキーが押されているか
+		BOOL Alt; // Alt key               | Altキーが押されているか
+		float Pressure; // For tablet or touch   | タブレットやタッチ操作時の圧力 (0-1)
 	};
 
 	// EDIT_OPTION::SnapGrid, GetSnappedPos()への指定（複数可）
-	enum SNAP_GRID_TYPE {
-		SNAP_GRID_X = 1,	// Snap to X axis | X軸に吸着
-		SNAP_GRID_Y = 2,	// Snap to Y axis | Y軸に吸着
-		SNAP_GRID_Z = 4,	// Snap to Z axis | Z軸に吸着
+	enum SNAP_GRID_TYPE
+	{
+		SNAP_GRID_X = 1, // Snap to X axis | X軸に吸着
+		SNAP_GRID_Y = 2, // Snap to Y axis | Y軸に吸着
+		SNAP_GRID_Z = 4, // Snap to Z axis | Z軸に吸着
 	};
 
 	// EDIT_OPTION::SnapPlane
-	enum SNAP_PLANE_TYPE {
-		SNAP_PLANE_NONE = 0,	// Not snap any plane       | 平面に吸着しない
-		SNAP_PLANE_X = 1,		// Fix X position           | X座標を固定
-		SNAP_PLANE_Y = 2,		// Fix Y position           | Y座標を固定
-		SNAP_PLANE_Z = 3,		// Fix Z position           | Z座標を固定
-		SNAP_PLANE_ARB = 4,		// Snap to arbitrary plane  | 任意の平面に吸着
+	enum SNAP_PLANE_TYPE
+	{
+		SNAP_PLANE_NONE = 0, // Not snap any plane       | 平面に吸着しない
+		SNAP_PLANE_X = 1, // Fix X position           | X座標を固定
+		SNAP_PLANE_Y = 2, // Fix Y position           | Y座標を固定
+		SNAP_PLANE_Z = 3, // Fix Z position           | Z座標を固定
+		SNAP_PLANE_ARB = 4, // Snap to arbitrary plane  | 任意の平面に吸着
 	};
 
 	// Parameters for GetEditOption()
 	// GetEditOption()のパラメータ
-	struct EDIT_OPTION {
-		BOOL EditVertex;	// Enable vertex editing    | 頂点を編集可
-		BOOL EditLine;		// Enable line editing      | 辺を編集可
-		BOOL EditFace;		// Enable face editing      | 面を編集可
-		BOOL SelectRect;	// Rectangle selection      | 矩形選択
-		BOOL SelectRope;	// Rope selection           | 投げ縄選択
-		BOOL SnapX;			// Edit along X axis        | X軸に沿った編集
-		BOOL SnapY;			// Edit along Y axis        | Y軸に沿った編集
-		BOOL SnapZ;			// Edit along Z axis        | Z軸に沿った編集
-		COORDINATE_TYPE CoordinateType;	// Coordinate axis          | 座標軸の種類
-		SNAP_GRID_TYPE SnapGrid;		// Snap to grid             | グリッドへの吸着
-		BOOL Symmetry;		       // Symmetry editing              | 対称編集
-		float SymmetryDistance;	   // Distance for symmetry editing | 対称とみなす距離
-		BOOL CurrentObjectOnly;	   // Edit current object only      | カレントオブジェクトのみを編集
+	struct EDIT_OPTION
+	{
+		BOOL EditVertex; // Enable vertex editing    | 頂点を編集可
+		BOOL EditLine; // Enable line editing      | 辺を編集可
+		BOOL EditFace; // Enable face editing      | 面を編集可
+		BOOL SelectRect; // Rectangle selection      | 矩形選択
+		BOOL SelectRope; // Rope selection           | 投げ縄選択
+		BOOL SnapX; // Edit along X axis        | X軸に沿った編集
+		BOOL SnapY; // Edit along Y axis        | Y軸に沿った編集
+		BOOL SnapZ; // Edit along Z axis        | Z軸に沿った編集
+		COORDINATE_TYPE CoordinateType; // Coordinate axis          | 座標軸の種類
+		SNAP_GRID_TYPE SnapGrid; // Snap to grid             | グリッドへの吸着
+		BOOL Symmetry; // Symmetry editing              | 対称編集
+		float SymmetryDistance; // Distance for symmetry editing | 対称とみなす距離
+		BOOL CurrentObjectOnly; // Edit current object only      | カレントオブジェクトのみを編集
 		SNAP_PLANE_TYPE SnapPlane; // Snap to a plane               | 平面への吸着
-		MQPoint SnapPlanePos;      // Position of snapping plane    | 吸着する平面の位置
-		MQPoint SnapPlaneDir;      // Direction of snapping plane   | 吸着する平面の向き
-		BOOL SnapVertex;           // Snap to vertices              | 頂点への吸着
-		BOOL SnapLine;             // Snap to lines                 | 辺への吸着
-		BOOL SnapFace;             // Snap to faces                 | 面への吸着
+		MQPoint SnapPlanePos; // Position of snapping plane    | 吸着する平面の位置
+		MQPoint SnapPlaneDir; // Direction of snapping plane   | 吸着する平面の向き
+		BOOL SnapVertex; // Snap to vertices              | 頂点への吸着
+		BOOL SnapLine; // Snap to lines                 | 辺への吸着
+		BOOL SnapFace; // Snap to faces                 | 面への吸着
 	};
 
 	// Parameters for GetSnappedPos()
 	// GetSnappedPos()のパラメータ
-	struct GET_SNAP_PARAM {
-		BOOL SnapEyeDir;		// Snap on the eye direction| 視線方向へのスナップ
-		BOOL IgnoreSelected;	// Ignore selected elements | 選択部を無視
-		BOOL IgnoreCurObj;		// Ignore current object    | カレントオブジェクトを無視
+	struct GET_SNAP_PARAM
+	{
+		BOOL SnapEyeDir; // Snap on the eye direction| 視線方向へのスナップ
+		BOOL IgnoreSelected; // Ignore selected elements | 選択部を無視
+		BOOL IgnoreCurObj; // Ignore current object    | カレントオブジェクトを無視
 
-		GET_SNAP_PARAM(){
+		GET_SNAP_PARAM()
+		{
 			SnapEyeDir = FALSE;
 			IgnoreSelected = FALSE;
 			IgnoreCurObj = FALSE;
@@ -585,32 +596,35 @@ public:
 
 	// A type using for HitTest()
 	// HitTest()で使用される型
-	enum HIT_TYPE {
-		HIT_TYPE_NONE	= 0,//なし
-		HIT_TYPE_VERTEX	= 1,//頂点
-		HIT_TYPE_LINE	= 2,//ライン
-		HIT_TYPE_FACE	= 4,//面
+	enum HIT_TYPE
+	{
+		HIT_TYPE_NONE = 0,//なし
+		HIT_TYPE_VERTEX = 1,//頂点
+		HIT_TYPE_LINE = 2,//ライン
+		HIT_TYPE_FACE = 4,//面
 	};
 
 	// Parameters for HitTest()
 	// HitTest()のパラメータ
-	struct HIT_TEST_PARAM {
+	struct HIT_TEST_PARAM
+	{
 		// input
-		BOOL TestVertex;	// 頂点の検知を行う
-		BOOL TestLine;		// ラインを検知
-		BOOL TestFace;		// 面を検知
+		BOOL TestVertex; // 頂点の検知を行う
+		BOOL TestLine; // ラインを検知
+		BOOL TestFace; // 面を検知
 		BOOL DisableFrontOnly; // 前面のみの検知を無効化
-		BOOL DisableCoverByFace;   // 手前の面による頂点・ラインの遮蔽を無効化
+		BOOL DisableCoverByFace; // 手前の面による頂点・ラインの遮蔽を無効化
 
 		// output
-		HIT_TYPE HitType;	// 検知されたタイプ
-		MQPoint HitPos;		// 検知された位置
-		int ObjectIndex;	// 検知されたオブジェクト
-		int VertexIndex;	// 頂点のインデックス（頂点が検知されたときのみ）
-		int LineIndex;		// ラインのインデックス（ラインが検知されたときのみ）
-		int FaceIndex;		// 面のインデックス（ラインまたは面が検知されたときのみ）
+		HIT_TYPE HitType; // 検知されたタイプ
+		MQPoint HitPos; // 検知された位置
+		int ObjectIndex; // 検知されたオブジェクト
+		int VertexIndex; // 頂点のインデックス（頂点が検知されたときのみ）
+		int LineIndex; // ラインのインデックス（ラインが検知されたときのみ）
+		int FaceIndex; // 面のインデックス（ラインまたは面が検知されたときのみ）
 
-		HIT_TEST_PARAM(){
+		HIT_TEST_PARAM()
+		{
 			TestVertex = TestLine = TestFace = TRUE;
 			DisableFrontOnly = FALSE;
 			DisableCoverByFace = FALSE;
@@ -624,11 +638,11 @@ public:
 
 	// Get a type of the plug-in
 	// プラグインのタイプを返す。
-	virtual int GetPlugInType(void) { return MQPLUGIN_TYPE_COMMAND; }
+	int GetPlugInType(void) override { return MQPLUGIN_TYPE_COMMAND; }
 	// 表示・非表示状態の返答
-	virtual BOOL IsActivated(MQDocument doc);
+	BOOL IsActivated(MQDocument doc) override;
 	// コールバックに対する実装部
-	virtual bool ExecuteCallback(MQDocument doc, void *option);
+	bool ExecuteCallback(MQDocument doc, void* option) override;
 
 	// When a left button is pressed
 	// 左ボタンが押されたとき
@@ -673,7 +687,7 @@ public:
 	// Update an undo buffer
 	// アンドゥバッファを更新する
 	void UpdateUndo();
-	void UpdateUndo(const wchar_t *str);
+	void UpdateUndo(const wchar_t* str);
 	// Reserve updating a scene
 	// シーンの再描画を予約する
 	void RedrawScene(MQScene scene);
@@ -698,60 +712,67 @@ public:
 	void SetMouseCursor(HCURSOR cursor);
 	// Set a string displayed on a status bar
 	// ステータスバーの文字列を設定
-	void SetStatusString(const char *str);
-	void SetStatusString(const wchar_t *str);
+	void SetStatusString(const char* str);
+	void SetStatusString(const wchar_t* str);
 	// Set a help page
 	// ヘルプページの設定
-	void SetHelpPage(const wchar_t *url);
+	void SetHelpPage(const wchar_t* url);
 	// Apply a layout to OptionPanel
 	// オプションパネルにレイアウトを設定
 	void ApplyLayoutToOptionPanel();
 };
 
-
 class MQWaitCursorChanger
 {
 public:
-	MQWaitCursorChanger(MQBasePlugin *plugin, bool active = true)
+	MQWaitCursorChanger(MQBasePlugin* plugin, bool active = true)
 	{
 		m_Plugin = plugin;
-		if(active){
+		if (active)
+		{
 			m_Active = true;
 			m_OrgCursor = m_Plugin->GetScreenMouseCursor();
 			m_Plugin->SetScreenMouseCursor(m_Plugin->GetResourceCursor(MQBasePlugin::MQCURSOR_WAIT));
-		}else{
+		}
+		else
+		{
 			m_Active = false;
-			m_OrgCursor = NULL;
+			m_OrgCursor = nullptr;
 		}
 	}
+
 	~MQWaitCursorChanger()
 	{
 		End();
 	}
-	void Begin(){
-		if(!m_Active){
+
+	void Begin()
+	{
+		if (!m_Active)
+		{
 			m_Active = true;
 			m_OrgCursor = m_Plugin->GetScreenMouseCursor();
 			m_Plugin->SetScreenMouseCursor(m_Plugin->GetResourceCursor(MQBasePlugin::MQCURSOR_WAIT));
 		}
 	}
-	void End(){
-		if(m_Active){
+
+	void End()
+	{
+		if (m_Active)
+		{
 			m_Active = false;
 			m_Plugin->SetScreenMouseCursor(m_OrgCursor);
 		}
 	}
 
 private:
-	MQBasePlugin *m_Plugin;
+	MQBasePlugin* m_Plugin;
 	bool m_Active;
 	HCURSOR m_OrgCursor;
 };
 
-
 // Get a plug-in class
 // プラグインのベースクラスを返す
-extern MQBasePlugin *GetPluginClass();
-
+extern MQBasePlugin* GetPluginClass();
 
 #endif _MQBASEPLUGIN_H_

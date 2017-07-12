@@ -15,14 +15,12 @@
 #include "MQPlugin.h"
 #include "MQ3DLib.h"
 
-
 // For C++Builder5
 // float型浮動小数点演算関数に対応していないC++Builder5用対策
 #ifdef __BORLANDC__
 #define  acosf  acos
 #define  cosf   cos
 #endif
-
 
 //---------------------------------------------------------------------------
 //  GetNormal()
@@ -31,10 +29,10 @@
 //---------------------------------------------------------------------------
 MQPoint GetNormal(const MQPoint& p0, const MQPoint& p1, const MQPoint& p2)
 {
-	MQPoint ep = GetCrossProduct(p1-p2, p0-p1);
+	MQPoint ep = GetCrossProduct(p1 - p2, p0 - p1);
 
-	if(ep == MQPoint(0,0,0))
-		return MQPoint(0,0,0);
+	if (ep == MQPoint(0, 0, 0))
+		return MQPoint(0, 0, 0);
 
 	return ep / GetSize(ep);
 }
@@ -46,7 +44,7 @@ MQPoint GetNormal(const MQPoint& p0, const MQPoint& p1, const MQPoint& p2)
 //---------------------------------------------------------------------------
 MQPoint GetQuadNormal(const MQPoint& p0, const MQPoint& p1, const MQPoint& p2, const MQPoint& p3)
 {
-	MQPoint n,n1a,n1b,n2a,n2b;
+	MQPoint n, n1a, n1b, n2a, n2b;
 
 	n1a = GetNormal(p0, p1, p2);
 	n1b = GetNormal(p0, p2, p3);
@@ -55,9 +53,12 @@ MQPoint GetQuadNormal(const MQPoint& p0, const MQPoint& p1, const MQPoint& p2, c
 
 	// 凹型や歪んだ四角形の場合は片方の内積が小さくなるので、
 	// ２法線の内積の値を比較して、大きい方を選ぶ
-	if(GetInnerProduct(n1a,n1b) > GetInnerProduct(n2a,n2b)) {
+	if (GetInnerProduct(n1a, n1b) > GetInnerProduct(n2a, n2b))
+	{
 		n = Normalize(n1a + n1b);
-	} else {
+	}
+	else
+	{
 		n = Normalize(n2a + n2b);
 	}
 
@@ -69,38 +70,49 @@ MQPoint GetQuadNormal(const MQPoint& p0, const MQPoint& p1, const MQPoint& p2, c
 //     Get a normal vector for a polygonal face.
 //     多角形面の法線を得る
 //---------------------------------------------------------------------------
-MQPoint GetPolyNormal(const MQPoint *pts, int num)
+MQPoint GetPolyNormal(const MQPoint* pts, int num)
 {
-	if(num < 3){
-		return MQPoint(0,0,0);
+	if (num < 3)
+	{
+		return MQPoint(0, 0, 0);
 	}
 
 	// 多角形をなすバウンディングボックスから最も長い軸を得る
 	MQPoint boxmin(FLT_MAX, FLT_MAX, FLT_MAX);
 	MQPoint boxmax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-	for(int i=0; i<num; i++){
-		if(boxmin.x > pts[i].x) boxmin.x = pts[i].x;
-		if(boxmin.y > pts[i].y) boxmin.y = pts[i].y;
-		if(boxmin.z > pts[i].z) boxmin.z = pts[i].z;
-		if(boxmax.x < pts[i].x) boxmax.x = pts[i].x;
-		if(boxmax.y < pts[i].y) boxmax.y = pts[i].y;
-		if(boxmax.z < pts[i].z) boxmax.z = pts[i].z;
+	for (int i = 0; i < num; i++)
+	{
+		if (boxmin.x > pts[i].x) boxmin.x = pts[i].x;
+		if (boxmin.y > pts[i].y) boxmin.y = pts[i].y;
+		if (boxmin.z > pts[i].z) boxmin.z = pts[i].z;
+		if (boxmax.x < pts[i].x) boxmax.x = pts[i].x;
+		if (boxmax.y < pts[i].y) boxmax.y = pts[i].y;
+		if (boxmax.z < pts[i].z) boxmax.z = pts[i].z;
 	}
 	int ax1, ax2;
-	MQPoint size(boxmax.x-boxmin.x, boxmax.y-boxmin.y, boxmax.z-boxmin.z);
-	if(size.x >= size.y){
-		if(size.x >= size.z){
+	MQPoint size(boxmax.x - boxmin.x, boxmax.y - boxmin.y, boxmax.z - boxmin.z);
+	if (size.x >= size.y)
+	{
+		if (size.x >= size.z)
+		{
 			ax1 = 0;
 			ax2 = (size.y >= size.z) ? 1 : 2;
-		}else{
+		}
+		else
+		{
 			ax1 = 2;
 			ax2 = 0;
 		}
-	}else{
-		if(size.y >= size.z){
+	}
+	else
+	{
+		if (size.y >= size.z)
+		{
 			ax1 = 1;
 			ax2 = (size.x >= size.z) ? 0 : 2;
-		}else{
+		}
+		else
+		{
 			ax1 = 2;
 			ax2 = 1;
 		}
@@ -108,29 +120,38 @@ MQPoint GetPolyNormal(const MQPoint *pts, int num)
 
 	// 最も端にある頂点を探す（その頂点は必ず凸となる）
 	int minid = -1;
-	for(int i=0; i<num; i++){
+	for (int i = 0; i < num; i++)
+	{
 		float p1 = pts[i].index(ax1);
-		if(p1 == boxmin.index(ax1)){
-			if(minid == -1){
+		if (p1 == boxmin.index(ax1))
+		{
+			if (minid == -1)
+			{
 				minid = i;
-			}else if(pts[i].index(ax2) < pts[minid].index(ax2)){
+			}
+			else if (pts[i].index(ax2) < pts[minid].index(ax2))
+			{
 				minid = i;
 			}
 		}
 	}
 
 	// 本当に凸となるか、重心からのベクトルに対する内積をチェック
-	MQPoint g(0,0,0);
-	for(int i=0; i<num; i++){
+	MQPoint g(0, 0, 0);
+	for (int i = 0; i < num; i++)
+	{
 		g += pts[i];
 	}
 	g /= (float)num;
 	MQPoint gv = Normalize(pts[minid] - g);
 	float maxip = GetInnerProduct(pts[minid] - g, gv);
-	for(int i=0; i<num; i++){
-		if(i != minid){
+	for (int i = 0; i < num; i++)
+	{
+		if (i != minid)
+		{
 			float ip = GetInnerProduct(pts[i] - g, gv);
-			if(maxip < ip){
+			if (maxip < ip)
+			{
 				minid = i; // より遠いものが見つかったので、こちらを採用
 				maxip = ip;
 			}
@@ -139,17 +160,21 @@ MQPoint GetPolyNormal(const MQPoint *pts, int num)
 
 	// 凸頂点の法線方向を基準に、各頂点とその近傍頂点との三角形の法線の平均を最終法線とする
 	MQPoint base_n = GetNormal(
-		pts[(minid-1+num)%num], 
-		pts[minid], 
-		pts[(minid+1)%num]);
-	MQPoint nv(0,0,0);
-	for(int i=0; i<num; i++){
-		const MQPoint& v1 = pts[(minid+i)%num];
-		const MQPoint& v2 = pts[(minid+i+1)%num];
+		pts[(minid - 1 + num) % num],
+		pts[minid],
+		pts[(minid + 1) % num]);
+	MQPoint nv(0, 0, 0);
+	for (int i = 0; i < num; i++)
+	{
+		const MQPoint& v1 = pts[(minid + i) % num];
+		const MQPoint& v2 = pts[(minid + i + 1) % num];
 		MQPoint p = GetNormal(g, v1, v2);
-		if(GetInnerProduct(base_n, p) >= 0){
+		if (GetInnerProduct(base_n, p) >= 0)
+		{
 			nv += p * GetTriangleArea(g, v1, v2);
-		}else{
+		}
+		else
+		{
 			nv -= p * GetTriangleArea(g, v1, v2);
 		}
 	}
@@ -162,8 +187,8 @@ MQPoint GetPolyNormal(const MQPoint *pts, int num)
 //     3点からなる三角形の面積を得る
 //---------------------------------------------------------------------------
 float GetTriangleArea(const MQPoint& p1, const MQPoint& p2, const MQPoint& p3)
-{	
-	MQPoint v1,v2,v3;
+{
+	MQPoint v1, v2, v3;
 	v1 = p2 - p1;
 	v2 = p3 - p1;
 	v3 = GetCrossProduct(v1, v2);
@@ -172,16 +197,18 @@ float GetTriangleArea(const MQPoint& p1, const MQPoint& p2, const MQPoint& p3)
 
 float GetTriangleArea(const MQCoordinate& p1, const MQCoordinate& p2, const MQCoordinate& p3)
 {
-	MQCoordinate v1,v2;
-	float d1,d2,u,t,eps = 0.00001f;
+	MQCoordinate v1, v2;
+	float d1, d2, u, t, eps = 0.00001f;
 
-	v1=p2-p1; d1=GetSize(v1);
-	v2=p3-p1; d2=GetSize(v2);
-	if(d1*d2 == 0) return 0;
-	u = GetInnerProduct(v1,v2);
-	t = std::fabs(u/(d1*d2));
-	if(1-eps < t && t < 1+eps) return 0;
-	return 0.5f * sqrtf(d1*d1 * d2*d2 - u*u);
+	v1 = p2 - p1;
+	d1 = GetSize(v1);
+	v2 = p3 - p1;
+	d2 = GetSize(v2);
+	if (d1 * d2 == 0) return 0;
+	u = GetInnerProduct(v1, v2);
+	t = fabs(u / (d1 * d2));
+	if (1 - eps < t && t < 1 + eps) return 0;
+	return 0.5f * sqrtf(d1 * d1 * d2 * d2 - u * u);
 }
 
 //---------------------------------------------------------------------------
@@ -191,30 +218,30 @@ float GetTriangleArea(const MQCoordinate& p1, const MQCoordinate& p2, const MQCo
 //---------------------------------------------------------------------------
 float GetCrossingAngle(const MQPoint& v1, const MQPoint& v2)
 {
-	float d,c;
+	float d, c;
 
 	d = GetSize(v1) * GetSize(v2);
-	if(d == 0.0f)
+	if (d == 0.0f)
 		return 0.0f;
 
 	c = GetInnerProduct(v1, v2) / d;
-	if(c >= 1.0f) return 0.0f;
-	if(c <=-1.0f) return PI;
+	if (c >= 1.0f) return 0.0f;
+	if (c <= -1.0f) return PI;
 
 	return acosf(c);
 }
 
 float GetCrossingAngle(const MQCoordinate& v1, const MQCoordinate& v2)
 {
-	float d,c;
+	float d, c;
 
 	d = GetSize(v1) * GetSize(v2);
-	if(d == 0.0f)
+	if (d == 0.0f)
 		return 0.0f;
 
 	c = GetInnerProduct(v1, v2) / d;
-	if(c >= 1.0f) return 0.0f;
-	if(c <=-1.0f) return PI;
+	if (c >= 1.0f) return 0.0f;
+	if (c <= -1.0f) return PI;
 
 	return acosf(c);
 }
@@ -224,37 +251,44 @@ float GetCrossingAngle(const MQCoordinate& v1, const MQCoordinate& v2)
 //     Get a distance and a nearest point between a point and a 3D line.
 //     点と2D(x/y)ライン(線分)との距離・最近点を得る。
 //---------------------------------------------------------------------------
-float Get2DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint *outp, float *outt)
+float Get2DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint* outp, float* outt)
 {
-	float t, d1,d2;
-	MQPoint d,h;
+	float t, d1, d2;
+	MQPoint d, h;
 
 	d.x = l2.x - l1.x;
 	d.y = l2.y - l1.y;
-	d2 = d.x*d.x + d.y*d.y;
-	if(d2 > 0)
+	d2 = d.x * d.x + d.y * d.y;
+	if (d2 > 0)
 	{
-		d1 = (p.x-l1.x)*d.x + (p.y-l1.y)*d.y;
-		t = d1/d2;
-		if( 0<t && t<1 ) {
+		d1 = (p.x - l1.x) * d.x + (p.y - l1.y) * d.y;
+		t = d1 / d2;
+		if (0 < t && t < 1)
+		{
 			h.x = d.x * t + l1.x;
 			h.y = d.y * t + l1.y;
 			h.z = 0;
-			if(outt != nullptr) *outt = t;
-		} else if( t<=0 ) {
-			h=l1;
-			if(outt != nullptr) *outt = 0;
-		} else {
-			h=l2;
-			if(outt != nullptr) *outt = 1;
+			if (outt != nullptr) *outt = t;
 		}
-	} else {
-		h = l1;
-		if(outt != nullptr) *outt = 0;
+		else if (t <= 0)
+		{
+			h = l1;
+			if (outt != nullptr) *outt = 0;
+		}
+		else
+		{
+			h = l2;
+			if (outt != nullptr) *outt = 1;
+		}
 	}
-	if(outp != nullptr) *outp = h;
+	else
+	{
+		h = l1;
+		if (outt != nullptr) *outt = 0;
+	}
+	if (outp != nullptr) *outp = h;
 	d = h - p;
-	return sqrt(d.x*d.x + d.y*d.y);
+	return sqrt(d.x * d.x + d.y * d.y);
 }
 
 //---------------------------------------------------------------------------
@@ -262,40 +296,46 @@ float Get2DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, 
 //     Get a distance and a nearest point between a point and a 3D line.
 //     点と3Dライン(線分)との距離・最近点を得る。
 //---------------------------------------------------------------------------
-float Get3DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint *outp, float *outt)
+float Get3DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint* outp, float* outt)
 {
-	float t, d1,d2;
-	MQPoint d,h;
+	float t, d1, d2;
+	MQPoint d, h;
 
 	d.x = l2.x - l1.x;
 	d.y = l2.y - l1.y;
 	d.z = l2.z - l1.z;
-	d2 = d.x*d.x + d.y*d.y + d.z*d.z;
-	if(d2 > 0)
+	d2 = d.x * d.x + d.y * d.y + d.z * d.z;
+	if (d2 > 0)
 	{
-		d1 = (p.x-l1.x)*d.x + (p.y-l1.y)*d.y + (p.z-l1.z)*d.z;
-		t = d1/d2;
-		if( 0<t && t<1 ) {
+		d1 = (p.x - l1.x) * d.x + (p.y - l1.y) * d.y + (p.z - l1.z) * d.z;
+		t = d1 / d2;
+		if (0 < t && t < 1)
+		{
 			h.x = d.x * t + l1.x;
 			h.y = d.y * t + l1.y;
 			h.z = d.z * t + l1.z;
-			if(outt != nullptr) *outt = t;
-		} else if( t<=0 ) {
-			h=l1;
-			if(outt != nullptr) *outt = 0;
-		} else {
-			h=l2;
-			if(outt != nullptr) *outt = 1;
+			if (outt != nullptr) *outt = t;
 		}
-	} else {
-		h = l1;
-		if(outt != nullptr) *outt = 0;
+		else if (t <= 0)
+		{
+			h = l1;
+			if (outt != nullptr) *outt = 0;
+		}
+		else
+		{
+			h = l2;
+			if (outt != nullptr) *outt = 1;
+		}
 	}
-	if(outp != nullptr) *outp = h;
+	else
+	{
+		h = l1;
+		if (outt != nullptr) *outt = 0;
+	}
+	if (outp != nullptr) *outp = h;
 	d = h - p;
 	return d.abs();
 }
-
 
 //---------------------------------------------------------------------------
 //  GetRotationMatrixWithAxis()
@@ -308,7 +348,8 @@ MQMatrix GetRotationMatrixWithAxis(const MQPoint& axis, float rad)
 
 	// Normalize vector of axis
 	float a = axis.abs();
-	if(a == 0.0f){
+	if (a == 0.0f)
+	{
 		mat.Identify();
 		return mat;
 	}
@@ -321,15 +362,15 @@ MQMatrix GetRotationMatrixWithAxis(const MQPoint& axis, float rad)
 	float ct = cos(rad);
 	float st = sin(rad);
 
-	mat._11 = nx*nx + (1-nx*nx)*ct;
-	mat._12 = nx*ny*(1-ct) + nz*st;
-	mat._13 = nx*nz*(1-ct) - ny*st;
-	mat._21 = nx*ny*(1-ct) - nz*st;
-	mat._22 = ny*ny + (1-ny*ny)*ct;
-	mat._23 = ny*nz*(1-ct) + nx*st;
-	mat._31 = nx*nz*(1-ct) + ny*st;
-	mat._32 = ny*nz*(1-ct) - nx*st;
-	mat._33 = nz*nz + (1-nz*nz)*ct;
+	mat._11 = nx * nx + (1 - nx * nx) * ct;
+	mat._12 = nx * ny * (1 - ct) + nz * st;
+	mat._13 = nx * nz * (1 - ct) - ny * st;
+	mat._21 = nx * ny * (1 - ct) - nz * st;
+	mat._22 = ny * ny + (1 - ny * ny) * ct;
+	mat._23 = ny * nz * (1 - ct) + nx * st;
+	mat._31 = nx * nz * (1 - ct) + ny * st;
+	mat._32 = ny * nz * (1 - ct) - nx * st;
+	mat._33 = nz * nz + (1 - nz * nz) * ct;
 	mat._14 = mat._24 = mat._34 = 0.0f;
 	mat._41 = mat._42 = mat._43 = 0.0f;
 	mat._44 = 1.0f;
@@ -346,15 +387,15 @@ MQMatrix GetRotationMatrixWithAxis(const MQPoint& axis, float rad)
 //---------------------------------------------------------------------------
 int SearchInvertedFace(MQObject obj, int faceindex, int start, int end)
 {
-	int i,j,k;
+	int i, j, k;
 	std::vector<int> cvidx, dvidx;
 
 	int face_count = obj->GetFaceCount();
-	if(faceindex >= face_count)
+	if (faceindex >= face_count)
 		return -1;
 
 	int pt_count = obj->GetFacePointCount(faceindex);
-	if(pt_count == 0)
+	if (pt_count == 0)
 		return -1;
 
 	cvidx.resize(pt_count);
@@ -362,30 +403,31 @@ int SearchInvertedFace(MQObject obj, int faceindex, int start, int end)
 
 	obj->GetFacePointArray(faceindex, &(*dvidx.begin()));
 
-	if(start < 0) start = 0;
-	if(end   < 0) end   = face_count-1;
+	if (start < 0) start = 0;
+	if (end < 0) end = face_count - 1;
 
-	for(i=start; i<=end; i++)
+	for (i = start; i <= end; i++)
 	{
-		if(pt_count != obj->GetFacePointCount(i))
+		if (pt_count != obj->GetFacePointCount(i))
 			continue;
-		
+
 		obj->GetFacePointArray(i, &(*cvidx.begin()));
 
-		for(j=0; j<pt_count; j++) {
-			if(cvidx[j] != dvidx[0]) continue;
-			for(k=1; k<pt_count; k++) {
-				if(cvidx[(j+k)%pt_count] != dvidx[pt_count-k])
+		for (j = 0; j < pt_count; j++)
+		{
+			if (cvidx[j] != dvidx[0]) continue;
+			for (k = 1; k < pt_count; k++)
+			{
+				if (cvidx[(j + k) % pt_count] != dvidx[pt_count - k])
 					break;
 			}
-			if(k == pt_count)
+			if (k == pt_count)
 				return i;
 		}
 	}
 
 	return -1;
 }
-
 
 //---------------------------------------------------------------------------
 //  IsFrontFace()
@@ -399,7 +441,8 @@ bool IsFrontFace(MQScene scene, MQObject obj, int face_index)
 	obj->GetFacePointArray(face_index, &(*vert_index.begin()));
 
 	std::vector<MQPoint> sp(num);
-	for (int i=0; i<num; i++){
+	for (int i = 0; i < num; i++)
+	{
 		sp[i] = scene->Convert3DToScreen(obj->GetVertex(vert_index[i]));
 
 		// 視野より手前にあれば表とみなさない
@@ -407,23 +450,27 @@ bool IsFrontFace(MQScene scene, MQObject obj, int face_index)
 	}
 
 	// 法線の向きで調べる
-	if(num >= 3){
-		if((sp[1].x-sp[0].x) * (sp[2].y-sp[1].y) - (sp[1].y-sp[0].y) * (sp[2].x-sp[1].x) < 0) {
+	if (num >= 3)
+	{
+		if ((sp[1].x - sp[0].x) * (sp[2].y - sp[1].y) - (sp[1].y - sp[0].y) * (sp[2].x - sp[1].x) < 0)
+		{
 			return true;
-		}else if(num >= 4){
-			if((sp[2].x-sp[0].x) * (sp[3].y-sp[2].y) - (sp[2].y-sp[0].y) * (sp[3].x-sp[2].x) < 0) {
+		}
+		if (num >= 4)
+		{
+			if ((sp[2].x - sp[0].x) * (sp[3].y - sp[2].y) - (sp[2].y - sp[0].y) * (sp[3].x - sp[2].x) < 0)
+			{
 				return true;
 			}
 		}
 	}
-	else if (num > 0){
+	else if (num > 0)
+	{
 		return true;
 	}
 
 	return false;
 }
-
-
 
 //---------------------------------------------------------------------------
 //  CalculateTangent()
@@ -431,9 +478,9 @@ bool IsFrontFace(MQScene scene, MQObject obj, int face_index)
 //     位置・法線・UV座標から接線ベクトルを計算する
 //---------------------------------------------------------------------------
 void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
-		const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
-		const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
-		MQPoint& tan0, MQPoint& tan1, MQPoint& tan2)
+                      const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
+                      const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
+                      MQPoint& tan0, MQPoint& tan1, MQPoint& tan2)
 {
 	MQPoint edge1, edge2, crossP;
 
@@ -444,7 +491,8 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 	edge2.y = t2.u - t0.u; // another s-vector
 	edge2.z = t2.v - t0.v; // another t-vector
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	float tanX = -crossP.y / crossP.x;
@@ -456,7 +504,8 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 	edge1.x = v1.y - v0.y;
 	edge2.x = v2.y - v0.y;
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	float tanY = -crossP.y / crossP.x;
@@ -468,7 +517,8 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 	edge1.x = v1.z - v0.z;
 	edge2.x = v2.z - v0.z;
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	float tanZ = -crossP.y / crossP.x;
@@ -488,9 +538,9 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 }
 
 void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
-		const MQPoint& normal,
-		const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
-		MQPoint& tangent)
+                      const MQPoint& normal,
+                      const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
+                      MQPoint& tangent)
 {
 	MQPoint edge1, edge2, crossP;
 
@@ -501,7 +551,8 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 	edge2.y = t2.u - t0.u; // another s-vector
 	edge2.z = t2.v - t0.v; // another t-vector
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	float tanX = -crossP.y / crossP.x;
@@ -511,7 +562,8 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 	edge1.x = v1.y - v0.y;
 	edge2.x = v2.y - v0.y;
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	float tanY = -crossP.y / crossP.x;
@@ -521,7 +573,8 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 	edge1.x = v1.z - v0.z;
 	edge2.x = v2.z - v0.z;
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	float tanZ = -crossP.y / crossP.x;
@@ -534,12 +587,11 @@ void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
 	tangent = Normalize(tangent);
 }
 
-
 void CalculateTangentAndBinormal(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
-		const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
-		const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
-		MQPoint& tan0, MQPoint& tan1, MQPoint& tan2, 
-		MQPoint& bin0, MQPoint& bin1, MQPoint& bin2)
+                                 const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
+                                 const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
+                                 MQPoint& tan0, MQPoint& tan1, MQPoint& tan2,
+                                 MQPoint& bin0, MQPoint& bin1, MQPoint& bin2)
 {
 	MQPoint edge1, edge2, crossP;
 
@@ -550,7 +602,8 @@ void CalculateTangentAndBinormal(const MQPoint& v0, const MQPoint& v1, const MQP
 	edge2.y = t2.u - t0.u; // another s-vector
 	edge2.z = t2.v - t0.v; // another t-vector
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	tan0.x = tan1.x = tan2.x = -crossP.y / crossP.x;
@@ -560,7 +613,8 @@ void CalculateTangentAndBinormal(const MQPoint& v0, const MQPoint& v1, const MQP
 	edge1.x = v1.y - v0.y;
 	edge2.x = v2.y - v0.y;
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	tan0.y = tan1.y = tan2.y = -crossP.y / crossP.x;
@@ -570,7 +624,8 @@ void CalculateTangentAndBinormal(const MQPoint& v0, const MQPoint& v1, const MQP
 	edge1.x = v1.z - v0.z;
 	edge2.x = v2.z - v0.z;
 	crossP = Normalize(GetCrossProduct(edge1, edge2));
-	if(fabs(crossP.x) < 1e-4f){
+	if (fabs(crossP.x) < 1e-4f)
+	{
 		crossP.x = 1.0f;
 	}
 	tan0.z = tan1.z = tan2.z = -crossP.y / crossP.x;
@@ -593,7 +648,6 @@ void CalculateTangentAndBinormal(const MQPoint& v0, const MQPoint& v1, const MQP
 	bin2 = Normalize(bin2);
 }
 
-
 //---------------------------------------------------------------------------
 //  class MQGouraudHash
 //     MQObjNormalクラスで内部的に使われるハッシュ
@@ -603,11 +657,15 @@ class MQGouraudHash
 public:
 	MQPoint nv;
 	int count;
-	MQGouraudHash *next;
+	MQGouraudHash* next;
 
-	MQGouraudHash() { nv.zero(); count=0; next=NULL; }
+	MQGouraudHash()
+	{
+		nv.zero();
+		count = 0;
+		next = nullptr;
+	}
 };
-
 
 //---------------------------------------------------------------------------
 //  class MQObjNormal
@@ -634,22 +692,23 @@ MQObjNormal::~MQObjNormal()
 
 MQObjNormal::MQObjNormal(MQObject obj)
 {
-	int i,j;
+	int i, j;
 	int face_count, vert_count;
 
 	face_count = obj->GetFaceCount();
 	vert_count = obj->GetVertexCount();
 
-	MQPoint *face_n = new MQPoint[face_count];
+	MQPoint* face_n = new MQPoint[face_count];
 
 	normal.resize(face_count);
 
 	// 面ごとに法線を計算
 	// Calculate a normal vector for each face.
-	for(i=0; i<face_count; i++)
+	for (i = 0; i < face_count; i++)
 	{
 		int count = obj->GetFacePointCount(i);
-		if(count < 3){
+		if (count < 3)
+		{
 			face_n[i].zero();
 			continue;
 		}
@@ -658,7 +717,8 @@ MQObjNormal::MQObjNormal(MQObject obj)
 
 		// 三角形・四角形・多角形それぞれに対する法線の計算
 		// Calculate a normal vector for a triangle, a quadrangle or a polygon.
-		switch(count) {
+		switch (count)
+		{
 		case 3:
 			{
 				int vi[3];
@@ -672,7 +732,7 @@ MQObjNormal::MQObjNormal(MQObject obj)
 				int vi[4];
 				obj->GetFacePointArray(i, vi);
 				face_n[i] = GetQuadNormal(
-					obj->GetVertex(vi[0]), obj->GetVertex(vi[1]), 
+					obj->GetVertex(vi[0]), obj->GetVertex(vi[1]),
 					obj->GetVertex(vi[2]), obj->GetVertex(vi[3]));
 			}
 			break;
@@ -682,7 +742,8 @@ MQObjNormal::MQObjNormal(MQObject obj)
 				obj->GetFacePointArray(i, &(*vi.begin()));
 
 				std::vector<MQPoint> pts(count);
-				for(j=0; j<count; j++){
+				for (j = 0; j < count; j++)
+				{
 					pts[j] = obj->GetVertex(vi[j]);
 				}
 				face_n[i] = GetPolyNormal(&(*pts.begin()), count);
@@ -691,14 +752,15 @@ MQObjNormal::MQObjNormal(MQObject obj)
 		}
 	}
 
-	switch(obj->GetShading()) {
+	switch (obj->GetShading())
+	{
 	case MQOBJECT_SHADE_FLAT:
-		for(i=0; i<face_count; i++)
+		for (i = 0; i < face_count; i++)
 		{
 			int count = obj->GetFacePointCount(i);
-			for(j=0; j<count; j++)
+			for (j = 0; j < count; j++)
 				normal[i][j] = face_n[i];
-			for(; j<4; j++)
+			for (; j < 4; j++)
 				normal[i][j].zero();
 		}
 		break;
@@ -709,16 +771,18 @@ MQObjNormal::MQObjNormal(MQObject obj)
 
 			// スムージング角度の取得
 			// Get a smooth angle.
-			float facet = cosf( RAD(obj->GetSmoothAngle()) );
+			float facet = cosf(RAD(obj->GetSmoothAngle()));
 
 			// ハッシュの初期化
 			// Initialize a hash.
 			int hash_size = vert_count;
 			MQApexValueBase<MQGouraudHash*> vtbl;
 			vtbl.resize(face_count);
-			for(i=0; i<face_count; i++){
+			for (i = 0; i < face_count; i++)
+			{
 				int count = obj->GetFacePointCount(i);
-				if(count >= 3){
+				if (count >= 3)
+				{
 					vtbl.resizeItem(i, count);
 					hash_size += count;
 				}
@@ -728,17 +792,17 @@ MQObjNormal::MQObjNormal(MQObject obj)
 
 			// 面ごとにハッシュに法線ベクトルをセット
 			// Set a normal vector for each face to the hash.
-			for(i=0; i<face_count; i++)
+			for (i = 0; i < face_count; i++)
 			{
 				int count = obj->GetFacePointCount(i);
-				if(count < 3) continue;
+				if (count < 3) continue;
 
 				std::vector<int> vi(count);
 				obj->GetFacePointArray(i, &(*vi.begin()));
 
 				// 面中の各頂点ごとに法線ベクトルをハッシュへ格納
 				// Set a normal vector for each vertex in a face to the hash.
-				for(j=0; j<count; j++)
+				for (j = 0; j < count; j++)
 				{
 					// 注目する頂点に対してのハッシュを得る
 					// Get the hash for the target vertex.
@@ -746,7 +810,8 @@ MQObjNormal::MQObjNormal(MQObject obj)
 
 					// ハッシュがまだ空ならそこに情報を格納
 					// Store the normal if the hash is empty.
-					if(chs->count == 0) {
+					if (chs->count == 0)
+					{
 						chs->nv = face_n[i];
 						chs->count++;
 						vtbl[i][j] = chs;
@@ -759,21 +824,22 @@ MQObjNormal::MQObjNormal(MQObject obj)
 
 					const MQPoint& pa = face_n[i];
 					float da = pa.norm();
-					for(; ; chs=chs->next)
+					for (; ; chs = chs->next)
 					{
 						// ２面の角度をチェック
 						// Check the angle between the two faces
 						float c = 0.0f;
-						if(da > 0.0f) {
+						if (da > 0.0f)
+						{
 							MQPoint& pb = chs->nv;
 							float db = pb.norm();
-							if(db > 0.0f)
-								c = GetInnerProduct(pa, pb) / sqrtf(da*db);
+							if (db > 0.0f)
+								c = GetInnerProduct(pa, pb) / sqrtf(da * db);
 						}
-							
+
 						// スムージング角度以内か？
 						// Is the angle lesser than the smooth angle?
-						if(c >= facet)
+						if (c >= facet)
 						{
 							// 注目する頂点に対して面の法線ベクトルをそのまま加算する。
 							// （注目する頂点に属する面内の２辺の角度によるベクトルの加算量の調整はしていない）
@@ -788,12 +854,13 @@ MQObjNormal::MQObjNormal(MQObject obj)
 						// 次のハッシュデータがない場合は新規作成。
 						// Check the next hash because a smoothing is not applied to the face.
 						// Create a new hash if necessary.
-						if(chs->next == NULL) {
+						if (chs->next == nullptr)
+						{
 							vtbl[i][j] = chs->next = &hash[hash_count++];
 							chs = chs->next;
 							chs->nv = pa;
 							chs->count = 1;
-							chs->next = NULL;
+							chs->next = nullptr;
 							break;
 						}
 					}
@@ -802,20 +869,21 @@ MQObjNormal::MQObjNormal(MQObject obj)
 
 			// ハッシュ中の法線ベクトルの正規化
 			// Normalize the stored vector in the hash.
-			for(i=0,chs=hash; i<hash_count; i++,chs++) {
-				if(chs->count > 1)
+			for (i = 0 , chs = hash; i < hash_count; i++ , chs++)
+			{
+				if (chs->count > 1)
 					chs->nv.normalize();
 			}
 
 			// 法線をバッファにセット
 			// Set the normal vector.
-			for(i=0; i<face_count; i++)
+			for (i = 0; i < face_count; i++)
 			{
 				int count = obj->GetFacePointCount(i);
-				if(count < 3) continue;
-				for(j=0; j<count; j++)
+				if (count < 3) continue;
+				for (j = 0; j < count; j++)
 					normal[i][j] = vtbl[i][j]->nv;
-				for(; j<4; j++)
+				for (; j < 4; j++)
 					normal[i][j].zero();
 			}
 
@@ -829,29 +897,29 @@ MQObjNormal::MQObjNormal(MQObject obj)
 	delete[] face_n;
 }
 
-
 MQObjIndexedNormal::~MQObjIndexedNormal()
 {
 }
 
 MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 {
-	int i,j;
+	int i, j;
 	int face_count, vert_count;
 
 	face_count = obj->GetFaceCount();
 	vert_count = obj->GetVertexCount();
 
-	MQPoint *face_n = new MQPoint[face_count];
+	MQPoint* face_n = new MQPoint[face_count];
 
 	index.resize(face_count);
 
 	// 面ごとに法線を計算
 	// Calculate a normal vector for each face.
-	for(i=0; i<face_count; i++)
+	for (i = 0; i < face_count; i++)
 	{
 		int count = obj->GetFacePointCount(i);
-		if(count < 3){
+		if (count < 3)
+		{
 			face_n[i].zero();
 			continue;
 		}
@@ -860,7 +928,8 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 
 		// 三角形・四角形・多角形それぞれに対する法線の計算
 		// Calculate a normal vector for a triangle, a quadrangle or a polygon.
-		switch(count) {
+		switch (count)
+		{
 		case 3:
 			{
 				int vi[3];
@@ -874,7 +943,7 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 				int vi[4];
 				obj->GetFacePointArray(i, vi);
 				face_n[i] = GetQuadNormal(
-					obj->GetVertex(vi[0]), obj->GetVertex(vi[1]), 
+					obj->GetVertex(vi[0]), obj->GetVertex(vi[1]),
 					obj->GetVertex(vi[2]), obj->GetVertex(vi[3]));
 			}
 			break;
@@ -884,7 +953,8 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 				obj->GetFacePointArray(i, &(*vi.begin()));
 
 				std::vector<MQPoint> pts(count);
-				for(j=0; j<count; j++){
+				for (j = 0; j < count; j++)
+				{
 					pts[j] = obj->GetVertex(vi[j]);
 				}
 				face_n[i] = GetPolyNormal(&(*pts.begin()), count);
@@ -893,16 +963,17 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 		}
 	}
 
-	switch(obj->GetShading()) {
+	switch (obj->GetShading())
+	{
 	case MQOBJECT_SHADE_FLAT:
 		normal.resize(face_count);
-		for(i=0; i<face_count; i++)
+		for (i = 0; i < face_count; i++)
 		{
 			int count = obj->GetFacePointCount(i);
 			normal[i] = face_n[i];
-			for(j=0; j<count; j++)
+			for (j = 0; j < count; j++)
 				index[i][j] = i;
-			for(; j<4; j++)
+			for (; j < 4; j++)
 				index[i][j] = 0;
 		}
 		break;
@@ -913,16 +984,18 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 
 			// スムージング角度の取得
 			// Get a smooth angle.
-			float facet = cosf( RAD(obj->GetSmoothAngle()) );
+			float facet = cosf(RAD(obj->GetSmoothAngle()));
 
 			// ハッシュの初期化
 			// Initialize a hash.
 			int hash_size = vert_count;
 			MQApexValueBase<MQGouraudHash*> vtbl;
 			vtbl.resize(face_count);
-			for(i=0; i<face_count; i++){
+			for (i = 0; i < face_count; i++)
+			{
 				int count = obj->GetFacePointCount(i);
-				if(count >= 3){
+				if (count >= 3)
+				{
 					vtbl.resizeItem(i, count);
 					hash_size += count;
 				}
@@ -932,17 +1005,17 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 
 			// 面ごとにハッシュに法線ベクトルをセット
 			// Set a normal vector for each face to the hash.
-			for(i=0; i<face_count; i++)
+			for (i = 0; i < face_count; i++)
 			{
 				int count = obj->GetFacePointCount(i);
-				if(count < 3) continue;
+				if (count < 3) continue;
 
 				std::vector<int> vi(count);
 				obj->GetFacePointArray(i, &(*vi.begin()));
 
 				// 面中の各頂点ごとに法線ベクトルをハッシュへ格納
 				// Set a normal vector for each vertex in a face to the hash.
-				for(j=0; j<count; j++)
+				for (j = 0; j < count; j++)
 				{
 					// 注目する頂点に対してのハッシュを得る
 					// Get the hash for the target vertex.
@@ -950,7 +1023,8 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 
 					// ハッシュがまだ空ならそこに情報を格納
 					// Store the normal if the hash is empty.
-					if(chs->count == 0) {
+					if (chs->count == 0)
+					{
 						chs->nv = face_n[i];
 						chs->count++;
 						vtbl[i][j] = chs;
@@ -963,21 +1037,22 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 
 					const MQPoint& pa = face_n[i];
 					float da = pa.norm();
-					for(; ; chs=chs->next)
+					for (; ; chs = chs->next)
 					{
 						// ２面の角度をチェック
 						// Check the angle between the two faces
 						float c = 0.0f;
-						if(da > 0.0f) {
+						if (da > 0.0f)
+						{
 							MQPoint& pb = chs->nv;
 							float db = pb.norm();
-							if(db > 0.0f)
-								c = GetInnerProduct(pa, pb) / sqrtf(da*db);
+							if (db > 0.0f)
+								c = GetInnerProduct(pa, pb) / sqrtf(da * db);
 						}
-							
+
 						// スムージング角度以内か？
 						// Is the angle lesser than the smooth angle?
-						if(c >= facet)
+						if (c >= facet)
 						{
 							// 注目する頂点に対して面の法線ベクトルをそのまま加算する。
 							// （注目する頂点に属する面内の２辺の角度によるベクトルの加算量の調整はしていない）
@@ -992,12 +1067,13 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 						// 次のハッシュデータがない場合は新規作成。
 						// Check the next hash because a smoothing is not applied to the face.
 						// Create a new hash if necessary.
-						if(chs->next == NULL) {
+						if (chs->next == nullptr)
+						{
 							vtbl[i][j] = chs->next = &hash[hash_count++];
 							chs = chs->next;
 							chs->nv = pa;
 							chs->count = 1;
-							chs->next = NULL;
+							chs->next = nullptr;
 							break;
 						}
 					}
@@ -1007,8 +1083,10 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 			// ハッシュ中の法線ベクトルの正規化
 			// Normalize the stored vector in the hash.
 			normal.resize(hash_count);
-			for(i=0,chs=hash; i<hash_count; i++,chs++) {
-				if(chs->count > 1){
+			for (i = 0 , chs = hash; i < hash_count; i++ , chs++)
+			{
+				if (chs->count > 1)
+				{
 					chs->nv.normalize();
 				}
 				normal[i] = chs->nv;
@@ -1016,13 +1094,13 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 
 			// 法線のインデックスをバッファにセット
 			// Set the normal index.
-			for(i=0; i<face_count; i++)
+			for (i = 0; i < face_count; i++)
 			{
 				int count = obj->GetFacePointCount(i);
-				if(count < 3) continue;
-				for(j=0; j<count; j++)
+				if (count < 3) continue;
+				for (j = 0; j < count; j++)
 					index[i][j] = (int)(vtbl[i][j] - hash);
-				for(; j<4; j++)
+				for (; j < 4; j++)
 					index[i][j] = 0;
 			}
 
@@ -1035,7 +1113,6 @@ MQObjIndexedNormal::MQObjIndexedNormal(MQObject obj)
 
 	delete[] face_n;
 }
-
 
 //---------------------------------------------------------------------------
 //  class MQObjEdge
@@ -1057,41 +1134,48 @@ MQObjEdge::MQObjEdge(MQObject obj)
 
 	m_obj = obj;
 	m_face = face_count;
-	if(!m_pair.resize(face_count)){
+	if (!m_pair.resize(face_count))
+	{
 		m_face = 0;
 		return;
 	}
 
 	int tree_size = vert_count;
-	for(int cf=0; cf<face_count; cf++)
+	for (int cf = 0; cf < face_count; cf++)
 	{
 		int cfc = obj->GetFacePointCount(cf);
 
-		if(cfc >= 3){
+		if (cfc >= 3)
+		{
 			m_pair.resizeItem(cf, cfc);
 			tree_size += cfc;
 		}
 	}
 
-class MRelTree
-{
-public:
-	MQObjEdgePair pair;
-	int next;
+	class MRelTree
+	{
+	public:
+		MQObjEdgePair pair;
+		int next;
 
-	inline MRelTree() { next = -1; }
-	inline MRelTree& operator = (const MRelTree& r)
-		{pair=r.pair; next=r.next; return *this;}
-};
+		MRelTree() { next = -1; }
 
-	MRelTree *tree = new MRelTree[tree_size];
+		MRelTree& operator =(const MRelTree& r)
+		{
+			pair = r.pair;
+			next = r.next;
+			return *this;
+		}
+	};
+
+	MRelTree* tree = new MRelTree[tree_size];
 
 	int regvc = vert_count;
-	for(int cf=0; cf<face_count; cf++)
+	for (int cf = 0; cf < face_count; cf++)
 	{
 		int cfc = obj->GetFacePointCount(cf);
 
-		if(cfc < 3)
+		if (cfc < 3)
 			continue;
 
 		m_pair.resizeItem(cf, cfc);
@@ -1100,41 +1184,43 @@ public:
 		obj->GetFacePointArray(cf, &(*cvi.begin()));
 
 		cfc--; // decrement to be faster
-		for(int j=0; j<=cfc; j++)
+		for (int j = 0; j <= cfc; j++)
 		{
 			// check tree
 			int v1 = cvi[j];
-			int v2 = cvi[j<cfc? j+1 : 0];
-			for(MRelTree drel=tree[v2]; drel.pair.face>=0; drel=tree[drel.next])
+			int v2 = cvi[j < cfc ? j + 1 : 0];
+			for (MRelTree drel = tree[v2]; drel.pair.face >= 0; drel = tree[drel.next])
 			{
 				int df = drel.pair.face;
 				int dfc = obj->GetFacePointCount(df);
 				std::vector<int> dvi(dfc);
 				obj->GetFacePointArray(df, &(*dvi.begin()));
-				if(m_pair[df][drel.pair.line].face < 0)
+				if (m_pair[df][drel.pair.line].face < 0)
 				{
-					if(/*v2 == dvi[drel.pair.line]
-					&&*/ v1 == dvi[drel.pair.line<dfc-1 ? drel.pair.line+1 : 0])
+					if (/*v2 == dvi[drel.pair.line]
+					&&*/ v1 == dvi[drel.pair.line < dfc - 1 ? drel.pair.line + 1 : 0])
 					{
 						// set relation
-						m_pair[df][drel.pair.line] = MQObjEdgePair(cf,j);
+						m_pair[df][drel.pair.line] = MQObjEdgePair(cf, j);
 						m_pair[cf][j] = drel.pair;
 						goto CR_REG_END;
 					}
 				}
-				if(drel.next < 0) break;
+				if (drel.next < 0) break;
 			}
 			// not find in tree, so regist vertex1
-			MRelTree *ctr;
-			for(ctr=&tree[v1]; ctr->pair.face>=0; ctr=&tree[ctr->next]){
-				if(ctr->next < 0){
+			MRelTree* ctr;
+			for (ctr = &tree[v1]; ctr->pair.face >= 0; ctr = &tree[ctr->next])
+			{
+				if (ctr->next < 0)
+				{
 					ctr->next = regvc;
 					ctr = &tree[regvc++];
 					break;
 				}
 			}
-			ctr->pair = MQObjEdgePair(cf,j);
-CR_REG_END:;
+			ctr->pair = MQObjEdgePair(cf, j);
+		CR_REG_END:;
 		}
 	}
 
@@ -1147,10 +1233,10 @@ MQObjEdge::~MQObjEdge()
 
 bool MQObjEdge::getPair(int face_index, int line_index, int& pair_face, int& pair_line)
 {
-	if(face_index >= m_face)
+	if (face_index >= m_face)
 		return false;
 
-	if(m_pair[face_index][line_index].face < 0)
+	if (m_pair[face_index][line_index].face < 0)
 		return false;
 
 	pair_face = m_pair[face_index][line_index].face;
@@ -1161,7 +1247,7 @@ bool MQObjEdge::getPair(int face_index, int line_index, int& pair_face, int& pai
 
 void MQObjEdge::setPair(int face_index, int line_index, int pair_face, int pair_line)
 {
-	if(face_index >= m_face)
+	if (face_index >= m_face)
 		return;
 
 	m_pair[face_index][line_index].face = pair_face;
@@ -1172,12 +1258,12 @@ void MQObjEdge::addFace(int vert_num)
 {
 	int index = m_face;
 	m_face++;
-	m_pair.resize(m_pair.size()+1);
+	m_pair.resize(m_pair.size() + 1);
 	m_pair.resizeItem(index, vert_num);
 
-	for(int i=0; i<vert_num; i++){
+	for (int i = 0; i < vert_num; i++)
+	{
 		m_pair[index][i].face = -1;
 		m_pair[index][i].line = -1;
 	}
 }
-

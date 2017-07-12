@@ -9,20 +9,20 @@
 #include <vector>
 #include "MAnsiString.h"
 
-
 // String for wide character
 class MLIBS_API MString
 {
 public:
-	enum {
+	enum
+	{
 		kInvalid = (size_t)-1,
 	};
 
 public:
 	// Constructor
 	MString();
-	MString(const wchar_t *str);
-	MString(const wchar_t *str, size_t length);
+	MString(const wchar_t* str);
+	MString(const wchar_t* str, size_t length);
 #ifndef MSTRING_DISABLE_STDSRING
 	MString(const std::wstring& str);
 #endif
@@ -36,19 +36,19 @@ public:
 	// Get a row pointer
 	operator wchar_t*();
 	operator const wchar_t*() const;
-	wchar_t *c_str();
-	const wchar_t *c_str() const;
+	wchar_t* c_str();
+	const wchar_t* c_str() const;
 	//wchar_t& operator[](size_t index);
 	//const wchar_t& operator[](size_t index) const;
 
 	// Get a pointer to the next character with care of surrogate characters
-	wchar_t *next(wchar_t *ptr) const;
-	const wchar_t *next(const wchar_t *ptr) const;
+	wchar_t* next(wchar_t* ptr) const;
+	const wchar_t* next(const wchar_t* ptr) const;
 	size_t next(size_t pos) const;
 
 	// Get a pointer to the previous character with care of surrogate characters
-	wchar_t *prev(wchar_t *ptr) const;
-	const wchar_t *prev(const wchar_t *ptr) const;
+	wchar_t* prev(wchar_t* ptr) const;
+	const wchar_t* prev(const wchar_t* ptr) const;
 	size_t prev(size_t pos) const;
 
 	// Get a length without end-termination in wchar_t units
@@ -61,7 +61,7 @@ public:
 	void clear();
 
 	// Add a string to the end
-	void append(const wchar_t *str, size_t len);
+	void append(const wchar_t* str, size_t len);
 
 	// Get a part of this string
 	MString substring(size_t start) const;
@@ -69,7 +69,7 @@ public:
 
 	// Find an index of the specified character/string (kInvalid is returned when not found.)
 	size_t indexOf(const MString& str, size_t start = 0) const;
-	size_t indexOf(const wchar_t *str, size_t start = 0) const;
+	size_t indexOf(const wchar_t* str, size_t start = 0) const;
 	size_t indexOf(wchar_t character, size_t start = 0) const;
 	size_t indexOf(const std::vector<wchar_t>& characters, size_t start = 0) const;
 
@@ -83,7 +83,7 @@ public:
 	std::vector<MString> split(const MString& separator) const;
 	std::vector<MString> split(wchar_t separator) const;
 	std::vector<MString> split(const std::vector<wchar_t>& separators) const;
-	
+
 	// Combine strings
 	//   ex. {"abc","de","","f"}, "\t" -> "abc\tde\t\tf"
 	static MString combine(const std::vector<MString>& strings, const MString& separator);
@@ -124,9 +124,9 @@ public:
 	// Convert from ANSI string
 	static MString fromCharacter(wchar_t character);
 	// Convert from ANSI string
-	static MString fromAnsiString(const char *str);
+	static MString fromAnsiString(const char* str);
 	// Convert from UTF-8 string
-	static MString fromUtf8String(const char *str);
+	static MString fromUtf8String(const char* str);
 	// Convert from integer value
 	static MString fromInt(int value, int radix = 10);
 	// Convert from unsigned integer value
@@ -150,9 +150,9 @@ public:
 	MString getTrimSpace() const;
 
 	// Format variables by the printf format
-	static MString format(const wchar_t *format, ...);
+	static MString format(const wchar_t* format, ...);
 	// Format variables by the printf format
-	int formatSet(const wchar_t *format, ...);
+	int formatSet(const wchar_t* format, ...);
 
 	// Compare strings
 	//    0 is returned when two strings are same.
@@ -167,56 +167,54 @@ public:
 	//    0 is returned when two strings are same.
 	int compareSubstringIgnoreCase(size_t start, const MString& str) const;
 
-	MString& operator = (const MString& str);
-	MString& operator = (const wchar_t *str);
+	MString& operator =(const MString& str);
+	MString& operator =(const wchar_t* str);
 #ifndef MSTRING_DISABLE_STDSRING
-	MString& operator = (const std::wstring& str);
+	MString& operator =(const std::wstring& str);
 #endif
 #if _MSC_VER >= 1600 || __BORLAND_C__ >= 0x0630
-	MString& operator = (MString&& str);
+	MString& operator =(MString&& str);
 #endif
 
-	MString& operator += (const MString& str);
-	MString& operator += (const wchar_t *str);
-	MString& operator += (wchar_t character);
-	MString operator + (const MString& str) const;
-	MString operator + (const wchar_t *str) const;
-	MString operator + (wchar_t character) const;
+	MString& operator +=(const MString& str);
+	MString& operator +=(const wchar_t* str);
+	MString& operator +=(wchar_t character);
+	MString operator +(const MString& str) const;
+	MString operator +(const wchar_t* str) const;
+	MString operator +(wchar_t character) const;
 
 #if _MSC_VER >= 1600 || __BORLAND_C__ >= 0x0630
-	friend MLIBS_API MString operator + (MString&& str1, const MString& str2);
-	friend MLIBS_API MString operator + (MString&& str1, const wchar_t *str2);
+	friend MLIBS_API MString operator +(MString&& str1, const MString& str2);
+	friend MLIBS_API MString operator +(MString&& str1, const wchar_t* str2);
 #endif
-	friend MLIBS_API MString operator + (const wchar_t *str1, const MString& str2);
+	friend MLIBS_API MString operator +(const wchar_t* str1, const MString& str2);
 
-	bool operator == (const MString& str) const;
-	bool operator == (const wchar_t *str) const;
-	friend MLIBS_API bool operator == (const wchar_t *str1, const MString& str2);
+	bool operator ==(const MString& str) const;
+	bool operator ==(const wchar_t* str) const;
+	friend MLIBS_API bool operator ==(const wchar_t* str1, const MString& str2);
 
-	bool operator != (const MString& str) const;
-	bool operator != (const wchar_t *str) const;
-	friend MLIBS_API bool operator != (const wchar_t *str1, const MString& str2);
+	bool operator !=(const MString& str) const;
+	bool operator !=(const wchar_t* str) const;
+	friend MLIBS_API bool operator !=(const wchar_t* str1, const MString& str2);
 
 #ifndef MSTRING_DISABLE_STDSRING
-	bool operator == (const std::wstring& str) const;
-	bool operator != (const std::wstring& str) const;
-	friend MLIBS_API bool operator == (const std::wstring& str1, const MString& str2);
-	friend MLIBS_API bool operator != (const std::wstring& str1, const MString& str2);
+	bool operator ==(const std::wstring& str) const;
+	bool operator !=(const std::wstring& str) const;
+	friend MLIBS_API bool operator ==(const std::wstring& str1, const MString& str2);
+	friend MLIBS_API bool operator !=(const std::wstring& str1, const MString& str2);
 #endif
 
-	bool operator < (const MString& str) const { return compare(str) < 0; }
-	bool operator > (const MString& str) const { return compare(str) > 0; }
+	bool operator <(const MString& str) const { return compare(str) < 0; }
+	bool operator >(const MString& str) const { return compare(str) > 0; }
 
 private:
-	wchar_t *mStr;
+	wchar_t* mStr;
 	size_t mLength;
 	size_t mCapacity;
 
 	bool resize(size_t size);
 	size_t capacity() const;
 };
-
-
 
 inline MString::operator wchar_t*()
 {
@@ -228,25 +226,26 @@ inline MString::operator const wchar_t*() const
 	return mStr;
 }
 
-inline wchar_t *MString::c_str()
+inline wchar_t* MString::c_str()
 {
 	return mStr;
 }
 
-inline const wchar_t *MString::c_str() const
+inline const wchar_t* MString::c_str() const
 {
 	return mStr;
 }
+
 /*
 inline wchar_t& MString::operator[](size_t index)
 {
-	assert(index <= mLength); 
+	assert(index <= mLength);
 	return mStr[index];
 }
 
 inline const wchar_t& MString::operator[](size_t index) const
 {
-	assert(index <= mLength); 
+	assert(index <= mLength);
 	return mStr[index];
 }
 */
@@ -259,6 +258,5 @@ inline size_t MString::capacity() const
 {
 	return mCapacity;
 }
-
 
 #endif _MSTRING_H_

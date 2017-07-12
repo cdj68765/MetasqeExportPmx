@@ -15,27 +15,27 @@ namespace pmx
 		{
 		case 1:
 			uint8_t tmp8;
-			stream->read((char*) &tmp8, sizeof(uint8_t));
+			stream->read((char*)&tmp8, sizeof(uint8_t));
 			if (255 == tmp8)
 			{
 				return -1;
 			}
 			else {
-				return (int) tmp8;
+				return (int)tmp8;
 			}
 		case 2:
 			uint16_t tmp16;
-			stream->read((char*) &tmp16, sizeof(uint16_t));
+			stream->read((char*)&tmp16, sizeof(uint16_t));
 			if (65535 == tmp16)
 			{
 				return -1;
 			}
 			else {
-				return (int) tmp16;
+				return (int)tmp16;
 			}
 		case 4:
 			int tmp32;
-			stream->read((char*) &tmp32, sizeof(int));
+			stream->read((char*)&tmp32, sizeof(int));
 			return tmp32;
 		default:
 			return -1;
@@ -49,7 +49,7 @@ namespace pmx
 		oguna::EncodingConverter converter = oguna::EncodingConverter();
 #endif
 		int size;
-		stream->read((char*) &size, sizeof(int));
+		stream->read((char*)&size, sizeof(int));
 		std::vector<char> buffer;
 		if (size == 0)
 		{
@@ -60,27 +60,27 @@ namespace pmx
 #endif
 		}
 		buffer.reserve(size);
-		stream->read((char*) buffer.data(), size);
+		stream->read((char*)buffer.data(), size);
 		if (encoding == 0)
 		{
 			// UTF16
 #ifndef __unix__
-			return utfstring((wchar_t*) buffer.data(), size / 2);
+			return utfstring((wchar_t*)buffer.data(), size / 2);
 #else
 			utfstring result;
 			std::vector<char> outbuf;
-			outbuf.reserve(size*2);
+			outbuf.reserve(size * 2);
 
 			// Always remember to set U_ZERO_ERROR before calling ucnv_convert(),
 			// otherwise the function will fail.
 			UErrorCode err = U_ZERO_ERROR;
 			size = ucnv_convert("UTF-8", "UTF-16LE", (char*)outbuf.data(), outbuf.capacity(), buffer.data(), size, &err);
-			if(!U_SUCCESS(err)) {
+			if (!U_SUCCESS(err)) {
 				std::cout << "oops, something wrong?" << std::endl;
 				std::cout << u_errorName(err) << std::endl;
 				exit(-1);
 			}
-			
+
 			result.assign((const char*)outbuf.data(), size);
 			return result;
 #endif
@@ -101,19 +101,19 @@ namespace pmx
 	void PmxSetting::Read(std::istream *stream)
 	{
 		uint8_t count;
-		stream->read((char*) &count, sizeof(uint8_t));
+		stream->read((char*)&count, sizeof(uint8_t));
 		if (count < 8)
 		{
 			throw;
 		}
-		stream->read((char*) &encoding, sizeof(uint8_t));
-		stream->read((char*) &uv, sizeof(uint8_t));
-		stream->read((char*) &vertex_index_size, sizeof(uint8_t));
-		stream->read((char*) &texture_index_size, sizeof(uint8_t));
-		stream->read((char*) &material_index_size, sizeof(uint8_t));
-		stream->read((char*) &bone_index_size, sizeof(uint8_t));
-		stream->read((char*) &morph_index_size, sizeof(uint8_t));
-		stream->read((char*) &rigidbody_index_size, sizeof(uint8_t));
+		stream->read((char*)&encoding, sizeof(uint8_t));
+		stream->read((char*)&uv, sizeof(uint8_t));
+		stream->read((char*)&vertex_index_size, sizeof(uint8_t));
+		stream->read((char*)&texture_index_size, sizeof(uint8_t));
+		stream->read((char*)&material_index_size, sizeof(uint8_t));
+		stream->read((char*)&bone_index_size, sizeof(uint8_t));
+		stream->read((char*)&morph_index_size, sizeof(uint8_t));
+		stream->read((char*)&rigidbody_index_size, sizeof(uint8_t));
 		uint8_t temp;
 		for (int i = 8; i < count; i++)
 		{
@@ -266,13 +266,13 @@ namespace pmx
 		if (this->bone_flag & 0x2000) {
 			stream->read((char*) &this->key, sizeof(int));
 		}
-		if (this->bone_flag & 0x0020) 
+		if (this->bone_flag & 0x0020)
 		{
 			this->ik_target_bone_index = ReadIndex(stream, setting->bone_index_size);
-			stream->read((char*) &ik_loop, sizeof(int));
-			stream->read((char*) &ik_loop_angle_limit, sizeof(float));
-			stream->read((char*) &ik_link_count, sizeof(int));
-			this->ik_links = std::make_unique<PmxIkLink []>(ik_link_count);
+			stream->read((char*)&ik_loop, sizeof(int));
+			stream->read((char*)&ik_loop_angle_limit, sizeof(float));
+			stream->read((char*)&ik_link_count, sizeof(int));
+			this->ik_links = std::make_unique<PmxIkLink[]>(ik_link_count);
 			for (int i = 0; i < ik_link_count; i++) {
 				ik_links[i].Read(stream, setting);
 			}
@@ -337,34 +337,34 @@ namespace pmx
 	{
 		this->morph_name = ReadString(stream, setting->encoding);
 		this->morph_english_name = ReadString(stream, setting->encoding);
-		stream->read((char*) &category, sizeof(MorphCategory));
-		stream->read((char*) &morph_type, sizeof(MorphType));
+		stream->read((char*)&category, sizeof(MorphCategory));
+		stream->read((char*)&morph_type, sizeof(MorphType));
 		stream->read((char*) &this->offset_count, sizeof(int));
 		switch (this->morph_type)
 		{
 		case MorphType::Group:
-			group_offsets = std::make_unique<PmxMorphGroupOffset []>(this->offset_count);
+			group_offsets = std::make_unique<PmxMorphGroupOffset[]>(this->offset_count);
 			for (int i = 0; i < offset_count; i++)
 			{
 				group_offsets[i].Read(stream, setting);
 			}
 			break;
 		case MorphType::Vertex:
-			vertex_offsets = std::make_unique<PmxMorphVertexOffset []>(this->offset_count);
+			vertex_offsets = std::make_unique<PmxMorphVertexOffset[]>(this->offset_count);
 			for (int i = 0; i < offset_count; i++)
 			{
 				vertex_offsets[i].Read(stream, setting);
 			}
 			break;
 		case MorphType::Bone:
-			bone_offsets = std::make_unique<PmxMorphBoneOffset []>(this->offset_count);
+			bone_offsets = std::make_unique<PmxMorphBoneOffset[]>(this->offset_count);
 			for (int i = 0; i < offset_count; i++)
 			{
 				bone_offsets[i].Read(stream, setting);
 			}
 			break;
 		case MorphType::Matrial:
-			material_offsets = std::make_unique<PmxMorphMaterialOffset []>(this->offset_count);
+			material_offsets = std::make_unique<PmxMorphMaterialOffset[]>(this->offset_count);
 			for (int i = 0; i < offset_count; i++)
 			{
 				material_offsets[i].Read(stream, setting);
@@ -375,7 +375,7 @@ namespace pmx
 		case MorphType::AdditionalUV2:
 		case MorphType::AdditionalUV3:
 		case MorphType::AdditionalUV4:
-			uv_offsets = std::make_unique<PmxMorphUVOffset []>(this->offset_count);
+			uv_offsets = std::make_unique<PmxMorphUVOffset[]>(this->offset_count);
 			for (int i = 0; i < offset_count; i++)
 			{
 				uv_offsets[i].Read(stream, setting);
@@ -404,7 +404,7 @@ namespace pmx
 		this->frame_english_name = ReadString(stream, setting->encoding);
 		stream->read((char*) &this->frame_flag, sizeof(uint8_t));
 		stream->read((char*) &this->element_count, sizeof(int));
-		this->elements = std::make_unique<PmxFrameElement []>(this->element_count);
+		this->elements = std::make_unique<PmxFrameElement[]>(this->element_count);
 		for (int i = 0; i < this->element_count; i++)
 		{
 			this->elements[i].Read(stream, setting);
@@ -499,14 +499,14 @@ namespace pmx
 	{
 		// マジック
 		char magic[4];
-		stream->read((char*) magic, sizeof(char) * 4);
+		stream->read((char*)magic, sizeof(char) * 4);
 		if (magic[0] != 0x50 || magic[1] != 0x4d || magic[2] != 0x58 || magic[3] != 0x20)
 		{
 			std::cerr << "invalid magic number." << std::endl;
 			throw;
 		}
 		// バージョン
-		stream->read((char*) &version, sizeof(float));
+		stream->read((char*)&version, sizeof(float));
 		if (version != 2.0f && version != 2.1f)
 		{
 			std::cerr << "this is not ver2.0 or ver2.1 but " << version << "." << std::endl;
@@ -522,32 +522,32 @@ namespace pmx
 		this->model_english_comment = std::move(ReadString(stream, setting.encoding));
 
 		// 頂点
-		stream->read((char*) &vertex_count, sizeof(int));
-		this->vertices = std::make_unique<PmxVertex []>(vertex_count);
+		stream->read((char*)&vertex_count, sizeof(int));
+		this->vertices = std::make_unique<PmxVertex[]>(vertex_count);
 		for (int i = 0; i < vertex_count; i++)
 		{
 			vertices[i].Read(stream, &setting);
 		}
 
 		// 面
-		stream->read((char*) &index_count, sizeof(int));
-		this->indices = std::make_unique<int []>(index_count);
+		stream->read((char*)&index_count, sizeof(int));
+		this->indices = std::make_unique<int[]>(index_count);
 		for (int i = 0; i < index_count; i++)
 		{
 			this->indices[i] = ReadIndex(stream, setting.vertex_index_size);
 		}
 
 		// テクスチャ
-		stream->read((char*) &texture_count, sizeof(int));
-		this->textures = std::make_unique<utfstring []>(texture_count);
+		stream->read((char*)&texture_count, sizeof(int));
+		this->textures = std::make_unique<utfstring[]>(texture_count);
 		for (int i = 0; i < texture_count; i++)
 		{
 			this->textures[i] = ReadString(stream, setting.encoding);
 		}
 
 		// マテリアル
-		stream->read((char*) &material_count, sizeof(int));
-		this->materials = std::make_unique<PmxMaterial []>(material_count);
+		stream->read((char*)&material_count, sizeof(int));
+		this->materials = std::make_unique<PmxMaterial[]>(material_count);
 		for (int i = 0; i < material_count; i++)
 		{
 			this->materials[i].Read(stream, &setting);
@@ -555,7 +555,7 @@ namespace pmx
 
 		// ボーン
 		stream->read((char*) &this->bone_count, sizeof(int));
-		this->bones = std::make_unique<PmxBone []>(this->bone_count);
+		this->bones = std::make_unique<PmxBone[]>(this->bone_count);
 		for (int i = 0; i < this->bone_count; i++)
 		{
 			this->bones[i].Read(stream, &setting);
@@ -563,7 +563,7 @@ namespace pmx
 
 		// モーフ
 		stream->read((char*) &this->morph_count, sizeof(int));
-		this->morphs = std::make_unique<PmxMorph []>(this->morph_count);
+		this->morphs = std::make_unique<PmxMorph[]>(this->morph_count);
 		for (int i = 0; i < this->morph_count; i++)
 		{
 			this->morphs[i].Read(stream, &setting);
@@ -571,7 +571,7 @@ namespace pmx
 
 		// 表示枠
 		stream->read((char*) &this->frame_count, sizeof(int));
-		this->frames = std::make_unique<PmxFrame []>(this->frame_count);
+		this->frames = std::make_unique<PmxFrame[]>(this->frame_count);
 		for (int i = 0; i < this->frame_count; i++)
 		{
 			this->frames[i].Read(stream, &setting);
@@ -579,7 +579,7 @@ namespace pmx
 
 		// 剛体
 		stream->read((char*) &this->rigid_body_count, sizeof(int));
-		this->rigid_bodies = std::make_unique<PmxRigidBody []>(this->rigid_body_count);
+		this->rigid_bodies = std::make_unique<PmxRigidBody[]>(this->rigid_body_count);
 		for (int i = 0; i < this->rigid_body_count; i++)
 		{
 			this->rigid_bodies[i].Read(stream, &setting);
@@ -587,7 +587,7 @@ namespace pmx
 
 		// ジョイント
 		stream->read((char*) &this->joint_count, sizeof(int));
-		this->joints = std::make_unique<PmxJoint []>(this->joint_count);
+		this->joints = std::make_unique<PmxJoint[]>(this->joint_count);
 		for (int i = 0; i < this->joint_count; i++)
 		{
 			this->joints[i].Read(stream, &setting);

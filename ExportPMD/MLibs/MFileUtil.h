@@ -7,14 +7,13 @@
 #include <vector>
 #include "MString.h"
 
-
 // Utilities for file access
 class MLIBS_API MFileUtil
 {
 public:
 	// Check if a file exists
 	static bool fileExists(const MString& filename);
-	
+
 	// Check if a destination of a path is a directory
 	static bool directoryExists(const MString& path);
 
@@ -85,7 +84,6 @@ public:
 
 	// Check if a path is relative
 	static bool isPathRelative(const MString& path);
-
 };
 
 #endif _MFILEUTIL_H_

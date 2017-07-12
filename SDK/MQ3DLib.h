@@ -21,56 +21,55 @@
 #define sqrtf sqrt
 #endif
 
-
 // Ratio of the circumference of a circle to its diameter
 // 円周率π
 #ifndef PI
-	#define PI 3.1415926536f
+#define PI 3.1415926536f
 #endif
 
 // Convert degree (from 0 to 360) to radian (from 0 and 2*PI)
 // 弧度(0から360)からラジアン(0から2π)へ変換
 #ifndef RAD
-	#define RAD(_x) ((_x)/180.0f*PI)
+#define RAD(_x) ((_x)/180.0f*PI)
 #endif
 
 // Convert radian (from 0 and 2*pi) to degree (from 0 to 360)
 // ラジアン(0から2π)から弧度(0から360)へ変換
 #ifndef DEG
-	#define DEG(_x) ((_x)/PI*180.0f)
+#define DEG(_x) ((_x)/PI*180.0f)
 #endif
 
-// The square of the magnitude of a vector 
+// The square of the magnitude of a vector
 // ベクトルのサイズの２乗
 inline float GetNorm(const MQPoint& p)
 {
-	return p.x*p.x + p.y*p.y + p.z*p.z;
+	return p.x * p.x + p.y * p.y + p.z * p.z;
 }
 
 inline float GetNorm(const MQCoordinate& p)
 {
-	return p.u*p.u + p.v*p.v;
+	return p.u * p.u + p.v * p.v;
 }
 
-// The magnitude of a vector 
+// The magnitude of a vector
 // ベクトルのサイズ
 inline float GetSize(const MQPoint& p)
 {
-	return sqrtf(p.x*p.x + p.y*p.y + p.z*p.z);
+	return sqrtf(p.x * p.x + p.y * p.y + p.z * p.z);
 }
 
 inline float GetSize(const MQCoordinate& p)
 {
-	return sqrtf(p.u*p.u + p.v*p.v);
+	return sqrtf(p.u * p.u + p.v * p.v);
 }
 
 // Normalize a vector
 // ベクトルの正規化
-inline MQPoint Normalize(const MQPoint& p) 
+inline MQPoint Normalize(const MQPoint& p)
 {
 	float s = GetSize(p);
-	if(s == 0.0f)
-		return MQPoint(0,0,0);
+	if (s == 0.0f)
+		return MQPoint(0, 0, 0);
 	return p / s;
 }
 
@@ -78,7 +77,7 @@ inline MQPoint Normalize(const MQPoint& p)
 // 内積の値を得る
 inline float GetInnerProduct(const MQPoint& pa, const MQPoint& pb)
 {
-	return pa.x * pb.x + pa.y * pb.y + pa.z * pb.z; 
+	return pa.x * pb.x + pa.y * pb.y + pa.z * pb.z;
 }
 
 inline float GetInnerProduct(const MQCoordinate& pa, const MQCoordinate& pb)
@@ -98,7 +97,7 @@ inline MQPoint GetCrossProduct(const MQPoint& v1, const MQPoint& v2)
 
 inline MQPoint GetExteriorProduct(const MQPoint& v1, const MQPoint& v2)
 {
-	return GetCrossProduct(v1, v2); 
+	return GetCrossProduct(v1, v2);
 }
 
 // Get a normal vector for a face constituted by three points
@@ -111,7 +110,7 @@ MQPoint GetQuadNormal(const MQPoint& p0, const MQPoint& p1, const MQPoint& p2, c
 
 // Get a normal vector for a polygonal face
 // 多角形面の法線を得る
-MQPoint GetPolyNormal(const MQPoint *pts, int num);
+MQPoint GetPolyNormal(const MQPoint* pts, int num);
 
 // Get an area of a triangle constituted by three points
 // 3点からなる三角形の面積を得る
@@ -125,11 +124,11 @@ float GetCrossingAngle(const MQCoordinate& v1, const MQCoordinate& v2);
 
 // Get a distance and a nearest point between a point and a 2D line segment.
 // 点と2D(x/y)ライン(線分)との距離・最近点を得る。
-float Get2DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint *outp, float *outt);
+float Get2DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint* outp, float* outt);
 
 // Get a distance and a nearest point between a point and a 3D line segment.
 // 点と3Dライン(線分)との距離・最近点を得る。
-float Get3DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint *outp, float *outt);
+float Get3DLineDistance(const MQPoint& p, const MQPoint& l1, const MQPoint& l2, MQPoint* outp, float* outt);
 
 // Get a rotation matrix around an arbitrary axis
 // 任意方向の回転軸を用いた回転行列を得る
@@ -139,7 +138,7 @@ MQMatrix GetRotationMatrixWithAxis(const MQPoint& axis, float rad);
 // It returns an index of the face if it exists, or returns -1 if not exist.
 // 反対向きの面が存在するかどうかを調べる
 // 存在していればその面のインデックスを、なければ-1を返す
-int SearchInvertedFace(MQObject obj, int faceindex, int start=-1, int end=-1);
+int SearchInvertedFace(MQObject obj, int faceindex, int start = -1, int end = -1);
 
 // Check whether a direction of the face is front side in the scene
 // 面の向きが表かどうか調べる
@@ -148,28 +147,29 @@ bool IsFrontFace(MQScene scene, MQObject obj, int face_index);
 // Calculate a tangent vector from positions, normals and coordinates
 // 位置・法線・UV座標から接線ベクトルを計算する
 void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
-		const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
-		const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
-		MQPoint& tan0, MQPoint& tan1, MQPoint& tan2);
+                      const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
+                      const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
+                      MQPoint& tan0, MQPoint& tan1, MQPoint& tan2);
 
 void CalculateTangent(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
-		const MQPoint& normal, 
-		const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
-		MQPoint& tangent);
+                      const MQPoint& normal,
+                      const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
+                      MQPoint& tangent);
 
 // Calculate a tangent vector and a binormal vector from positions, normals and coordinates
 // 位置・法線・UV座標から接線ベクトル・従法線ベクトルを計算する
 void CalculateTangentAndBinormal(const MQPoint& v0, const MQPoint& v1, const MQPoint& v2,
-		const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
-		const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
-		MQPoint& tan0, MQPoint& tan1, MQPoint& tan2, 
-		MQPoint& bin0, MQPoint& bin1, MQPoint& bin2);
-
+                                 const MQPoint& n0, const MQPoint& n1, const MQPoint& n2,
+                                 const MQCoordinate& t0, const MQCoordinate& t1, const MQCoordinate& t2,
+                                 MQPoint& tan0, MQPoint& tan1, MQPoint& tan2,
+                                 MQPoint& bin0, MQPoint& bin1, MQPoint& bin2);
 
 //---------------------------------------------------------------------------
 //  MQApexValueBaseSetter class
 //---------------------------------------------------------------------------
-template<typename T> class MQApexValueBaseSetter {
+template <typename T>
+class MQApexValueBaseSetter
+{
 public:
 	MQApexValueBaseSetter();
 
@@ -184,26 +184,29 @@ private:
 	std::vector<T*> pointers;
 };
 
-template<typename T> MQApexValueBaseSetter<T>::MQApexValueBaseSetter()
+template <typename T>
+MQApexValueBaseSetter<T>::MQApexValueBaseSetter()
 {
 }
 
-template<typename T> void MQApexValueBaseSetter<T>::resize(size_t size)
+template <typename T>
+void MQApexValueBaseSetter<T>::resize(size_t size)
 {
 	pointers.resize(size);
 }
 
-template<typename T> void MQApexValueBaseSetter<T>::clear()
+template <typename T>
+void MQApexValueBaseSetter<T>::clear()
 {
 	pointers.clear();
 }
-
 
 //---------------------------------------------------------------------------
 //  MQApexValueBase class
 //---------------------------------------------------------------------------
 
-template<typename T, typename S = MQApexValueBaseSetter<T>, int N = 4> class MQApexValueBase
+template <typename T, typename S = MQApexValueBaseSetter<T>, int N = 4>
+class MQApexValueBase
 {
 public:
 	MQApexValueBase();
@@ -212,8 +215,10 @@ public:
 	void setItemArrayNum(int num);
 	int getItemArrayNum() const { return itemarray_num; }
 
-	template<typename F> bool alloc(F *faces, size_t num);
-	template<typename F> bool alloc(F *faces, size_t num, size_t capacity_size, T init_value = T());
+	template <typename F>
+	bool alloc(F* faces, size_t num);
+	template <typename F>
+	bool alloc(F* faces, size_t num, size_t capacity_size, T init_value = T());
 	bool resize(size_t capacity_size, T init_value = T());
 	size_t size() const { return pointers.size(); }
 	void clear();
@@ -232,18 +237,20 @@ protected:
 	int itemarray_num;
 };
 
-
-template<typename T, typename S, int N> MQApexValueBase<T,S,N>::MQApexValueBase()
+template <typename T, typename S, int N>
+MQApexValueBase<T, S, N>::MQApexValueBase()
 {
 	itemarray_num = 1;
 }
 
-template<typename T, typename S, int N> MQApexValueBase<T,S,N>::~MQApexValueBase()
+template <typename T, typename S, int N>
+MQApexValueBase<T, S, N>::~MQApexValueBase()
 {
 	clear();
 }
 
-template<typename T, typename S, int N> void MQApexValueBase<T,S,N>::setItemArrayNum(int num)
+template <typename T, typename S, int N>
+void MQApexValueBase<T, S, N>::setItemArrayNum(int num)
 {
 	assert(num > 0);
 	assert(!isValid());
@@ -251,32 +258,44 @@ template<typename T, typename S, int N> void MQApexValueBase<T,S,N>::setItemArra
 	itemarray_num = num;
 }
 
-template<typename T, typename S, int N> template<typename F> bool MQApexValueBase<T,S,N>::alloc(F *faces, size_t num)
+template <typename T, typename S, int N>
+template <typename F>
+bool MQApexValueBase<T, S, N>::alloc(F* faces, size_t num)
 {
 	return alloc(faces, num, num);
 }
 
-template<typename T, typename S, int N> template<typename F> bool MQApexValueBase<T,S,N>::alloc(F *faces, size_t num, size_t capacity_size, T init_value)
+template <typename T, typename S, int N>
+template <typename F>
+bool MQApexValueBase<T, S, N>::alloc(F* faces, size_t num, size_t capacity_size, T init_value)
 {
 	assert(num <= capacity_size);
 
 	clear();
 
-	try{
-		resize(capacity_size*itemarray_num*N, init_value);
+	try
+	{
+		resize(capacity_size * itemarray_num * N, init_value);
 		pointers.resize(capacity_size);
-	}catch(std::bad_alloc&){
+	}
+	catch (std::bad_alloc&)
+	{
 		pointers.clear();
 		buffer.clear();
 		return false;
 	}
 
-	for(int i=0; i<num; i++){
-		if(faces[i].count > N){
+	for (int i = 0; i < num; i++)
+	{
+		if (faces[i].count > N)
+		{
 			T *p = new(std::nothrow_t) T[faces[i].count * itemarray_num];
-			if(p == NULL){
-				for(int j=0; j<i; j++){
-					if(pointers[j] != buf + j*itemarray_num*N){
+			if (p == nullptr)
+			{
+				for (int j = 0; j < i; j++)
+				{
+					if (pointers[j] != buf + j * itemarray_num * N)
+					{
 						delete[] pointers[j];
 					}
 				}
@@ -285,62 +304,79 @@ template<typename T, typename S, int N> template<typename F> bool MQApexValueBas
 				return false;
 			}
 			pointers[i] = p;
-		}else{
-			pointers[i] = buf + i*itemarray_num*N;
+		}
+		else
+		{
+			pointers[i] = buf + i * itemarray_num * N;
 		}
 	}
-	for(int i=num; i<capacity_size; i++){
-		pointers[i] = buf + i*itemarray_num*N;
+	for (int i = num; i < capacity_size; i++)
+	{
+		pointers[i] = buf + i * itemarray_num * N;
 	}
 	return true;
 }
 
-template<typename T, typename S, int N> bool MQApexValueBase<T,S,N>::resize(size_t capacity_size, T init_value)
+template <typename T, typename S, int N>
+bool MQApexValueBase<T, S, N>::resize(size_t capacity_size, T init_value)
 {
 	size_t oldbufcap = buffer.size();
 	size_t oldptcap = pointers.size();
-	T *oldbuf = !buffer.empty() ? &(*buffer.begin()) : NULL;
+	T* oldbuf = !buffer.empty() ? &(*buffer.begin()) : NULL;
 
-	if(oldptcap > capacity_size){
-		for(size_t i=capacity_size; i<oldptcap; i++){
-			if(pointers[i] != oldbuf + i*itemarray_num*N){
+	if (oldptcap > capacity_size)
+	{
+		for (size_t i = capacity_size; i < oldptcap; i++)
+		{
+			if (pointers[i] != oldbuf + i * itemarray_num * N)
+			{
 				delete[] pointers[i];
-				pointers[i] = oldbuf + i*itemarray_num*N;
+				pointers[i] = oldbuf + i * itemarray_num * N;
 			}
 		}
 	}
 
-	try{
+	try
+	{
 		pointers.resize(capacity_size);
-		buffer.resize(capacity_size*itemarray_num*N, init_value);
-	}catch(std::bad_alloc&){
+		buffer.resize(capacity_size * itemarray_num * N, init_value);
+	}
+	catch (std::bad_alloc&)
+	{
 		return false;
 	}
 
-	T *newbuf = !buffer.empty() ? &(*buffer.begin()) : NULL;
+	T* newbuf = !buffer.empty() ? &(*buffer.begin()) : NULL;
 
-	if(oldbuf != newbuf){
+	if (oldbuf != newbuf)
+	{
 		size_t num = (capacity_size < oldptcap) ? capacity_size : oldptcap;
-		for(size_t i=0; i<num; i++){
-			if(pointers[i] == oldbuf + i*itemarray_num*N){
-				pointers[i] = newbuf + i*itemarray_num*N;
+		for (size_t i = 0; i < num; i++)
+		{
+			if (pointers[i] == oldbuf + i * itemarray_num * N)
+			{
+				pointers[i] = newbuf + i * itemarray_num * N;
 			}
 		}
 	}
-	for(size_t i=oldptcap; i<capacity_size; i++){
-		pointers[i] = newbuf + i*itemarray_num*N;
+	for (size_t i = oldptcap; i < capacity_size; i++)
+	{
+		pointers[i] = newbuf + i * itemarray_num * N;
 	}
 
 	return true;
 }
 
-template<typename T, typename S, int N> void MQApexValueBase<T,S,N>::clear()
+template <typename T, typename S, int N>
+void MQApexValueBase<T, S, N>::clear()
 {
-	T *buf = !buffer.empty() ? &(*buffer.begin()) : NULL;
+	T* buf = !buffer.empty() ? &(*buffer.begin()) : NULL;
 
 	size_t faceNum = pointers.size();
-	for(size_t i=0; i<faceNum; i++){
-		if(pointers[i] != buf + i*itemarray_num*N){
+	for (size_t i = 0; i < faceNum; i++)
+	{
+		if (pointers[i] != buf + i * itemarray_num * N)
+		{
 			delete[] pointers[i];
 		}
 	}
@@ -349,35 +385,44 @@ template<typename T, typename S, int N> void MQApexValueBase<T,S,N>::clear()
 	pointers.clear();
 }
 
-template<typename T, typename S, int N> bool MQApexValueBase<T,S,N>::resizeItem(int index, int vert_num)
+template <typename T, typename S, int N>
+bool MQApexValueBase<T, S, N>::resizeItem(int index, int vert_num)
 {
 	assert(index < (int)pointers.size());
 
-	T *buf = !buffer.empty() ? &(*buffer.begin()) : NULL;
-	
-	if(pointers[index] == buf + index*itemarray_num*N){
-		if(vert_num > N){
-			T *p = new(std::nothrow) T[vert_num * itemarray_num];
-			if(p == NULL){
+	T* buf = !buffer.empty() ? &(*buffer.begin()) : NULL;
+
+	if (pointers[index] == buf + index * itemarray_num * N)
+	{
+		if (vert_num > N)
+		{
+			T* p = new(std::nothrow) T[vert_num * itemarray_num];
+			if (p == nullptr)
+			{
 				return false;
 			}
 			pointers[index] = p;
 		}
-	}else{
+	}
+	else
+	{
 		delete[] pointers[index];
-		if(vert_num > N){
-			T *p = new(std::nothrow) T[vert_num * itemarray_num];
-			if(p == NULL){
+		if (vert_num > N)
+		{
+			T* p = new(std::nothrow) T[vert_num * itemarray_num];
+			if (p == nullptr)
+			{
 				return false;
 			}
 			pointers[index] = p;
-		}else{
-			pointers[index] = buf + index*itemarray_num*N;
+		}
+		else
+		{
+			pointers[index] = buf + index * itemarray_num * N;
 		}
 	}
 	return true;
 }
-
 
 // Class for calculating normal vectors in an object
 // オブジェクト中の法線を計算するクラス
@@ -389,7 +434,8 @@ public:
 	MQObjNormal(MQObject obj);
 	~MQObjNormal();
 
-	MQPoint& Get(int face_index, int pt_index) {
+	MQPoint& Get(int face_index, int pt_index)
+	{
 		return normal[face_index][pt_index];
 	}
 };
@@ -407,12 +453,12 @@ public:
 
 	int GetSize() const { return (int)normal.size(); }
 	MQPoint GetNormal(int index) const { return normal[index]; }
-	int& GetIndex(int face_index, int pt_index) {
+
+	int& GetIndex(int face_index, int pt_index)
+	{
 		return index[face_index][pt_index];
 	}
 };
-
-
 
 // A pair of an edge using in the MQObjEdge class
 // MQObjEdgeクラス内で使用されるエッジ対情報
@@ -423,11 +469,20 @@ public:
 	int line;
 
 	MQObjEdgePair() { face = line = -1; }
-	MQObjEdgePair(int f, int l) { face = f; line = l; }
-	MQObjEdgePair& operator = (const MQObjEdgePair& r) 
-		{ face=r.face; line=r.line; return *this; }
-};
 
+	MQObjEdgePair(int f, int l)
+	{
+		face = f;
+		line = l;
+	}
+
+	MQObjEdgePair& operator =(const MQObjEdgePair& r)
+	{
+		face = r.face;
+		line = r.line;
+		return *this;
+	}
+};
 
 // Class for managing pairs of edges
 // オブジェクトのエッジ対管理クラス
@@ -446,6 +501,5 @@ public:
 	void setPair(int face_index, int line_index, int pair_face, int pair_line);
 	void addFace(int vert_num);
 };
-
 
 #endif //MQ3DLIB_H

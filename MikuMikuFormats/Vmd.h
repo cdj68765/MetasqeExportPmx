@@ -9,7 +9,7 @@
 
 namespace vmd
 {
-	/// ボーンフレーム
+	/// ボーンフレー�?
 	class VmdBoneFrame
 	{
 	public:
@@ -27,12 +27,12 @@ namespace vmd
 		void Read(std::istream* stream)
 		{
 			char buffer[15];
-			stream->read((char*) buffer, sizeof(char)*15);
+			stream->read((char*)buffer, sizeof(char) * 15);
 			name = std::string(buffer);
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) position, sizeof(float)*3);
-			stream->read((char*) orientation, sizeof(float)*4);
-			stream->read((char*) interpolation, sizeof(char) * 4 * 4 * 4);
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)position, sizeof(float) * 3);
+			stream->read((char*)orientation, sizeof(float) * 4);
+			stream->read((char*)interpolation, sizeof(char) * 4 * 4 * 4);
 		}
 
 		void Write(std::ostream* stream)
@@ -49,9 +49,9 @@ namespace vmd
 	class VmdFaceFrame
 	{
 	public:
-		/// 表情名
+		/// 表情�?
 		std::string face_name;
-		/// 表情の重み
+		/// 表情の重�?
 		float weight;
 		/// フレーム番号
 		uint32_t frame;
@@ -59,10 +59,10 @@ namespace vmd
 		void Read(std::istream* stream)
 		{
 			char buffer[15];
-			stream->read((char*) &buffer, sizeof(char) * 15);
+			stream->read((char*)&buffer, sizeof(char) * 15);
 			face_name = std::string(buffer);
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) &weight, sizeof(float));
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)&weight, sizeof(float));
 		}
 
 		void Write(std::ostream* stream)
@@ -73,7 +73,7 @@ namespace vmd
 		}
 	};
 
-	/// カメラフレーム
+	/// カメラフレー�?
 	class VmdCameraFrame
 	{
 	public:
@@ -87,20 +87,20 @@ namespace vmd
 		float orientation[3];
 		/// 補間曲線
 		char interpolation[6][4];
-		/// 視野角
+		/// 視野�?
 		float angle;
-		/// 不明データ
+		/// 不明デー�?
 		char unknown[3];
 
 		void Read(std::istream *stream)
 		{
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) &distance, sizeof(float));
-			stream->read((char*) position, sizeof(float) * 3);
-			stream->read((char*) orientation, sizeof(float) * 3);
-			stream->read((char*) interpolation, sizeof(char) * 24);
-			stream->read((char*) &angle, sizeof(float));
-			stream->read((char*) unknown, sizeof(char) * 3);
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)&distance, sizeof(float));
+			stream->read((char*)position, sizeof(float) * 3);
+			stream->read((char*)orientation, sizeof(float) * 3);
+			stream->read((char*)interpolation, sizeof(char) * 24);
+			stream->read((char*)&angle, sizeof(float));
+			stream->read((char*)unknown, sizeof(char) * 3);
 		}
 
 		void Write(std::ostream *stream)
@@ -115,22 +115,22 @@ namespace vmd
 		}
 	};
 
-	/// ライトフレーム
+	/// ライトフレー�?
 	class VmdLightFrame
 	{
 	public:
 		/// フレーム番号
 		int frame;
-		/// 色
+		/// �?
 		float color[3];
 		/// 位置
 		float position[3];
 
 		void Read(std::istream* stream)
 		{
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) color, sizeof(float) * 3);
-			stream->read((char*) position, sizeof(float) * 3);
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)color, sizeof(float) * 3);
+			stream->read((char*)position, sizeof(float) * 3);
 		}
 
 		void Write(std::ostream* stream)
@@ -141,7 +141,7 @@ namespace vmd
 		}
 	};
 
-	/// IKの有効無効
+	/// IKの有効無�?
 	class VmdIkEnable
 	{
 	public:
@@ -160,16 +160,16 @@ namespace vmd
 		void Read(std::istream *stream)
 		{
 			char buffer[20];
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) &display, sizeof(uint8_t));
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)&display, sizeof(uint8_t));
 			int ik_count;
-			stream->read((char*) &ik_count, sizeof(int));
+			stream->read((char*)&ik_count, sizeof(int));
 			ik_enable.resize(ik_count);
 			for (int i = 0; i < ik_count; i++)
 			{
 				stream->read(buffer, 20);
 				ik_enable[i].ik_name = std::string(buffer);
-				stream->read((char*) &ik_enable[i].enable, sizeof(uint8_t));
+				stream->read((char*)&ik_enable[i].enable, sizeof(uint8_t));
 			}
 		}
 
@@ -188,21 +188,21 @@ namespace vmd
 		}
 	};
 
-	/// VMDモーション
+	/// VMDモーショ�?
 	class VmdMotion
 	{
 	public:
 		/// モデル名
 		std::string model_name;
-		/// バージョン
+		/// バージョ�?
 		int version;
-		/// ボーンフレーム
+		/// ボーンフレー�?
 		std::vector<VmdBoneFrame> bone_frames;
 		/// 表情フレーム
 		std::vector<VmdFaceFrame> face_frames;
-		/// カメラフレーム
+		/// カメラフレー�?
 		std::vector<VmdCameraFrame> camera_frames;
-		/// ライトフレーム
+		/// ライトフレー�?
 		std::vector<VmdLightFrame> light_frames;
 		/// IKフレーム
 		std::vector<VmdIkFrame> ik_frames;
@@ -217,12 +217,11 @@ namespace vmd
 
 		static std::unique_ptr<VmdMotion> LoadFromStream(std::ifstream *stream)
 		{
-
 			char buffer[30];
 			auto result = std::make_unique<VmdMotion>();
 
 			// magic and version
-			stream->read((char*) buffer, 30);
+			stream->read((char*)buffer, 30);
 			if (strncmp(buffer, "Vocaloid Motion Data", 20))
 			{
 				std::cerr << "invalid vmd file." << std::endl;
@@ -236,7 +235,7 @@ namespace vmd
 
 			// bone frames
 			int bone_frame_num;
-			stream->read((char*) &bone_frame_num, sizeof(int));
+			stream->read((char*)&bone_frame_num, sizeof(int));
 			result->bone_frames.resize(bone_frame_num);
 			for (int i = 0; i < bone_frame_num; i++)
 			{
@@ -245,7 +244,7 @@ namespace vmd
 
 			// face frames
 			int face_frame_num;
-			stream->read((char*) &face_frame_num, sizeof(int));
+			stream->read((char*)&face_frame_num, sizeof(int));
 			result->face_frames.resize(face_frame_num);
 			for (int i = 0; i < face_frame_num; i++)
 			{
@@ -254,7 +253,7 @@ namespace vmd
 
 			// camera frames
 			int camera_frame_num;
-			stream->read((char*) &camera_frame_num, sizeof(int));
+			stream->read((char*)&camera_frame_num, sizeof(int));
 			result->camera_frames.resize(camera_frame_num);
 			for (int i = 0; i < camera_frame_num; i++)
 			{
@@ -263,7 +262,7 @@ namespace vmd
 
 			// light frames
 			int light_frame_num;
-			stream->read((char*) &light_frame_num, sizeof(int));
+			stream->read((char*)&light_frame_num, sizeof(int));
 			result->light_frames.resize(light_frame_num);
 			for (int i = 0; i < light_frame_num; i++)
 			{
@@ -277,7 +276,7 @@ namespace vmd
 			if (stream->peek() != std::ios::traits_type::eof())
 			{
 				int ik_num;
-				stream->read((char*) &ik_num, sizeof(int));
+				stream->read((char*)&ik_num, sizeof(int));
 				result->ik_frames.resize(ik_num);
 				for (int i = 0; i < ik_num; i++)
 				{

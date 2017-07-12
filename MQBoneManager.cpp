@@ -17,13 +17,12 @@
 static const DWORD bone_plugin_product = 0x56A31D20;
 static const DWORD bone_plugin_id = 0x71F282AB;
 
-
-MQBoneManager::MQBoneManager(MQBasePlugin *plugin, MQDocument doc)
+MQBoneManager::MQBoneManager(MQBasePlugin* plugin, MQDocument doc)
 	: m_Plugin(plugin), m_Doc(doc)
 {
 	int version = 0x4506;
 
-	void *array[3];
+	void* array[3];
 	array[0] = (void*)"version";
 	array[1] = &version;
 	array[2] = nullptr;
@@ -43,27 +42,27 @@ DWORD MQBoneManager::GetPluginID()
 
 void MQBoneManager::BeginImport()
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array = NULL;
+	void* array = nullptr;
 	m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "Init", array);
 }
 
 void MQBoneManager::EndImport()
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array = NULL;
+	void* array = nullptr;
 	m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "NoDelEndDoc", array);
 }
 
 UINT MQBoneManager::AddBone(const ADD_BONE_PARAM& param)
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
-	const wchar_t *name = param.name.c_str();
+	const wchar_t* name = param.name.c_str();
 
-	void *array[15];
+	void* array[15];
 	array[0] = (void*)"root";
 	array[1] = (void*)&param.root_pos;
 	array[2] = (void*)"tip";
@@ -85,9 +84,9 @@ UINT MQBoneManager::AddBone(const ADD_BONE_PARAM& param)
 
 bool MQBoneManager::AddBrother(UINT bone_id, UINT brother_bone_id)
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"brother";
@@ -99,7 +98,7 @@ bool MQBoneManager::AddBrother(UINT bone_id, UINT brother_bone_id)
 
 int MQBoneManager::GetBoneNum()
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
 	int bone_num = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "QueryBoneNum", nullptr);
 	return bone_num;
@@ -107,7 +106,7 @@ int MQBoneManager::GetBoneNum()
 
 int MQBoneManager::EnumBoneID(std::vector<UINT>& bone_id_array)
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
 	int num = GetBoneNum();
 	bone_id_array.resize(num);
@@ -117,49 +116,49 @@ int MQBoneManager::EnumBoneID(std::vector<UINT>& bone_id_array)
 
 bool MQBoneManager::GetName(UINT bone_id, std::wstring& name)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
 	name.clear();
-	const wchar_t *p = nullptr;
-	void *array[5];
+	const wchar_t* p = nullptr;
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"name";
 	array[3] = &p;
 	array[4] = nullptr;
 	int ret = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetBone", array);
-	if(!ret)
+	if (!ret)
 		return false;
-	if(p != nullptr)
+	if (p != nullptr)
 		name = std::wstring(p);
 	return true;
 }
 
 bool MQBoneManager::GetTipName(UINT bone_id, std::wstring& name)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
 	name.clear();
-	const wchar_t *p = nullptr;
-	void *array[5];
+	const wchar_t* p = nullptr;
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"tip_name";
 	array[3] = &p;
 	array[4] = nullptr;
 	int ret = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetBone", array);
-	if(!ret)
+	if (!ret)
 		return false;
-	if(p != nullptr)
+	if (p != nullptr)
 		name = std::wstring(p);
 	return true;
 }
 
 bool MQBoneManager::GetParent(UINT bone_id, UINT& parent_id)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"parent";
@@ -171,9 +170,9 @@ bool MQBoneManager::GetParent(UINT bone_id, UINT& parent_id)
 
 bool MQBoneManager::GetChildNum(UINT bone_id, int& child_num)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"child_num";
@@ -185,43 +184,43 @@ bool MQBoneManager::GetChildNum(UINT bone_id, int& child_num)
 
 bool MQBoneManager::GetChildren(UINT bone_id, std::vector<UINT>& children)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
 	children.clear();
 
 	int child_num = 0;
-	if(!GetChildNum(bone_id, child_num))
+	if (!GetChildNum(bone_id, child_num))
 		return false;
 
 	children.resize(child_num);
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"children";
 	array[3] = children.data();
 	array[4] = nullptr;
 	int ret = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetBone", array);
-	if(!ret)
+	if (!ret)
 		return false;
 	return true;
 }
 
 bool MQBoneManager::GetBrothers(UINT bone_id, std::vector<UINT>& brothers)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
 	brothers.clear();
 
 	int brother_num = 0;
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"brother_num";
 	array[3] = &brother_num;
 	array[4] = nullptr;
 	int ret = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetBone", array);
-	if(!ret)
+	if (!ret)
 		return false;
 
 	brothers.resize(brother_num, 0);
@@ -229,16 +228,16 @@ bool MQBoneManager::GetBrothers(UINT bone_id, std::vector<UINT>& brothers)
 	array[2] = (void*)"brothers";
 	array[3] = brothers.data();
 	ret = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetBone", array);
-	if(!ret)
+	if (!ret)
 		return false;
 	return true;
 }
 
 bool MQBoneManager::GetBaseRootPos(UINT bone_id, MQPoint& pos)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"org_root";
@@ -250,9 +249,9 @@ bool MQBoneManager::GetBaseRootPos(UINT bone_id, MQPoint& pos)
 
 bool MQBoneManager::GetBaseTipPos(UINT bone_id, MQPoint& pos)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"org_tip";
@@ -264,9 +263,9 @@ bool MQBoneManager::GetBaseTipPos(UINT bone_id, MQPoint& pos)
 
 bool MQBoneManager::GetBaseMatrix(UINT bone_id, MQMatrix& matrix)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"base_matrix";
@@ -278,9 +277,9 @@ bool MQBoneManager::GetBaseMatrix(UINT bone_id, MQMatrix& matrix)
 
 bool MQBoneManager::GetUpVector(UINT bone_id, MQMatrix& matrix)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"upvector_matrix";
@@ -292,9 +291,9 @@ bool MQBoneManager::GetUpVector(UINT bone_id, MQMatrix& matrix)
 
 bool MQBoneManager::GetDeformRootPos(UINT bone_id, MQPoint& pos)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"def_root";
@@ -306,9 +305,9 @@ bool MQBoneManager::GetDeformRootPos(UINT bone_id, MQPoint& pos)
 
 bool MQBoneManager::GetDeformTipPos(UINT bone_id, MQPoint& pos)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"def_tip";
@@ -320,9 +319,9 @@ bool MQBoneManager::GetDeformTipPos(UINT bone_id, MQPoint& pos)
 
 bool MQBoneManager::GetDeformMatrix(UINT bone_id, MQMatrix& matrix)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"matrix";
@@ -334,9 +333,9 @@ bool MQBoneManager::GetDeformMatrix(UINT bone_id, MQMatrix& matrix)
 
 bool MQBoneManager::GetDeformScale(UINT bone_id, MQPoint& scale)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"scale";
@@ -348,9 +347,9 @@ bool MQBoneManager::GetDeformScale(UINT bone_id, MQPoint& scale)
 
 bool MQBoneManager::GetDeformRotate(UINT bone_id, MQAngle& angle)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"rotate";
@@ -362,9 +361,9 @@ bool MQBoneManager::GetDeformRotate(UINT bone_id, MQAngle& angle)
 
 bool MQBoneManager::GetDeformTranslate(UINT bone_id, MQPoint& translate)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"translate";
@@ -376,9 +375,9 @@ bool MQBoneManager::GetDeformTranslate(UINT bone_id, MQPoint& translate)
 
 bool MQBoneManager::GetRotationMatrix(UINT bone_id, MQMatrix& matrix)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"rotate_matrix";
@@ -390,9 +389,9 @@ bool MQBoneManager::GetRotationMatrix(UINT bone_id, MQMatrix& matrix)
 
 bool MQBoneManager::GetAngleMin(UINT bone_id, MQAngle& angle)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"angle_min";
@@ -404,9 +403,9 @@ bool MQBoneManager::GetAngleMin(UINT bone_id, MQAngle& angle)
 
 bool MQBoneManager::GetAngleMax(UINT bone_id, MQAngle& angle)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"angle_max";
@@ -418,9 +417,9 @@ bool MQBoneManager::GetAngleMax(UINT bone_id, MQAngle& angle)
 
 bool MQBoneManager::GetIKChain(UINT bone_id, int& chain)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"ikchain";
@@ -432,9 +431,9 @@ bool MQBoneManager::GetIKChain(UINT bone_id, int& chain)
 
 bool MQBoneManager::GetDummy(UINT bone_id, bool& dummy)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"dummy";
@@ -446,9 +445,9 @@ bool MQBoneManager::GetDummy(UINT bone_id, bool& dummy)
 
 bool MQBoneManager::GetEndPoint(UINT bone_id, bool& end_point)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"end_point";
@@ -460,9 +459,9 @@ bool MQBoneManager::GetEndPoint(UINT bone_id, bool& end_point)
 
 bool MQBoneManager::GetMovable(UINT bone_id, bool& movable)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"movable";
@@ -472,11 +471,11 @@ bool MQBoneManager::GetMovable(UINT bone_id, bool& movable)
 	return (ret != 0);
 }
 
-void MQBoneManager::SetName(UINT bone_id, const wchar_t *name)
+void MQBoneManager::SetName(UINT bone_id, const wchar_t* name)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"name";
@@ -485,11 +484,11 @@ void MQBoneManager::SetName(UINT bone_id, const wchar_t *name)
 	m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "SetBone", array);
 }
 
-void MQBoneManager::SetTipName(UINT bone_id, const wchar_t *tip_name)
+void MQBoneManager::SetTipName(UINT bone_id, const wchar_t* tip_name)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"tip_name";
@@ -498,11 +497,11 @@ void MQBoneManager::SetTipName(UINT bone_id, const wchar_t *tip_name)
 	m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "SetBone", array);
 }
 
-void MQBoneManager:: SetParent(UINT bone_id, UINT parent_id)
+void MQBoneManager::SetParent(UINT bone_id, UINT parent_id)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"parent";
@@ -513,9 +512,9 @@ void MQBoneManager:: SetParent(UINT bone_id, UINT parent_id)
 
 void MQBoneManager::SetBaseRootPos(UINT bone_id, const MQPoint& pos)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"org_root";
@@ -526,9 +525,9 @@ void MQBoneManager::SetBaseRootPos(UINT bone_id, const MQPoint& pos)
 
 void MQBoneManager::SetBaseTipPos(UINT bone_id, const MQPoint& pos)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"org_tip";
@@ -539,9 +538,9 @@ void MQBoneManager::SetBaseTipPos(UINT bone_id, const MQPoint& pos)
 
 void MQBoneManager::SetUpVector(UINT bone_id, const MQMatrix matrix)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"upvector_matrix";
@@ -552,9 +551,9 @@ void MQBoneManager::SetUpVector(UINT bone_id, const MQMatrix matrix)
 
 void MQBoneManager::SetDeformScale(UINT bone_id, const MQPoint& scale)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"scale";
@@ -565,9 +564,9 @@ void MQBoneManager::SetDeformScale(UINT bone_id, const MQPoint& scale)
 
 void MQBoneManager::SetDeformRotate(UINT bone_id, const MQAngle& angle)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"rotate";
@@ -578,9 +577,9 @@ void MQBoneManager::SetDeformRotate(UINT bone_id, const MQAngle& angle)
 
 void MQBoneManager::SetDeformTranslate(UINT bone_id, const MQPoint& translate)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"translate";
@@ -591,9 +590,9 @@ void MQBoneManager::SetDeformTranslate(UINT bone_id, const MQPoint& translate)
 
 void MQBoneManager::SetAngleMin(UINT bone_id, const MQAngle& angle)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"angle_min";
@@ -604,9 +603,9 @@ void MQBoneManager::SetAngleMin(UINT bone_id, const MQAngle& angle)
 
 void MQBoneManager::SetAngleMax(UINT bone_id, const MQAngle& angle)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"angle_max";
@@ -617,9 +616,9 @@ void MQBoneManager::SetAngleMax(UINT bone_id, const MQAngle& angle)
 
 void MQBoneManager::SetIKChain(UINT bone_id, int chain)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"ikchain";
@@ -630,9 +629,9 @@ void MQBoneManager::SetIKChain(UINT bone_id, int chain)
 
 void MQBoneManager::SetDummy(UINT bone_id, bool dummy)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"dummy";
@@ -643,9 +642,9 @@ void MQBoneManager::SetDummy(UINT bone_id, bool dummy)
 
 void MQBoneManager::SetEndPoint(UINT bone_id, bool end_point)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"end_point";
@@ -656,9 +655,9 @@ void MQBoneManager::SetEndPoint(UINT bone_id, bool end_point)
 
 void MQBoneManager::SetTipBone(UINT bone_id, UINT tip_bone_id)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"tip_bone";
@@ -669,9 +668,9 @@ void MQBoneManager::SetTipBone(UINT bone_id, UINT tip_bone_id)
 
 void MQBoneManager::SetMovable(UINT bone_id, bool movable)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"movable";
@@ -682,9 +681,9 @@ void MQBoneManager::SetMovable(UINT bone_id, bool movable)
 
 bool MQBoneManager::GetTipBone(UINT bone_id, UINT& tip_bone_id)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"id";
 	array[1] = &bone_id;
 	array[2] = (void*)"tip_bone";
@@ -696,13 +695,13 @@ bool MQBoneManager::GetTipBone(UINT bone_id, UINT& tip_bone_id)
 
 bool MQBoneManager::GetIKName(UINT bone_id, std::wstring& ik_name, std::wstring& ik_tip_name)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
 	ik_name.clear();
 	ik_tip_name.clear();
-	const wchar_t *name = nullptr;
-	const wchar_t *tip_name = nullptr;
-	void *array[7];
+	const wchar_t* name = nullptr;
+	const wchar_t* tip_name = nullptr;
+	void* array[7];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"name";
@@ -711,20 +710,20 @@ bool MQBoneManager::GetIKName(UINT bone_id, std::wstring& ik_name, std::wstring&
 	array[5] = &tip_name;
 	array[6] = nullptr;
 	int ret = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetIKName", array);
-	if(!ret)
+	if (!ret)
 		return false;
-	if(name != nullptr)
+	if (name != nullptr)
 		ik_name = std::wstring(name);
-	if(tip_name != nullptr)
+	if (tip_name != nullptr)
 		ik_tip_name = std::wstring(tip_name);
 	return true;
 }
 
 bool MQBoneManager::GetIKParent(UINT bone_id, UINT& ik_parent_bone_id, bool& isIK)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[7];
+	void* array[7];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"parent";
@@ -738,9 +737,9 @@ bool MQBoneManager::GetIKParent(UINT bone_id, UINT& ik_parent_bone_id, bool& isI
 
 bool MQBoneManager::GetLink(UINT bone_id, LINK_PARAM& param)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[11];
+	void* array[11];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"link";
@@ -758,9 +757,9 @@ bool MQBoneManager::GetLink(UINT bone_id, LINK_PARAM& param)
 
 bool MQBoneManager::GetGroupID(UINT bone_id, UINT& group_id)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"group";
@@ -770,11 +769,11 @@ bool MQBoneManager::GetGroupID(UINT bone_id, UINT& group_id)
 	return (ret != 0);
 }
 
-void MQBoneManager::SetIKName(UINT bone_id, const wchar_t *ik_name, const wchar_t *ik_tip_name)
+void MQBoneManager::SetIKName(UINT bone_id, const wchar_t* ik_name, const wchar_t* ik_tip_name)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[7];
+	void* array[7];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"name";
@@ -787,9 +786,9 @@ void MQBoneManager::SetIKName(UINT bone_id, const wchar_t *ik_name, const wchar_
 
 void MQBoneManager::SetIKParent(UINT bone_id, UINT ik_parent_bone_id, bool isIK)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[7];
+	void* array[7];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"parent";
@@ -802,9 +801,9 @@ void MQBoneManager::SetIKParent(UINT bone_id, UINT ik_parent_bone_id, bool isIK)
 
 void MQBoneManager::SetLink(UINT bone_id, const LINK_PARAM& param)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[11];
+	void* array[11];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"link";
@@ -821,22 +820,23 @@ void MQBoneManager::SetLink(UINT bone_id, const LINK_PARAM& param)
 
 int MQBoneManager::EnumGroups(std::vector<UINT>& group_ids)
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
 	group_ids.clear();
 	int group_num = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "QueryGroupNum", nullptr);
-	if(group_num > 0){
+	if (group_num > 0)
+	{
 		group_ids.resize(group_num);
 		m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "EnumGroupID", group_ids.data());
 	}
 	return group_num;
 }
 
-UINT MQBoneManager::AddGroup(const wchar_t *name)
+UINT MQBoneManager::AddGroup(const wchar_t* name)
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
-	void *array[3];
+	void* array[3];
 	array[0] = (void*)"name";
 	array[1] = (void*)name;
 	array[2] = nullptr;
@@ -846,30 +846,30 @@ UINT MQBoneManager::AddGroup(const wchar_t *name)
 
 bool MQBoneManager::GetGroupName(UINT group_id, std::wstring& name)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
 	name.clear();
 
-	const wchar_t *p = nullptr;
-	void *array[5];
+	const wchar_t* p = nullptr;
+	void* array[5];
 	array[0] = (void*)"group";
 	array[1] = &group_id;
 	array[2] = (void*)"name";
 	array[3] = (void*)&p;
 	array[4] = nullptr;
 	int ret = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetGroupName", array);
-	if(!ret)
+	if (!ret)
 		return false;
-	if(p != nullptr)
+	if (p != nullptr)
 		name = std::wstring(p);
 	return true;
 }
 
 void MQBoneManager::SetGroupID(UINT bone_id, UINT group_id)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"group";
@@ -880,7 +880,7 @@ void MQBoneManager::SetGroupID(UINT bone_id, UINT group_id)
 
 int MQBoneManager::GetSkinObjectNum()
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
 	int bone_object_num = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "QueryObjectNum", nullptr);
 	return bone_object_num;
@@ -888,7 +888,7 @@ int MQBoneManager::GetSkinObjectNum()
 
 int MQBoneManager::EnumSkinObjectID(std::vector<UINT>& obj_id_array)
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
 	int num = GetSkinObjectNum();
 	obj_id_array.resize(num);
@@ -898,9 +898,9 @@ int MQBoneManager::EnumSkinObjectID(std::vector<UINT>& obj_id_array)
 
 bool MQBoneManager::AddSkinObject(MQObject obj)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[3];
+	void* array[3];
 	array[0] = (void*)"object";
 	array[1] = &obj;
 	array[2] = nullptr;
@@ -908,14 +908,14 @@ bool MQBoneManager::AddSkinObject(MQObject obj)
 	return (ret != 0);
 }
 
-int MQBoneManager::GetVertexWeightArray(MQObject obj, UINT vertex_id, int array_num, UINT *bone_ids, float *weights)
+int MQBoneManager::GetVertexWeightArray(MQObject obj, UINT vertex_id, int array_num, UINT* bone_ids, float* weights)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	if(obj == nullptr)
+	if (obj == nullptr)
 		return false;
 	UINT obj_id = obj->GetUniqueID();
-	void *array[5];
+	void* array[5];
 	array[0] = &obj_id;
 	array[1] = &vertex_id;
 	array[2] = &array_num;
@@ -927,12 +927,12 @@ int MQBoneManager::GetVertexWeightArray(MQObject obj, UINT vertex_id, int array_
 
 bool MQBoneManager::SetVertexWeight(MQObject obj, UINT vertex_id, UINT bone_id, float weight)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	if(obj == nullptr)
+	if (obj == nullptr)
 		return false;
 	UINT obj_id = obj->GetUniqueID();
-	void *array[9];
+	void* array[9];
 	array[0] = (void*)"bone";
 	array[1] = &bone_id;
 	array[2] = (void*)"object";
@@ -948,24 +948,27 @@ bool MQBoneManager::SetVertexWeight(MQObject obj, UINT vertex_id, UINT bone_id, 
 
 int MQBoneManager::GetWeightedVertexArray(UINT bone_id, MQObject obj, std::vector<UINT>& vertex_ids, std::vector<float>& weights)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	if(obj == nullptr)
+	if (obj == nullptr)
 		return false;
 	UINT obj_id = obj->GetUniqueID();
-	void *array[4];
+	void* array[4];
 	array[0] = &obj_id;
 	array[1] = &bone_id;
 	array[2] = nullptr;
 	array[3] = nullptr;
 	int vert_num = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetBoneWeight", array);
-	if(vert_num > 0){				
+	if (vert_num > 0)
+	{
 		vertex_ids.resize(vert_num);
 		weights.resize(vert_num);
 		array[2] = vertex_ids.data();
 		array[3] = weights.data();
 		m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetBoneWeight", array);
-	}else{
+	}
+	else
+	{
 		vertex_ids.clear();
 		weights.clear();
 	}
@@ -974,18 +977,19 @@ int MQBoneManager::GetWeightedVertexArray(UINT bone_id, MQObject obj, std::vecto
 
 int MQBoneManager::GetEffectLimitNum()
 {
-	if(!m_Verified) return 0;
+	if (!m_Verified) return 0;
 
-	void *array = nullptr;
+	void* array = nullptr;
 	int effectlimit = m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "GetEffectLimitNum", array);
 	return effectlimit;
 }
 
 void MQBoneManager::SetListMode(LIST_MODE mode)
 {
-	if(!m_Verified) return;
+	if (!m_Verified) return;
 
-	switch(mode){
+	switch (mode)
+	{
 	case LIST_MODE_BONE:
 		m_Plugin->SendUserMessage(m_Doc, bone_plugin_product, bone_plugin_id, "SetListMode", (void*)"bone");
 		break;
@@ -997,9 +1001,9 @@ void MQBoneManager::SetListMode(LIST_MODE mode)
 
 bool MQBoneManager::DeformObject(MQObject obj, MQObject target)
 {
-	if(!m_Verified) return false;
+	if (!m_Verified) return false;
 
-	void *array[5];
+	void* array[5];
 	array[0] = (void*)"object";
 	array[1] = obj;
 	array[2] = (void*)"target";

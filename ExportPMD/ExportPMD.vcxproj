@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -43,12 +43,14 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -188,8 +190,7 @@ copy $(ProjectDir)\*.xml ..\..\Metaseq\$(Platform)\$(Configuration)\Plugins\Expo
     <ClCompile Include="..\SDK\MQPlugin.cpp" />
     <ClCompile Include="..\SDK\MQSetting.cpp" />
     <ClCompile Include="..\SDK\MQWidget.cpp" />
-    <ClCompile Include="ExportPMD.cpp" />
-    <ClCompile Include="Language.cpp" />
+    <ClCompile Include="ExportPMX.cpp" />
     <ClCompile Include="MLibs\MAnsiString.cpp" />
     <ClCompile Include="MLibs\MFileUtil.cpp" />
     <ClCompile Include="MLibs\MString.cpp" />
@@ -207,16 +208,17 @@ copy $(ProjectDir)\*.xml ..\..\Metaseq\$(Platform)\$(Configuration)\Plugins\Expo
     <ClInclude Include="..\SDK\MQSetting.h" />
     <ClInclude Include="..\SDK\MQWidget.h" />
     <ClInclude Include="EncodingHelper.h" />
-    <ClInclude Include="Language.h" />
     <ClInclude Include="MLibs\MAnsiString.h" />
     <ClInclude Include="MLibs\MFileUtil.h" />
     <ClInclude Include="MLibs\MLibsDll.h" />
     <ClInclude Include="MLibs\MString.h" />
     <ClInclude Include="MQExportObject.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="tinyxml2\tinyxml2.h" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resource.resx" />
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

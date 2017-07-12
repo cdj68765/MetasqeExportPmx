@@ -1,4 +1,4 @@
-﻿// ExportPMD.cpp : DLL アプリケーション用にエクスポートされる関数を定義します。
+﻿// ExportPMX.cpp : DLL アプリケーション用にエクスポートされる関数を定義します。
 //
 
 #define NOMINMAX
@@ -10,11 +10,9 @@
 #include "MQBasePlugin.h"
 #include "MQSetting.h"
 #include "MQBoneManager.h"
-#include "Language.h"
 #include "EncodingHelper.h"
 //#include "Edition.h"
 #include <vector>
-#include <set>
 #include <map>
 #include <list>
 #include <algorithm>
@@ -22,14 +20,13 @@
 #include <MFileUtil.h>
 #include <tinyxml2.h>
 
-
 HINSTANCE s_hInstance;
 wchar_t s_DllPath[MAX_PATH];
 
 #define LOG(str)	OutputDebugString(std::wstring(std::wstring(str) + L"\n").c_str())
 #define EPS	0.00001
 
-static bool	MQPointFuzzyEqual(MQPoint A, MQPoint B)
+static bool MQPointFuzzyEqual(MQPoint A, MQPoint B)
 {
 	return ((fabs(A.x - B.x) < EPS) && (fabs(A.y - B.y) < EPS) && (fabs(A.z - B.z) < EPS));
 }
@@ -37,10 +34,13 @@ static bool	MQPointFuzzyEqual(MQPoint A, MQPoint B)
 static MAnsiString getMultiBytesSubstring(const MAnsiString& str, size_t maxlen)
 {
 	size_t p = 0;
-	while(1){
+	while (true)
+	{
 		size_t np = str.next(p);
-		if(np >= maxlen || np == MAnsiString::kInvalid){
-			if(p > 0){
+		if (np >= maxlen || np == MAnsiString::kInvalid)
+		{
+			if (p > 0)
+			{
 				return str.substring(0, p);
 			}
 			break;
@@ -50,11 +50,10 @@ static MAnsiString getMultiBytesSubstring(const MAnsiString& str, size_t maxlen)
 	return MAnsiString();
 }
 
-
-BOOL APIENTRY DllMain( HMODULE hModule,
-	DWORD  ul_reason_for_call,
-	LPVOID lpReserved
-	)
+BOOL APIENTRY DllMain(HMODULE hModule,
+                      DWORD ul_reason_for_call,
+                      LPVOID lpReserved
+)
 {
 	// The instance will be used for a dialog box
 	s_hInstance = (HINSTANCE)hModule;
@@ -68,46 +67,49 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	return TRUE;
 }
 
-
-class ExportPMDPlugin : public MQExportPlugin
+class ExportPMXPlugin : public MQExportPlugin
 {
 public:
-	ExportPMDPlugin();
-	~ExportPMDPlugin();
+	ExportPMXPlugin();
+	~ExportPMXPlugin();
 
 	// Get a plug-in ID
 	// プラグインIDを返す。
-	void GetPlugInID(DWORD *Product, DWORD *ID) override;
+	void GetPlugInID(DWORD* Product, DWORD* ID) override;
 
 	// Get a plug-in name
 	// プラグイン名を返す。
-	const char *GetPlugInName(void) override;
+	const char* GetPlugInName(void) override;
 
 	// Get a file type for importing
 	// 入力出力可能なファイルタイプを返す。
-	const char *EnumFileType(int index) override;
+	const char* EnumFileType(int index) override;
 
 	// Get a file extension for importing
 	// 入力可能な拡張子を返す。
-	const char *EnumFileExt(int index) override;
+	const char* EnumFileExt(int index) override;
 
 	// Export a file
 	// ファイルの読み込み
-	BOOL ExportFile(int index, const char *filename, MQDocument doc) override;
-
+	BOOL ExportFile(int index, const char* filename, MQDocument doc) override;
 
 private:
-	struct BoneNameSetting {
+	struct BoneNameSetting
+	{
 		MString jp;
 		MString en;
 		MString group;
 	};
-	struct BoneIKNameSetting {
+
+	struct BoneIKNameSetting
+	{
 		MString bone;
 		MString ik;
 		MString ikend;
 	};
-	struct BoneGroupSetting {
+
+	struct BoneGroupSetting
+	{
 		MString jp;
 		MString en;
 	};
@@ -119,117 +121,114 @@ private:
 	bool LoadBoneSettingFile();
 };
 
-
-ExportPMDPlugin::ExportPMDPlugin()
+ExportPMXPlugin::ExportPMXPlugin()
 {
 }
 
-ExportPMDPlugin::~ExportPMDPlugin()
+ExportPMXPlugin::~ExportPMXPlugin()
 {
 }
 
-
-void ExportPMDPlugin::GetPlugInID(DWORD *Product, DWORD *ID)
+void ExportPMXPlugin::GetPlugInID(DWORD* Product, DWORD* ID)
 {
-	*Product = 0x56A31D21;
-	*ID      = 0x1A4AF3CB;
+	*Product = 0x00000001;
+	*ID = 0x00000002;
 }
 
-const char *ExportPMDPlugin::GetPlugInName(void)
+const char* ExportPMXPlugin::GetPlugInName(void)
 {
-	return "Export PMX       Copyright(C) 2014-2015, tetraface Inc.";
+	//return "Export PMX       Copyright(C) 2014-2015, tetraface Inc.";
+	return "Export PMX";
 }
 
-const char *ExportPMDPlugin::EnumFileType(int index)
+const char* ExportPMXPlugin::EnumFileType(int index)
 {
-	if(index == 0){
+	if (index == 0)
+	{
 		return "MikuMikuDance format (*.pmx)";
 	}
-	return NULL;
+	return nullptr;
 }
 
-const char *ExportPMDPlugin::EnumFileExt(int index)
+const char* ExportPMXPlugin::EnumFileExt(int index)
 {
-	if(index == 0){
+	if (index == 0)
+	{
 		return "pmx";
 	}
-	return NULL;
+	return nullptr;
 }
 
-
-class PMDOptionDialog : public MQDialog
+class PMXOptionDialog : public MQDialog
 {
 public:
-	MQCheckBox *check_visible;
-	MQComboBox *combo_bone;
-	MQComboBox *combo_ikend;
-	MQComboBox *combo_facial;
-	MQEdit *edit_modelname;
-	MQMemo *memo_comment;
+	MQCheckBox* check_visible;
+	MQComboBox* combo_bone;
+	MQComboBox* combo_ikend;
+	MQComboBox* combo_facial;
+	MQEdit* edit_modelname;
+	MQMemo* memo_comment;
 
-	PMDOptionDialog(int id, int parent_frame_id, ExportPMDPlugin *plugin, MLanguage& language);
-
-	BOOL ComboBoneChanged(MQWidgetBase *sender, MQDocument doc);
+	PMXOptionDialog(int id, int parent_frame_id, ExportPMXPlugin* plugin);
+	BOOL ComboBoneChanged(MQWidgetBase* sender, MQDocument doc);
 };
 
-PMDOptionDialog::PMDOptionDialog(int id, int parent_frame_id, ExportPMDPlugin *plugin, MLanguage& language) : MQDialog(id)
+PMXOptionDialog::PMXOptionDialog(int id, int parent_frame_id, ExportPMXPlugin* plugin) : MQDialog(id)
 {
 	MQFrame parent(parent_frame_id);
 
-	MQGroupBox *group = CreateGroupBox(&parent, language.Search("Option"));
+	MQGroupBox* group = CreateGroupBox(&parent, L"PMX选项");
 
-	MQFrame *hframe;
+	MQFrame* hframe;
 
-	check_visible = CreateCheckBox(group, language.Search("VisibleOnly"));
+	check_visible = CreateCheckBox(group, L"仅可见对象");
 
 	hframe = CreateHorizontalFrame(group);
-	CreateLabel(hframe, language.Search("Bone"));
+	CreateLabel(hframe, L"导出骨骼");
 	combo_bone = CreateComboBox(hframe);
-	combo_bone->AddItem(language.Search("Disable"));
-	combo_bone->AddItem(language.Search("Enable"));
+	combo_bone->AddItem(L"否");
+	combo_bone->AddItem(L"是");
 	combo_bone->SetHintSizeRateX(8);
 	combo_bone->SetFillBeforeRate(1);
 
 	hframe = CreateHorizontalFrame(group);
-	CreateLabel(hframe, language.Search("IKEnd"));
+	CreateLabel(hframe, L"生成IK");
 	combo_ikend = CreateComboBox(hframe);
-	combo_ikend->AddItem(language.Search("Disable"));
-	combo_ikend->AddItem(language.Search("Enable"));
+	combo_ikend->AddItem(L"否");
+	combo_ikend->AddItem(L"是");
 	combo_ikend->SetHintSizeRateX(8);
 	combo_ikend->SetFillBeforeRate(1);
 
 	// モーフの出力可否のGUI作成
 	hframe = CreateHorizontalFrame(group);
-	CreateLabel(hframe, language.Search("Facial"));
+	CreateLabel(hframe, L"生成表情动作");
 	combo_facial = CreateComboBox(hframe);
-	combo_facial->AddItem(language.Search("Disable"));
-	combo_facial->AddItem(language.Search("Enable"));
+	combo_facial->AddItem(L"否");
+	combo_facial->AddItem(L"是");
 	combo_facial->SetHintSizeRateX(8);
 	combo_facial->SetFillBeforeRate(1);
 
 	hframe = CreateHorizontalFrame(group);
-	CreateLabel(hframe, language.Search("ModelName"));
-	edit_modelname = CreateEdit(hframe); 
+	CreateLabel(hframe, L"模型名");
+	edit_modelname = CreateEdit(hframe);
 	edit_modelname->SetMaxAnsiLength(20);
 	edit_modelname->SetHorzLayout(LAYOUT_FILL);
 
-	CreateLabel(group, language.Search("Comment"));
+	CreateLabel(group, L"注释");
 	memo_comment = CreateMemo(group);
 	//memo_comment->SetMaxLength(256);
 }
 
-BOOL PMDOptionDialog::ComboBoneChanged(MQWidgetBase *sender, MQDocument doc)
+BOOL PMXOptionDialog::ComboBoneChanged(MQWidgetBase* sender, MQDocument doc)
 {
 	combo_ikend->SetEnabled(combo_bone->GetCurrentIndex() == 1);
 	return FALSE;
 }
 
-
 struct CreateDialogOptionParam
 {
-	ExportPMDPlugin *plugin;
-	PMDOptionDialog *dialog;
-	MLanguage *lang;
+	ExportPMXPlugin* plugin;
+	PMXOptionDialog* dialog;
 
 	bool visible_only;
 	bool bone_exists;
@@ -239,16 +238,15 @@ struct CreateDialogOptionParam
 	bool output_facial;
 	MAnsiString modelname;
 	MAnsiString comment;
-
 };
 
-static void CreateDialogOption(bool init, MQFileDialogCallbackParam *param, void *ptr)
+static void CreateDialogOption(bool init, MQFileDialogCallbackParam* param, void* ptr)
 {
-	CreateDialogOptionParam *option = (CreateDialogOptionParam*)ptr;
+	CreateDialogOptionParam* option = (CreateDialogOptionParam*)ptr;
 
-	if(init)
+	if (init)
 	{
-		PMDOptionDialog *dialog = new PMDOptionDialog(param->dialog_id, param->parent_frame_id, option->plugin, *option->lang);
+		PMXOptionDialog* dialog = new PMXOptionDialog(param->dialog_id, param->parent_frame_id, option->plugin);
 		option->dialog = dialog;
 
 		dialog->check_visible->SetChecked(option->visible_only);
@@ -272,16 +270,17 @@ static void CreateDialogOption(bool init, MQFileDialogCallbackParam *param, void
 	}
 }
 
-
 #pragma pack(push,1)
-struct PMDFileHeader {
+struct PMXFileHeader
+{
 	unsigned char magic[3];
 	float version;
 	unsigned char model_name[20];
 	unsigned char comment[256];
 };
 
-struct PMDFileVertexList {
+struct PMXFileVertexList
+{
 	float pos[3];
 	float normal_vec[3];
 	float uv[2];
@@ -291,7 +290,8 @@ struct PMDFileVertexList {
 };
 #pragma pack(pop)
 
-struct PMDBoneParam {
+struct PMXBoneParam
+{
 	UINT id;
 	MQMatrix mtx;
 	MQMatrix base_mtx;
@@ -309,15 +309,15 @@ struct PMDBoneParam {
 	bool end_point;
 	std::vector<UINT> children;
 
-	int pmd_root_index;
-	int pmd_tip_index;
-	int pmd_ik_index;
-	int pmd_ik_end_index;
-	int pmd_ik_parent_root;
-	int pmd_ik_parent_tip;
+	int PMX_root_index;
+	int PMX_tip_index;
+	int PMX_ik_index;
+	int PMX_ik_end_index;
+	int PMX_ik_parent_root;
+	int PMX_ik_parent_tip;
 
-	std::vector<int> pmd_ik_chain;
-	bool pmd_ik_root_tip;
+	std::vector<int> PMX_ik_chain;
+	bool PMX_ik_root_tip;
 
 	MString name_jp;
 	MString name_en;
@@ -341,7 +341,9 @@ struct PMDBoneParam {
 	MString ik_tip_name_jp;
 	MString ik_name_en;
 	MString ik_tip_name_en;
-	PMDBoneParam(){
+
+	PMXBoneParam()
+	{
 		parent = 0;
 		child_num = 0;
 		ikchain = 0;
@@ -350,17 +352,17 @@ struct PMDBoneParam {
 		dummy = false;
 		twist = false;
 		end_point = false;
-		pmd_root_index = -1;
-		pmd_tip_index = -1;
-		pmd_ik_index = -1;
-		pmd_ik_end_index = -1;
-		pmd_ik_parent_root = -1;
-		pmd_ik_parent_tip = -1;
-		pmd_ik_root_tip = true;
+		PMX_root_index = -1;
+		PMX_tip_index = -1;
+		PMX_ik_index = -1;
+		PMX_ik_end_index = -1;
+		PMX_ik_parent_root = -1;
+		PMX_ik_parent_tip = -1;
+		PMX_ik_root_tip = true;
 		root_group = -1;
 		group = -1;
 		ik_group = -1;
-		
+
 		link_id = 0;
 		link_rate = 0;
 
@@ -380,72 +382,54 @@ enum MorphType
 	MORPH_OTHER,
 };
 
-struct PMDMorphInputParam
+struct PMXMorphInputParam
 {
-	MQObject	base;
-	std::vector<std::pair<MQObject, MorphType> >	target;
+	MQObject base;
+	std::vector<std::pair<MQObject, MorphType>> target;
 };
 
-struct PMDMorphParam
+struct PMXMorphParam
 {
-	char skin_name[20];		//　表情名
-	DWORD vertNum;			// 表情用の頂点数
-	MorphType	type;
+	char skin_name[20]; //　表情名
+	DWORD vertNum; // 表情用の頂点数
+	MorphType type;
 
-	std::vector<std::pair<DWORD, MQPoint> >	vertex;
+	std::vector<std::pair<DWORD, MQPoint>> vertex;
 };
 
-static bool containsTargetObject(std::vector<PMDMorphInputParam> &list, MQObject obj)
+static bool containsTargetObject(std::vector<PMXMorphInputParam>& list, MQObject obj)
 {
 	assert(obj != nullptr);
 
 	auto end = list.end();
-	for(auto ite = list.begin(); ite != end; ++ite)
+	for (auto ite = list.begin(); ite != end; ++ite)
 	{
-		for(auto tIte = ite->target.begin(); tIte != ite->target.end(); ++tIte)
-			if(tIte->first == obj)
+		for (auto tIte = ite->target.begin(); tIte != ite->target.end(); ++tIte)
+			if (tIte->first == obj)
 				return true;
 	}
 
 	return false;
 }
 
-BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc)
+BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc)
 {
-	std::wstring lang = GetSettingValue(MQSETTINGVALUE_LANGUAGE);//获得水杉设置语言
-	MString dir = MFileUtil::extractDirectory(s_DllPath);
-	MString path = MFileUtil::combinePath(dir, L"ExportPMD.resource.xml");
-	MLanguage language;
-	language.Load(lang, path);
-
-	// Load bone setting
 	LoadBoneSettingFile();
-
 	MQBoneManager bone_manager(this, doc);
 
-	//GroupList
-	std::map<UINT,std::wstring> groups;
-	std::vector<UINT> group_id;
-	int group_num = bone_manager.EnumGroups(group_id);
-	if(group_num > 0){
-		for(int i = 0;i < group_num;i++){
-			std::wstring name;
-			bone_manager.GetGroupName(group_id[i], name);
-			groups.insert(std::make_pair(group_id[i], name));
-		}
-	}
 	// Query a number of bones
 	int bone_num = bone_manager.GetBoneNum();
-	int bone_object_num = bone_manager.GetSkinObjectNum();
 	// Enum bones
 	std::vector<UINT> bone_id;
-	std::vector<PMDBoneParam> bone_param;
-	if(bone_num > 0){
+	std::vector<PMXBoneParam> bone_param;
+	if (bone_num > 0)
+	{
 		bone_id.resize(bone_num);
 		bone_manager.EnumBoneID(bone_id);
 
 		bone_param.resize(bone_num);
-		for(int i=0; i<bone_num; i++){
+		for (int i = 0; i < bone_num; i++)
+		{
 			bone_param[i].id = bone_id[i];
 
 			std::wstring name;
@@ -480,24 +464,22 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				bone_manager.GetMovable(bone_id[i], bone_param[i].movable);
 			}
 			{
-				bone_manager.GetGroupID(bone_id[i], bone_param[i].group_id);
-			}
-			{
 				bone_manager.GetTipBone(bone_id[i], bone_param[i].tip_id);
 			}
-			if(bone_param[i].tip_id==0){
-				std::wstring name;
+			if (bone_param[i].tip_id == 0)
+			{
 				bone_manager.GetTipName(bone_id[i], name);
 				bone_param[i].tip_name = name;
 			}
-			if(bone_param[i].ikchain!=-1){
-				std::wstring name;
+			if (bone_param[i].ikchain != -1)
+			{
 				std::wstring tip_name;
 				bone_manager.GetIKName(bone_id[i], name, tip_name);
 				bone_param[i].ik_name = name;
 				bone_param[i].ik_tip_name = tip_name;
 			}
-			if(bone_param[i].ikchain!=-1){
+			if (bone_param[i].ikchain != -1)
+			{
 				bone_manager.GetIKParent(bone_id[i], bone_param[i].ikparent, bone_param[i].ikparent_isik);
 			}
 		}
@@ -509,9 +491,9 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	// モーフプラグインから必要な情報を取得
 	int morph_num = 0;
 	int morph_target_size = 0;
-	std::vector<PMDMorphInputParam>	morph_intput_list;
-	std::vector<std::vector<MQObject> >	morph_target_list;
-	std::vector<std::vector<int> >		morph_target_index_list;
+	std::vector<PMXMorphInputParam> morph_intput_list;
+	std::vector<std::vector<MQObject>> morph_target_list;
+	std::vector<std::vector<int>> morph_target_index_list;
 
 	morph_num = this->SendUserMessage(doc, morph_plugin_product, morph_plugin_id, "getMorphObjectSize", nullptr);
 	morph_intput_list.resize(morph_num);
@@ -528,21 +510,20 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		this->SendUserMessage(doc, morph_plugin_product, morph_plugin_id, "getBaseObjectList", baseObj.data());
 #endif
 
-		for(int i=0; i<morph_num; ++i)
+		for (int i = 0; i < morph_num; ++i)
 			morph_intput_list.at(i).base = baseObj.at(i);
 	}
 
-	if(morph_num > 0)
+	if (morph_num > 0)
 	{
 		// モーフターゲット情報を取得
-		std::vector<std::pair<MQObject, MorphType> >	target;
-
+		std::vector<std::pair<MQObject, MorphType>> target;
 		int target_size;
-		PMDMorphInputParam *iParam;
+		PMXMorphInputParam* iParam;
 		auto targets = &morph_target_list.front();
 		auto targetIndexes = &morph_target_index_list.front();
 		int targetIndex = 1;
-		for(int i=0; i<morph_num; ++i)
+		for (int i = 0; i < morph_num; ++i)
 		{
 			targets = &morph_target_list.at(i);
 			targetIndexes = &morph_target_index_list.at(i);
@@ -559,7 +540,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 #endif
 
 			auto end = target.end();
-			for(auto ite = target.begin() + 1; ite != end; ++ite)
+			for (auto ite = target.begin() + 1; ite != end; ++ite)
 			{
 				iParam->target.push_back(*ite);
 				targets->push_back(ite->first);
@@ -575,7 +556,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	float scaling = 1;
 	CreateDialogOptionParam option;
 	option.plugin = this;
-	option.lang = &language;
 	option.visible_only = false;
 	option.bone_exists = (bone_num > 0);
 	option.facial_exists = (morph_num > 0);
@@ -585,8 +565,9 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	option.modelname = getMultiBytesSubstring(MFileUtil::extractFileNameOnly(MString::fromAnsiString(filename)).toAnsiString(), 20);
 	option.comment = MAnsiString();
 	// Load a setting.
-	MQSetting *setting = OpenSetting();
-	if(setting != NULL){//设置页面显示的
+	MQSetting* setting = OpenSetting();
+	if (setting != nullptr)
+	{//设置页面显示的
 		setting->Load("VisibleOnly", option.visible_only, option.visible_only);
 		setting->Load("Bone", option.output_bone, option.output_bone);
 		setting->Load("IKEnd", option.output_ik_end, option.output_ik_end);
@@ -607,7 +588,8 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 	// Save a setting.
 	scaling = dlginfo.scale;
-	if(setting != NULL){
+	if (setting != nullptr)
+	{
 		setting->Save("VisibleOnly", option.visible_only);
 		setting->Save("Bone", option.output_bone);
 		setting->Save("IKEnd", option.output_ik_end);
@@ -615,7 +597,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		CloseSetting(setting);
 	}
 
-	if(!option.output_bone)
+	if (!option.output_bone)
 	{
 		bone_num = 0;
 		bone_id.clear();
@@ -623,23 +605,24 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	}
 
 	bool isOutputFacial = option.output_facial;
-	if(!isOutputFacial)
+	if (!isOutputFacial)
 	{
 		morph_num = 0;
 		morph_target_size = 0;
 		morph_intput_list.clear();
 	}
 
-	
 	int numObj = doc->GetObjectCount();
 	int numMat = doc->GetMaterialCount();
 
 	bool has_color = false;
-	for(int i=0; i<numMat; i++){
+	for (int i = 0; i < numMat; i++)
+	{
 		MQMaterial mat = doc->GetMaterial(i);
-		if(mat == NULL) continue;
+		if (mat == nullptr) continue;
 
-		if(mat->GetVertexColor() != MQMATERIAL_VERTEXCOLOR_DISABLE){
+		if (mat->GetVertexColor() != MQMATERIAL_VERTEXCOLOR_DISABLE)
+		{
 			has_color = true;
 			break;
 		}
@@ -654,29 +637,30 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	std::vector<MQCoordinate> vert_coord;
 	int total_vert_num = 0;
 
-	for(int oi=0; oi<numObj; oi++)
+	for (int oi = 0; oi < numObj; oi++)
 	{
 		MQObject org_obj = doc->GetObject(oi);
-		if(org_obj == NULL)
+		if (org_obj == nullptr)
 			continue;
 
-		if(option.visible_only && org_obj->GetVisible() == 0)
+		if (option.visible_only && org_obj->GetVisible() == 0)
 			continue;
 
 		MQExportObject::MSeparateParam separate;
 		separate.SeparateNormal = true;
 		separate.SeparateUV = true;
 		separate.SeparateVertexColor = false;
-		MQExportObject *eobj = new MQExportObject(org_obj, separate);
+		MQExportObject* eobj = new MQExportObject(org_obj, separate);
 		expobjs[oi] = eobj;
 
 		// ターゲットオブジェクトは飛ばす
-		if(isOutputFacial && containsTargetObject(morph_intput_list, org_obj))
+		if (isOutputFacial && containsTargetObject(morph_intput_list, org_obj))
 			continue;
 
 		int vert_num = eobj->GetVertexCount();
 		orgvert_vert[oi].resize(vert_num, -1);
-		for (int evi = 0; evi < vert_num; evi++) {
+		for (int evi = 0; evi < vert_num; evi++)
+		{
 			orgvert_vert[oi][evi] = total_vert_num;
 
 			vert_orgobj.push_back(oi);
@@ -689,29 +673,24 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			vert_normal.push_back(nrm);
 			vert_coord.push_back(uv);
 			total_vert_num++;
-
-			/*if(total_vert_num > 65535){
-				MQWindow mainwin = MQWindow::GetMainWindow();
-				MQDialog::MessageWarningBox(mainwin, language.Search("TooManyVertices"), GetResourceString("Error"));
-				for(size_t i=0; i<expobjs.size(); i++){
-					delete expobjs[i];
-				}
-				return FALSE;
-			}*/
 		}
 	}
 	std::map<UINT, int> bone_id_index;
 	// Initialize bones.
-	if(bone_num > 0)
+	if (bone_num > 0)
 	{
-		for(int i=0; i<bone_num; i++){
+		for (int i = 0; i < bone_num; i++)
+		{
 			bone_id_index[bone_param[i].id] = i;
 		}
 
 		// Check the parent
-		for(int i=0; i<bone_num; i++){
-			if(bone_param[i].parent != 0){
-				if(bone_id_index.end() == bone_id_index.find(bone_param[i].parent)){
+		for (int i = 0; i < bone_num; i++)
+		{
+			if (bone_param[i].parent != 0)
+			{
+				if (bone_id_index.end() == bone_id_index.find(bone_param[i].parent))
+				{
 					assert(0);
 					bone_param[i].parent = 0;
 				}
@@ -720,31 +699,44 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 		// Sort by hierarchy
 		{
-			std::list<PMDBoneParam> bone_param_temp(bone_param.begin(), bone_param.end());
+			std::list<PMXBoneParam> bone_param_temp(bone_param.begin(), bone_param.end());
 			bone_param.clear();
 			bone_id_index.clear();
-			while(!bone_param_temp.empty()){
+			while (!bone_param_temp.empty())
+			{
 				bool done = false;
-				for(auto it = bone_param_temp.begin(); it != bone_param_temp.end(); ){
-					if((*it).parent != 0){
-						if(bone_id_index.end() != bone_id_index.find((*it).parent)){
-							if(bone_param[bone_id_index[(*it).parent]].tip_id == 0 || bone_id_index[(*it).parent] != bone_param.size()-1){
+				for (auto it = bone_param_temp.begin(); it != bone_param_temp.end();)
+				{
+					if ((*it).parent != 0)
+					{
+						if (bone_id_index.end() != bone_id_index.find((*it).parent))
+						{
+							if (bone_param[bone_id_index[(*it).parent]].tip_id == 0 || bone_id_index[(*it).parent] != bone_param.size() - 1)
+							{
 								bone_id_index[(*it).id] = (int)bone_param.size();
 								bone_param.push_back(*it);
 								it = bone_param_temp.erase(it);
 								done = true;
-							}else if(bone_param[bone_id_index[(*it).parent]].tip_id == (*it).id){
+							}
+							else if (bone_param[bone_id_index[(*it).parent]].tip_id == (*it).id)
+							{
 								bone_id_index[(*it).id] = (int)bone_param.size();
 								bone_param.push_back(*it);
 								it = bone_param_temp.erase(it);
 								done = true;
-							}else{
+							}
+							else
+							{
 								++it; // try next
 							}
-						}else{
+						}
+						else
+						{
 							++it; // try next
 						}
-					}else{
+					}
+					else
+					{
 						bone_id_index[(*it).id] = (int)bone_param.size();
 						bone_param.push_back(*it);
 						it = bone_param_temp.erase(it);
@@ -753,8 +745,10 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				}
 
 				assert(done);
-				if(!done){
-					for(auto it = bone_param_temp.begin(); it != bone_param_temp.end(); ++it){
+				if (!done)
+				{
+					for (auto it = bone_param_temp.begin(); it != bone_param_temp.end(); ++it)
+					{
 						bone_id_index[(*it).id] = (int)bone_param.size();
 						(*it).parent = 0;
 						bone_param.push_back(*it);
@@ -765,181 +759,208 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		}
 
 		// Enum children
-		for(int i=0; i<bone_num; i++){
-			if(bone_param[i].parent != 0){
-				if(bone_id_index.end() != bone_id_index.find(bone_param[i].parent)){
+		for (int i = 0; i < bone_num; i++)
+		{
+			if (bone_param[i].parent != 0)
+			{
+				if (bone_id_index.end() != bone_id_index.find(bone_param[i].parent))
+				{
 					bone_param[bone_id_index[bone_param[i].parent]].children.push_back(i);
-				}else{
+				}
+				else
+				{
 					assert(0);
 					bone_param[i].parent = 0;
 				}
 			}
-			if(bone_param[i].twist){
+			if (bone_param[i].twist)
+			{
 				bone_param[i].twist = false;
 				bone_param[bone_id_index[bone_param[i].parent]].twist = true;
 			}
 		}
 	}
-	int pmdbone_num = 0;
+	int PMXbone_num = 0;
 	std::vector<int> ik_chain_end_list;
 
 	std::vector<std::pair<int, MQPoint>> root_bones;
-	for(int i=0; i<bone_num; i++){
-		// Determine PMD bone index.
-		bone_param[i].pmd_root_index = -1;
-		if(bone_param[i].parent == 0){
-			for(auto it = root_bones.begin(); it != root_bones.end(); ++it){
-				if(bone_param[i].org_root == (*it).second){ 
-					bone_param[i].pmd_root_index = (*it).first;
+	for (int i = 0; i < bone_num; i++)
+	{
+		// Determine PMX bone index.
+		bone_param[i].PMX_root_index = -1;
+		if (bone_param[i].parent == 0)
+		{
+			for (auto it = root_bones.begin(); it != root_bones.end(); ++it)
+			{
+				if (bone_param[i].org_root == (*it).second)
+				{
+					bone_param[i].PMX_root_index = (*it).first;
 					break;
 				}
 			}
-			if(bone_param[i].pmd_root_index == -1){
-				bone_param[i].pmd_root_index = pmdbone_num++;
-				root_bones.push_back(std::pair<int, MQPoint>(bone_param[i].pmd_root_index, bone_param[i].org_root));
+			if (bone_param[i].PMX_root_index == -1)
+			{
+				bone_param[i].PMX_root_index = PMXbone_num++;
+				root_bones.push_back(std::pair<int, MQPoint>(bone_param[i].PMX_root_index, bone_param[i].org_root));
 			}
 		}
-		if(bone_param[i].children.empty() && bone_param[i].end_point)
-			bone_param[i].pmd_tip_index = -1;
+		if (bone_param[i].children.empty() && bone_param[i].end_point)
+			bone_param[i].PMX_tip_index = -1;
 		else
-			bone_param[i].pmd_tip_index = pmdbone_num++;
+			bone_param[i].PMX_tip_index = PMXbone_num++;
 	}
-	for(int i=0; i<bone_num; i++){
-		if(bone_param[i].tip_id==0)continue;
+	for (int i = 0; i < bone_num; i++)
+	{
+		if (bone_param[i].tip_id == 0)continue;
 		UINT tip_parent_id = bone_param[bone_id_index[bone_param[i].tip_id]].parent;
 		assert(bone_param[i].id == tip_parent_id);
-		//bone_param[i].pmd_tip_index = bone_param[bone_id_index[tip_parent_id]].pmd_tip_index;
+		//bone_param[i].PMX_tip_index = bone_param[bone_id_index[tip_parent_id]].PMX_tip_index;
 	}
 	// Construct IK chain
-	for(int i=bone_num-1; i>=0; i--){ // from end to root
-		if(bone_param[i].ikchain >= 0){
+	for (int i = bone_num - 1; i >= 0; i--)
+	{ // from end to root
+		if (bone_param[i].ikchain >= 0)
+		{
 			int chain_num = bone_param[i].ikchain;
 			bool result = false;
 			int idx = i;
-			for(int p=0; p<=chain_num; p++){
-				if(bone_param[idx].parent == 0){
-					bone_param[i].pmd_ik_chain.push_back(idx);
-					bone_param[i].pmd_ik_root_tip = false;
+			for (int p = 0; p <= chain_num; p++)
+			{
+				if (bone_param[idx].parent == 0)
+				{
+					bone_param[i].PMX_ik_chain.push_back(idx);
+					bone_param[i].PMX_ik_root_tip = false;
 					break;
 				}
-				if(bone_id_index.end() == bone_id_index.find(bone_param[idx].parent)) break;
+				if (bone_id_index.end() == bone_id_index.find(bone_param[idx].parent)) break;
 
 				idx = bone_id_index[bone_param[idx].parent];
-				if(p == chain_num){
-					bone_param[i].pmd_ik_chain.push_back(idx);
-					bone_param[i].pmd_ik_root_tip = true;
-				}else{
+				if (p == chain_num)
+				{
+					bone_param[i].PMX_ik_chain.push_back(idx);
+					bone_param[i].PMX_ik_root_tip = true;
+				}
+				else
+				{
 					// IKチェイン内に別のIKチェインを含めない
-					if(bone_param[idx].ikchain > 0){
+					if (bone_param[idx].ikchain > 0)
+					{
 						bone_param[idx].ikchain = 0;
 					}
-					bone_param[i].pmd_ik_chain.push_back(idx);
+					bone_param[i].PMX_ik_chain.push_back(idx);
 				}
 			}
 		}
 	}
-	for(int i=0; i<bone_num; i++){
-		if(bone_param[i].pmd_ik_chain.size() > 0){
-			bone_param[i].pmd_ik_index = pmdbone_num++;
-			if(option.output_ik_end){
-				bone_param[i].pmd_ik_end_index = pmdbone_num++;
+	for (int i = 0; i < bone_num; i++)
+	{
+		if (bone_param[i].PMX_ik_chain.size() > 0)
+		{
+			bone_param[i].PMX_ik_index = PMXbone_num++;
+			if (option.output_ik_end)
+			{
+				bone_param[i].PMX_ik_end_index = PMXbone_num++;
 			}
 			ik_chain_end_list.push_back(i);
 		}
 	}
-	for(int i=0; i<bone_num; i++){
-		if(bone_param[i].pmd_ik_index >= 0){
-			for(size_t j=0; j<bone_param[i].pmd_ik_chain.size(); j++){
-				if(j+1 == bone_param[i].pmd_ik_chain.size() && !bone_param[i].pmd_ik_root_tip){
-					bone_param[bone_param[i].pmd_ik_chain[j]].pmd_ik_parent_root = bone_param[i].pmd_ik_index;
-				}else{
-					if(bone_param[bone_param[i].pmd_ik_chain[j]].pmd_ik_parent_tip == -1){
-						bone_param[bone_param[i].pmd_ik_chain[j]].pmd_ik_parent_tip = bone_param[i].pmd_ik_index;
+	for (int i = 0; i < bone_num; i++)
+	{
+		if (bone_param[i].PMX_ik_index >= 0)
+		{
+			for (size_t j = 0; j < bone_param[i].PMX_ik_chain.size(); j++)
+			{
+				if (j + 1 == bone_param[i].PMX_ik_chain.size() && !bone_param[i].PMX_ik_root_tip)
+				{
+					bone_param[bone_param[i].PMX_ik_chain[j]].PMX_ik_parent_root = bone_param[i].PMX_ik_index;
+				}
+				else
+				{
+					if (bone_param[bone_param[i].PMX_ik_chain[j]].PMX_ik_parent_tip == -1)
+					{
+						bone_param[bone_param[i].PMX_ik_chain[j]].PMX_ik_parent_tip = bone_param[i].PMX_ik_index;
 					}
 				}
 			}
 		}
 	}
-	for(int i=0; i<bone_num; i++){
+	for (int i = 0; i < bone_num; i++)
+	{
 		bool name_found = false;
-		for(auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it){
-			if((*it).jp == bone_param[i].name || (*it).en == bone_param[i].name){
+		for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
+		{
+			if ((*it).jp == bone_param[i].name || (*it).en == bone_param[i].name)
+			{
 				bone_param[i].name_jp = (*it).jp;
 				bone_param[i].name_en = (*it).en;
 				name_found = true;
 				break;
 			}
 		}
-		if(!name_found){
+		if (!name_found)
+		{
 			bone_param[i].name_jp = bone_param[i].name;
 			bone_param[i].name_en = bone_param[i].name;
 		}
 		name_found = false;
-		for(auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it){
-			if((*it).jp == bone_param[i].tip_name || (*it).en == bone_param[i].tip_name){
+		for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
+		{
+			if ((*it).jp == bone_param[i].tip_name || (*it).en == bone_param[i].tip_name)
+			{
 				bone_param[i].tip_name_jp = (*it).jp;
 				bone_param[i].tip_name_en = (*it).en;
 				name_found = true;
 				break;
 			}
 		}
-		if(!name_found){
+		if (!name_found)
+		{
 			bone_param[i].tip_name_jp = bone_param[i].tip_name;
 			bone_param[i].tip_name_en = bone_param[i].tip_name;
 		}
 		name_found = false;
-		for(auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it){
-			if((*it).jp == bone_param[i].ik_name || (*it).en == bone_param[i].ik_name){
+		for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
+		{
+			if ((*it).jp == bone_param[i].ik_name || (*it).en == bone_param[i].ik_name)
+			{
 				bone_param[i].ik_name_jp = (*it).jp;
 				bone_param[i].ik_name_en = (*it).en;
 				name_found = true;
 				break;
 			}
 		}
-		if(!name_found){
+		if (!name_found)
+		{
 			bone_param[i].ik_name_jp = bone_param[i].ik_name;
 			bone_param[i].ik_name_en = bone_param[i].ik_name;
 		}
 		name_found = false;
-		for(auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it){
-			if((*it).jp == bone_param[i].ik_tip_name || (*it).en == bone_param[i].ik_tip_name){
+		for (auto it = m_BoneNameSetting.begin(); it != m_BoneNameSetting.end(); ++it)
+		{
+			if ((*it).jp == bone_param[i].ik_tip_name || (*it).en == bone_param[i].ik_tip_name)
+			{
 				bone_param[i].ik_tip_name_jp = (*it).jp;
 				bone_param[i].ik_tip_name_en = (*it).en;
 				name_found = true;
 				break;
 			}
 		}
-		if(!name_found){
+		if (!name_found)
+		{
 			bone_param[i].ik_tip_name_jp = bone_param[i].ik_tip_name;
 			bone_param[i].ik_tip_name_en = bone_param[i].ik_tip_name;
 		}
 	}
-	std::map<int,std::pair<MString,MString> > group_names;
-	for(auto it = groups.begin();it != groups.end();it++){
-		bool name_found = false;
-		for(auto nit = m_BoneGroupSetting.begin(); nit != m_BoneGroupSetting.end(); ++nit){
-			if((*nit).jp == it->second || (*nit).en == it->second){
-				group_names[it->first].first = (*nit).jp;
-				group_names[it->first].second = (*nit).en;
-				name_found = true;
-				break;
-			}
-		}
-		if(!name_found){
-			group_names[it->first].first = it->second;
-			group_names[it->first].second = it->second;
-		}
-	}
 	// モーフ用情報収集
-	std::vector<PMDMorphParam>	morph_param_list;
-	if(morph_target_size != 0)
+	std::vector<PMXMorphParam> morph_param_list;
+	if (morph_target_size != 0)
 		morph_param_list.resize(morph_target_size + 1);
 
 	// ベースオブジェクト情報
-	PMDMorphParam *morph_base_param = NULL;
+	PMXMorphParam* morph_base_param = nullptr;
 	{
 		DWORD morph_vert_size = 0;
-		if(!morph_intput_list.empty())
+		if (!morph_intput_list.empty())
 		{
 			morph_base_param = &morph_param_list.front();
 			strcpy_s(morph_base_param->skin_name, "base");
@@ -949,24 +970,24 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	}
 
 	// ターゲットオブジェクト情報
-	if(isOutputFacial && morph_num > 0)
+	if (isOutputFacial && morph_num > 0)
 	{
 		size_t bIdx, tIdx, totalIdx = 1;
-		PMDMorphParam *mParam;
+		PMXMorphParam* mParam;
 		auto bBegin = morph_intput_list.begin();
 		auto bEnd = morph_intput_list.end();
 		auto tBegin = morph_intput_list.front().target.begin();
 		auto tEnd = morph_intput_list.front().target.end();
-		for(auto bIte = bBegin; bIte != bEnd; ++bIte)
+		for (auto bIte = bBegin; bIte != bEnd; ++bIte)
 		{
-			bIdx = std::distance(bBegin, bIte);
+			bIdx = distance(bBegin, bIte);
 			tIdx = 0;
 			tBegin = bIte->target.begin();
 			tEnd = bIte->target.end();
 
-			for(auto tIte = tBegin; tIte != tEnd; ++tIte)
+			for (auto tIte = tBegin; tIte != tEnd; ++tIte)
 			{
-				tIdx = std::distance(tBegin, tIte);
+				tIdx = distance(tBegin, tIte);
 				mParam = &morph_param_list.at(totalIdx++);
 				tIte->first->GetName(mParam->skin_name, 20);
 				mParam->type = tIte->second;
@@ -977,7 +998,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 	// モーフの頂点情報
 	std::vector<DWORD> morph_base_vertex_index_list;
-	if(isOutputFacial && morph_num > 0)
+	if (isOutputFacial && morph_num > 0)
 	{
 		size_t paramIdx, baseIdx;
 		int baseVertSize, baseExpIdx, baseOrgIdx;
@@ -986,22 +1007,22 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		bool isWriteBase;
 		auto end = morph_intput_list.end();
 		size_t totalIdx = 1;
-		PMDMorphParam *param;
+		PMXMorphParam* param;
 		auto targetList = morph_target_list.front();
 		auto targetIndexList = morph_target_index_list.front();
-		for(auto ite = morph_intput_list.begin(); ite != end; ++ite)
+		for (auto ite = morph_intput_list.begin(); ite != end; ++ite)
 		{
 			isWriteBase = false;
 
-			paramIdx = std::distance(morph_intput_list.begin(), ite);
+			paramIdx = distance(morph_intput_list.begin(), ite);
 
 			base = ite->base;
 			baseIdx = doc->GetObjectIndex(base);
-			if(expobjs[baseIdx] == nullptr)
+			if (expobjs[baseIdx] == nullptr)
 				continue;
 			baseVertSize = expobjs[baseIdx]->GetVertexCount();
 
-			for(int i=0; i<baseVertSize; ++i)
+			for (int i = 0; i < baseVertSize; ++i)
 			{
 				baseExpIdx = orgvert_vert.at(baseIdx).at(i);
 				baseOrgIdx = expobjs[baseIdx]->GetOriginalVertex(i);
@@ -1009,23 +1030,23 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 				auto tList = &ite->target;
 				auto tEnd = tList->end();
-				for(auto tIte = tList->begin(); tIte != tEnd; ++tIte)
+				for (auto tIte = tList->begin(); tIte != tEnd; ++tIte)
 				{
 					target = tIte->first;
 					targetPos = target->GetVertex(baseOrgIdx);
-					if(!MQPointFuzzyEqual(basePos, targetPos))
+					if (!MQPointFuzzyEqual(basePos, targetPos))
 					{
 						isWriteBase = true;
 
 						targetList = morph_target_list.at(paramIdx);
 						targetIndexList = morph_target_index_list.at(paramIdx);
-						param = &morph_param_list.at(targetIndexList.at(std::distance(targetList.begin(), std::find(targetList.begin(), targetList.end(), target))));
+						param = &morph_param_list.at(targetIndexList.at(distance(targetList.begin(), find(targetList.begin(), targetList.end(), target))));
 						param->vertex.push_back(std::make_pair(baseExpIdx, targetPos - basePos));
 						++param->vertNum;
 					}
 				}
 
-				if(isWriteBase)
+				if (isWriteBase)
 				{
 					morph_base_param->vertex.push_back(std::make_pair(baseExpIdx, basePos));
 					morph_base_vertex_index_list.push_back(baseExpIdx);
@@ -1036,11 +1057,13 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	}
 
 	// Open a file.
-	FILE *fh;
+	FILE* fh;
 	errno_t err = fopen_s(&fh, filename, "wb");
 	//errno_t err = fopen_s(&fh, filename, "w");
-	if(err != 0){
-		for(size_t i=0; i<expobjs.size(); i++){
+	if (err != 0)
+	{
+		for (size_t i = 0; i < expobjs.size(); i++)
+		{
 			delete expobjs[i];
 		}
 		return FALSE;
@@ -1048,42 +1071,29 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 
 	// Header
 	float version = 2.0f;
-	char magic[4] = { 0x50 ,0x4d ,0x58 ,0x20 };
+	char magic[4] = {0x50 ,0x4d ,0x58 ,0x20};
 	fwrite(magic, 1, 4, fh);
-	//fprintf(fh,"Pmd\n");
+	//fprintf(fh,"PMX\n");
 	fwrite((char*)&version, sizeof(float), 1, fh);
-	byte Header[9] = { 8,0,0,4,1,1,1,1,1 };
+	byte Header[9] = {8,0,0,4,1,1,1,1,1};
 	fwrite(&Header, sizeof(byte), 9, fh);
 	//fprintf(fh,"%f\n",version);
 
 	oguna::EncodingConverter converter = oguna::EncodingConverter();
-	std::wstring result;
-	int Len=converter.Cp936ToUtf16(option.modelname, option.modelname.length(), &result)*2;
+	std::wstring RES;
+	int Len = converter.Cp936ToUtf16(option.modelname, option.modelname.length(), &RES) * 2;
 	fwrite(&Len, sizeof(int), 1, fh);
-	fwrite(result.c_str(), Len, 1, fh);
+	fwrite(RES.c_str(), Len, 1, fh);
+	Len = converter.Cp936ToUtf16(option.modelname, option.comment.length(), &RES) * 2;
+	fwrite(&Len, sizeof(int), 1, fh);
+	fwrite(RES.c_str(), Len, 1, fh);
 	Len = 0;
 	fwrite(&Len, sizeof(int), 1, fh);
 	fwrite(&Len, sizeof(int), 1, fh);
-	fwrite(&Len, sizeof(int), 1, fh);
 
-	/*int SaveCount = 0;
-	fwrite(&SaveCount, sizeof(int), 1, fh);//V
-	fwrite(&SaveCount, sizeof(int), 1, fh);//F
-	fwrite(&SaveCount, sizeof(int), 1, fh);//T
-	fwrite(&SaveCount, sizeof(int), 1, fh);//Ma
-	fwrite(&SaveCount, sizeof(int), 1, fh);//B
-	fwrite(&SaveCount, sizeof(int), 1, fh);//M
-	fwrite(&SaveCount, sizeof(int), 1, fh);//Z
-	fwrite(&SaveCount, sizeof(int), 1, fh);//Body
-	fwrite(&SaveCount, sizeof(int), 1, fh);//J
-	if (fclose(fh) == 0)
-	{
-		return true;
-	}*/
-	//顶点
 	int dw_vert_num = total_vert_num;
 	fwrite(&dw_vert_num, 4, 1, fh);
-	for(int i=0; i<total_vert_num; i++)
+	for (int i = 0; i < total_vert_num; i++)
 	{
 		float pos[3];
 		float nrm[3];
@@ -1093,7 +1103,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		float edge_flag; // 0:通常、1:エッジ無効 // エッジ(輪郭)が有効の場合
 
 		MQObject obj = doc->GetObject(vert_orgobj[i]);
-		MQExportObject *eobj = expobjs[vert_orgobj[i]];
+		MQExportObject* eobj = expobjs[vert_orgobj[i]];
 		MQPoint v = obj->GetVertex(eobj->GetOriginalVertex(vert_expvert[i]));
 		pos[0] = v.x * scaling;
 		pos[1] = v.y * scaling;
@@ -1113,57 +1123,61 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		float weights[16];
 		int weight_num = 0;
 
-
-		if (bone_num > 0) {
+		if (bone_num > 0)
+		{
 			UINT vert_id = obj->GetVertexUniqueID(eobj->GetOriginalVertex(vert_expvert[i]));
 			int max_num = 16;
 			weight_num = bone_manager.GetVertexWeightArray(obj, vert_id, max_num, vert_bone_id, weights);
-		}		
+		}
 		if (weight_num == 4)
 		{
 			int max_bone1 = bone_id_index[vert_bone_id[0]];
 			int max_bone2 = bone_id_index[vert_bone_id[1]];
 			int max_bone3 = bone_id_index[vert_bone_id[2]];
 			int max_bone4 = bone_id_index[vert_bone_id[3]];
-			if (bone_param[max_bone1].parent != 0) {
-				bone_index[0] = bone_param[bone_id_index[bone_param[max_bone1].parent]].pmd_tip_index;
+			if (bone_param[max_bone1].parent != 0)
+			{
+				bone_index[0] = bone_param[bone_id_index[bone_param[max_bone1].parent]].PMX_tip_index;
 			}
 			else
 			{
-				bone_index[0] = bone_param[max_bone1].pmd_root_index;
+				bone_index[0] = bone_param[max_bone1].PMX_root_index;
 			}
-			if (bone_param[max_bone2].parent != 0) {
-				bone_index[1] = bone_param[bone_id_index[bone_param[max_bone2].parent]].pmd_tip_index;
+			if (bone_param[max_bone2].parent != 0)
+			{
+				bone_index[1] = bone_param[bone_id_index[bone_param[max_bone2].parent]].PMX_tip_index;
 			}
 			else
 			{
-				bone_index[1] = bone_param[max_bone2].pmd_root_index;
+				bone_index[1] = bone_param[max_bone2].PMX_root_index;
 			}
-			if (bone_param[max_bone3].parent != 0) {
-				bone_index[2] = bone_param[bone_id_index[bone_param[max_bone3].parent]].pmd_tip_index;
+			if (bone_param[max_bone3].parent != 0)
+			{
+				bone_index[2] = bone_param[bone_id_index[bone_param[max_bone3].parent]].PMX_tip_index;
 			}
 			else
 			{
-				bone_index[2] = bone_param[max_bone3].pmd_root_index;
+				bone_index[2] = bone_param[max_bone3].PMX_root_index;
 			}
-			if (bone_param[max_bone4].parent != 0) {
-				bone_index[3] = bone_param[bone_id_index[bone_param[max_bone4].parent]].pmd_tip_index;
+			if (bone_param[max_bone4].parent != 0)
+			{
+				bone_index[3] = bone_param[bone_id_index[bone_param[max_bone4].parent]].PMX_tip_index;
 			}
 			else
 			{
-				bone_index[3] = bone_param[max_bone4].pmd_root_index;
+				bone_index[3] = bone_param[max_bone4].PMX_root_index;
 			}
 			int type = 2;
 			fwrite(&type, sizeof(byte), 1, fh);
 			fwrite(bone_index, 1, 4, fh);
-			float total_weights = weights[0] + weights[1] + weights[2]+ weights[3];
-			float	bone_weight1 = floor(weights[0] / total_weights * 100.f + 0.5f) / 100;
+			float total_weights = weights[0] + weights[1] + weights[2] + weights[3];
+			float bone_weight1 = floor(weights[0] / total_weights * 100.f + 0.5f) / 100;
 			fwrite(&bone_weight1, sizeof(float), 1, fh);
-			float	bone_weight2 = floor(weights[1] / total_weights * 100.f + 0.5f) / 100;
+			float bone_weight2 = floor(weights[1] / total_weights * 100.f + 0.5f) / 100;
 			fwrite(&bone_weight2, sizeof(float), 1, fh);
-			float	bone_weight3 = floor(weights[2] / total_weights * 100.f + 0.5f) / 100;
+			float bone_weight3 = floor(weights[2] / total_weights * 100.f + 0.5f) / 100;
 			fwrite(&bone_weight3, sizeof(float), 1, fh);
-			float	bone_weight4 = 1 - bone_weight1 - bone_weight2- bone_weight3;
+			float bone_weight4 = 1 - bone_weight1 - bone_weight2 - bone_weight3;
 			fwrite(&bone_weight4, sizeof(float), 1, fh);
 		}
 		else if (weight_num == 3)
@@ -1171,56 +1185,62 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			int max_bone1 = bone_id_index[vert_bone_id[0]];
 			int max_bone2 = bone_id_index[vert_bone_id[1]];
 			int max_bone3 = bone_id_index[vert_bone_id[2]];
-			int max_bone4 = 0;
-			if (bone_param[max_bone1].parent != 0) {
-				bone_index[0] = bone_param[bone_id_index[bone_param[max_bone1].parent]].pmd_tip_index;
+			if (bone_param[max_bone1].parent != 0)
+			{
+				bone_index[0] = bone_param[bone_id_index[bone_param[max_bone1].parent]].PMX_tip_index;
 			}
 			else
 			{
-				bone_index[0] = bone_param[max_bone1].pmd_root_index;
+				bone_index[0] = bone_param[max_bone1].PMX_root_index;
 			}
-			if (bone_param[max_bone2].parent != 0) {
-				bone_index[1] = bone_param[bone_id_index[bone_param[max_bone2].parent]].pmd_tip_index;
+			if (bone_param[max_bone2].parent != 0)
+			{
+				bone_index[1] = bone_param[bone_id_index[bone_param[max_bone2].parent]].PMX_tip_index;
 			}
 			else
 			{
-				bone_index[1] = bone_param[max_bone2].pmd_root_index;
+				bone_index[1] = bone_param[max_bone2].PMX_root_index;
 			}
-			if (bone_param[max_bone3].parent != 0) {
-				bone_index[2] = bone_param[bone_id_index[bone_param[max_bone3].parent]].pmd_tip_index;
+			if (bone_param[max_bone3].parent != 0)
+			{
+				bone_index[2] = bone_param[bone_id_index[bone_param[max_bone3].parent]].PMX_tip_index;
 			}
 			else
 			{
-				bone_index[2] = bone_param[max_bone3].pmd_root_index;
+				bone_index[2] = bone_param[max_bone3].PMX_root_index;
 			}
 			int type = 2;
 			fwrite(&type, sizeof(byte), 1, fh);
 			fwrite(bone_index, 1, 4, fh);
 			float total_weights = weights[0] + weights[1] + weights[2];
-			float	bone_weight1 = floor(weights[0] / total_weights * 100.f + 0.5f) / 100;
+			float bone_weight1 = floor(weights[0] / total_weights * 100.f + 0.5f) / 100;
 			fwrite(&bone_weight1, sizeof(float), 1, fh);
-			float	bone_weight2 = floor(weights[1] / total_weights * 100.f + 0.5f) / 100;
+			float bone_weight2 = floor(weights[1] / total_weights * 100.f + 0.5f) / 100;
 			fwrite(&bone_weight2, sizeof(float), 1, fh);
-			float	bone_weight3 = 1 - bone_weight1 - bone_weight2;
+			float bone_weight3 = 1 - bone_weight1 - bone_weight2;
 			fwrite(&bone_weight3, sizeof(float), 1, fh);
-			float	bone_weight4 =0;
+			float bone_weight4 = 0;
 			fwrite(&bone_weight4, sizeof(float), 1, fh);
 		}
-		else if (weight_num == 2) 
+		else if (weight_num == 2)
 		{
 			int max_bone1 = -1;
 			float max_weight1 = 0.0f;
-			for (int n = 0; n<weight_num; n++) {
-				if (max_weight1 < weights[n]) {
+			for (int n = 0; n < weight_num; n++)
+			{
+				if (max_weight1 < weights[n])
+				{
 					max_weight1 = weights[n];
 					max_bone1 = n;
 				}
 			}
 			int max_bone2 = -1;
 			float max_weight2 = 0.0f;
-			for (int n = 0; n<weight_num; n++) {
+			for (int n = 0; n < weight_num; n++)
+			{
 				if (n == max_bone1) continue;
-				if (max_weight2 < weights[n]) {
+				if (max_weight2 < weights[n])
+				{
 					max_weight2 = weights[n];
 					max_bone2 = n;
 				}
@@ -1228,22 +1248,28 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			float total_weights = max_weight1 + max_weight2;
 			int bi1 = bone_id_index[vert_bone_id[max_bone1]];
 			int bi2 = bone_id_index[vert_bone_id[max_bone2]];
-			if (bone_param[bi1].parent != 0) {
-				bone_index[0] = bone_param[bone_id_index[bone_param[bi1].parent]].pmd_tip_index;
+			if (bone_param[bi1].parent != 0)
+			{
+				bone_index[0] = bone_param[bone_id_index[bone_param[bi1].parent]].PMX_tip_index;
 			}
-			else {
-				bone_index[0] = bone_param[bi1].pmd_root_index;
+			else
+			{
+				bone_index[0] = bone_param[bi1].PMX_root_index;
 			}
-			if (bone_param[bi2].parent != 0) {
-				bone_index[1] = bone_param[bone_id_index[bone_param[bi2].parent]].pmd_tip_index;
+			if (bone_param[bi2].parent != 0)
+			{
+				bone_index[1] = bone_param[bone_id_index[bone_param[bi2].parent]].PMX_tip_index;
 			}
-			else {
-				bone_index[1] = bone_param[bi2].pmd_root_index;
+			else
+			{
+				bone_index[1] = bone_param[bi2].PMX_root_index;
 			}
-			if (bone_index[0] != bone_index[1]) {
-				bone_weight = floor(max_weight1 / total_weights * 100.f + 0.5f)/100;
+			if (bone_index[0] != bone_index[1])
+			{
+				bone_weight = floor(max_weight1 / total_weights * 100.f + 0.5f) / 100;
 			}
-			else {
+			else
+			{
 				bone_weight = 1;
 			}
 			int type = 1;
@@ -1251,13 +1277,16 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			fwrite(bone_index, 1, 2, fh);
 			fwrite(&bone_weight, sizeof(float), 1, fh);
 		}
-		else if (weight_num == 1) {
+		else if (weight_num == 1)
+		{
 			int bi = bone_id_index[vert_bone_id[0]];
-			if (bone_param[bi].parent != 0) {
-				bone_index[0] = bone_param[bone_id_index[bone_param[bi].parent]].pmd_tip_index;
+			if (bone_param[bi].parent != 0)
+			{
+				bone_index[0] = bone_param[bone_id_index[bone_param[bi].parent]].PMX_tip_index;
 			}
-			else {
-				bone_index[0] = bone_param[bi].pmd_root_index;
+			else
+			{
+				bone_index[0] = bone_param[bi].PMX_root_index;
 			}
 			bone_index[1] = bone_index[0];
 			bone_weight = 1;
@@ -1266,7 +1295,8 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			fwrite(bone_index, 1, 2, fh);
 			fwrite(&bone_weight, sizeof(float), 1, fh);
 		}
-		else {
+		else
+		{
 			bone_index[0] = 0;
 			bone_index[1] = 0;
 			bone_weight = 1;
@@ -1280,76 +1310,82 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	}
 
 	DWORD face_vert_count = 0;
-	std::vector<int> material_used(numMat+1, 0);
-	for(int i=0; i<numObj; i++)
+	std::vector<int> material_used(numMat + 1, 0);
+	for (int i = 0; i < numObj; i++)
 	{
 		MQObject obj = doc->GetObject(i);
-		if(obj == NULL)
+		if (obj == nullptr)
 			continue;
 
-		if(option.visible_only && obj->GetVisible() == 0)
+		if (option.visible_only && obj->GetVisible() == 0)
 			continue;
 
 		// ターゲットオブジェクトは飛ばす
-		if(isOutputFacial && containsTargetObject(morph_intput_list, obj))
+		if (isOutputFacial && containsTargetObject(morph_intput_list, obj))
 			continue;
 
 		int num_face = obj->GetFaceCount();
-		for(int fi=0; fi<num_face; fi++){
+		for (int fi = 0; fi < num_face; fi++)
+		{
 			int n = obj->GetFacePointCount(fi);
-			if(n >= 3){
-				face_vert_count += (n-2) * 3;
+			if (n >= 3)
+			{
+				face_vert_count += (n - 2) * 3;
 
 				int mi = obj->GetFaceMaterial(fi);
-				if(mi < 0 || mi >= numMat) mi = numMat;
-				material_used[mi] += (n-2);
+				if (mi < 0 || mi >= numMat) mi = numMat;
+				material_used[mi] += (n - 2);
 			}
 		}
 	}
 	fwrite(&face_vert_count, 4, 1, fh);
 
 	int output_face_vert_count = 0;
-	for(int m=0; m<=numMat; m++)
+	for (int m = 0; m <= numMat; m++)
 	{
-		if(material_used[m] == 0) continue;
+		if (material_used[m] == 0) continue;
 
-		for(int i=0; i<numObj; i++){
+		for (int i = 0; i < numObj; i++)
+		{
 			MQObject obj = doc->GetObject(i);
-			if(obj == NULL)
+			if (obj == nullptr)
 				continue;
 
-			if(option.visible_only && obj->GetVisible() == 0)
+			if (option.visible_only && obj->GetVisible() == 0)
 				continue;
-			if(isOutputFacial && containsTargetObject(morph_intput_list, obj))
+			if (isOutputFacial && containsTargetObject(morph_intput_list, obj))
 				continue;
 
-			MQExportObject *eobj = expobjs[i];
-			if(eobj == nullptr)
+			MQExportObject* eobj = expobjs[i];
+			if (eobj == nullptr)
 				continue;
 
 			int num_face = obj->GetFaceCount();
-			for(int fi=0; fi<num_face; fi++){
+			for (int fi = 0; fi < num_face; fi++)
+			{
 				int mi = obj->GetFaceMaterial(fi);
-				if(mi < 0 || mi >= numMat) mi = numMat;
+				if (mi < 0 || mi >= numMat) mi = numMat;
 
 				int n = eobj->GetFacePointCount(fi);
-				if(n >= 3 && mi == m){
+				if (n >= 3 && mi == m)
+				{
 					std::vector<int> vi(n);
 					std::vector<MQPoint> p(n);
 
 					eobj->GetFacePointArray(fi, vi.data());
-					for(int j=0; j<n; j++){
+					for (int j = 0; j < n; j++)
+					{
 						p[j] = obj->GetVertex(eobj->GetOriginalVertex(vi[j]));
 					}
-					std::vector<int> tri((n-2)*3);
-					doc->Triangulate(p.data(), n, tri.data(), (n-2)*3);
+					std::vector<int> tri((n - 2) * 3);
+					doc->Triangulate(p.data(), n, tri.data(), (n - 2) * 3);
 
-					for(int j=0; j<n-2; j++)
+					for (int j = 0; j < n - 2; j++)
 					{
 						int tvi[3];
-						tvi[0] = orgvert_vert[i][vi[tri[j*3]]];
-						tvi[1] = orgvert_vert[i][vi[tri[j*3+1]]];
-						tvi[2] = orgvert_vert[i][vi[tri[j*3+2]]];
+						tvi[0] = orgvert_vert[i][vi[tri[j * 3]]];
+						tvi[1] = orgvert_vert[i][vi[tri[j * 3 + 1]]];
+						tvi[2] = orgvert_vert[i][vi[tri[j * 3 + 2]]];
 						fwrite(tvi, 4, 3, fh);
 						//fprintf(fh,"%u %u %u\n",tvi[0],tvi[1],tvi[2]);
 						output_face_vert_count += 3;
@@ -1360,22 +1396,21 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	}
 	assert(face_vert_count == output_face_vert_count);
 
-
-
 	// Matrial list
 	DWORD used_mat_num = 0;
-	for(int i=0; i<=numMat; i++)
+	for (int i = 0; i <= numMat; i++)
 	{
-		if(material_used[i] > 0) used_mat_num++;
+		if (material_used[i] > 0) used_mat_num++;
 	}
-	std::unique_ptr<MAnsiString[]>  textures = std::make_unique<MAnsiString[]>(numMat);
+	std::unique_ptr<MAnsiString[]> textures = std::make_unique<MAnsiString[]>(numMat);
 	int TexCount = 0;
 	for (int i = 0; i < numMat; i++)
 	{
 		if (material_used[i] == 0) continue;
-		if (i < numMat) {
+		if (i < numMat)
+		{
 			MQMaterial mat = doc->GetMaterial(i);
-			if (mat != NULL) 
+			if (mat != nullptr)
 			{
 				char path[_MAX_PATH];
 				mat->GetTextureName(path, _MAX_PATH);
@@ -1387,7 +1422,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 					{
 						break;
 					}
-					else if (textures[j].length()==0)
+					if (textures[j].length() == 0)
 					{
 						textures[j] = texture;
 						TexCount += 1;
@@ -1401,35 +1436,34 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	fwrite(&TexCount, sizeof(int), 1, fh);
 	for (int i = 0; i < TexCount; i++)
 	{
-		oguna::EncodingConverter converter = oguna::EncodingConverter();
-		std::wstring RES;
-		int Len = converter.Cp936ToUtf16(textures[i].c_str(), textures[i].length(), &RES) * 2;
+		Len = converter.Cp936ToUtf16(textures[i].c_str(), textures[i].length(), &RES) * 2;
 		fwrite(&Len, sizeof(int), 1, fh);
 		fwrite(RES.c_str(), Len, 1, fh);
 	}
-	fwrite(&used_mat_num, 4, 1, fh); 
-	for(int i=0; i<=numMat; i++){
-		if(material_used[i] == 0) continue;
+	fwrite(&used_mat_num, 4, 1, fh);
+	for (int i = 0; i <= numMat; i++)
+	{
+		if (material_used[i] == 0) continue;
 		MQMaterial mat = doc->GetMaterial(i);
-		oguna::EncodingConverter converter = oguna::EncodingConverter();
-		std::wstring RES;
-		int Len = converter.Cp936ToUtf16(mat->GetName().c_str(), mat->GetName().length(), &RES) * 2;
+		Len = converter.Cp936ToUtf16(mat->GetName().c_str(), mat->GetName().length(), &RES) * 2;
 		fwrite(&Len, sizeof(int), 1, fh);
 		fwrite(RES.c_str(), Len, 1, fh);
-		int EngName = 0;
-		fwrite(&EngName, sizeof(int), 1, fh);
-		MQColor col(1,1,1);
+		Len = 0;
+		fwrite(&Len, sizeof(int), 1, fh);
+		MQColor col(1, 1, 1);
 		float dif = 0.8f;
 		float alpha = 1.0f;
 		float spc_pow = 5.0f;
-		MQColor spc_col(0,0,0);
-		MQColor amb_col(0.6f,0.6f,0.6f);
+		MQColor spc_col(0, 0, 0);
+		MQColor amb_col(0.6f, 0.6f, 0.6f);
 		MAnsiString texture;
 		int toon = 1;
 		bool edge = false;
 
-		if(i < numMat){
-			if(mat != NULL){
+		if (i < numMat)
+		{
+			if (mat != nullptr)
+			{
 				col = mat->GetColor();
 				dif = mat->GetDiffuse();
 				alpha = mat->GetAlpha();
@@ -1440,9 +1474,11 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				mat->GetTextureName(path, _MAX_PATH);
 				texture = MFileUtil::extractFilenameAndExtension(MString::fromAnsiString(path)).toAnsiString();
 				int shader = mat->GetShader();
-				if(shader == MQMATERIAL_SHADER_HLSL){
+				if (shader == MQMATERIAL_SHADER_HLSL)
+				{
 					MAnsiString shader_name = mat->GetShaderName();
-					if(shader_name == "pmd"){
+					if (shader_name == "PMX")
+					{
 						toon = mat->GetShaderParameterIntValue("Toon", 0);
 						edge = mat->GetShaderParameterBoolValue("Edge", 0);
 					}
@@ -1458,7 +1494,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		//fprintf(fh,"%f %f %f\n",diffuse_color[0],diffuse_color[1],diffuse_color[2]);
 		fwrite(&alpha, 4, 1, fh);
 		//fprintf(fh,"%f\n",alpha);
-
 
 		//float max_spc_col = std::max(spc_col.r, std::max(spc_col.g, spc_col.b));
 		float specular_color[3]; // sr, sg, sb // 光沢色
@@ -1490,11 +1525,11 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		uint8_t size = 255;
 		if (texture != "")
 		{
-			for (int i = 0; i < TexCount; i++)
+			for (int x = 0; x < TexCount; x++)
 			{
-				if (texture == textures[i])
+				if (texture == textures[x])
 				{
-					size = i;
+					size = x;
 					break;
 				}
 			}
@@ -1505,14 +1540,12 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		edge_flag = 0;
 		fwrite(&edge_flag, 1, 2, fh);
 
-		BYTE toon_index = (toon >= 1 && toon <= 10) ? (BYTE)(toon-1) : 0;
+		BYTE toon_index = (toon >= 1 && toon <= 10) ? (BYTE)(toon - 1) : 0;
 		fwrite(&toon_index, 1, 1, fh);
 		//fprintf(fh,"%d\n",toon_index);
 
 		fwrite(&edge_flag, sizeof(int), 1, fh);
-		
-
-		DWORD face_vert_count = material_used[i] * 3;
+		face_vert_count = material_used[i] * 3;
 		fwrite(&face_vert_count, 4, 1, fh);
 		//fprintf(fh,"%lu\n",face_vert_count);
 
@@ -1524,8 +1557,9 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		//fprintf(fh,"%s\n",texture_str.c_str());
 	}
 
-	if(bone_num == 0){
-		fwrite(&pmdbone_num, sizeof(int), 1, fh);
+	if (bone_num == 0)
+	{
+		fwrite(&PMXbone_num, sizeof(int), 1, fh);
 		/*WORD dw_bone_num = 1;
 		fwrite(&dw_bone_num, 2, 1, fh);
 		//fprintf(fh,"%u\n",dw_bone_num);
@@ -1556,20 +1590,19 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 		WORD ik_data_count = 0;
 		fwrite(&ik_data_count, 2, 1, fh);*/
 	}
-	else{
-		fwrite(&pmdbone_num, sizeof(int), 1, fh);
-		if (pmdbone_num != 0)
+	else
+	{
+		fwrite(&PMXbone_num, sizeof(int), 1, fh);
+		if (PMXbone_num != 0)
 		{
-			int pmdbone_index = 0;
+			int PMXbone_index = 0;
 			for (int i = 0; i < bone_num; i++)
 			{
-				if (bone_param[i].pmd_root_index >= 0 && bone_param[i].pmd_root_index >= pmdbone_index)//判断是否是初始骨骼
+				if (bone_param[i].PMX_root_index >= 0 && bone_param[i].PMX_root_index >= PMXbone_index)//判断是否是初始骨骼
 				{
-					assert(bone_param[i].pmd_root_index == pmdbone_index);
-					oguna::EncodingConverter converter = oguna::EncodingConverter();
-					std::wstring RES;
+					assert(bone_param[i].PMX_root_index == PMXbone_index);
 					MAnsiString subname = getMultiBytesSubstring(bone_param[i].name_jp.toAnsiString(), 20);
-					int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+					Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 					fwrite(&Len, sizeof(int), 1, fh);
 					fwrite(RES.c_str(), Len, 1, fh);
 					Len = converter.Cp936ToUtf16(bone_param[i].name_en.toAnsiString(), bone_param[i].name_en.length(), &RES) * 2;
@@ -1583,10 +1616,10 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 					fwrite(&bone_head_pos, 4, 3, fh);
 
 					auto parent_bone_index = -1;
-					fwrite(&parent_bone_index,1, 1, fh);
+					fwrite(&parent_bone_index, 1, 1, fh);
 
 					int level = 0;
-					fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+					fwrite(&level, sizeof(int), 1, fh); //变形阶层
 					uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
 					if (bone_param[i].movable == true)//是否移动
 					{
@@ -1605,20 +1638,18 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 					if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
 					{
 						uint8_t target_index = 0;
-						target_index = bone_param[i].pmd_tip_index;
+						target_index = bone_param[i].PMX_tip_index;
 						if (bone_param[i].link_id != 0 && bone_param[i].link_rate != 100)
 						{
 							target_index = bone_id_index[bone_param[i].link_id];
 						}
 						fwrite(&target_index, sizeof(uint8_t), 1, fh);
 					}
-					pmdbone_index++;
+					PMXbone_index++;
 				}
-				if (bone_param[i].pmd_tip_index >= 0 && bone_param[i].pmd_tip_index >= pmdbone_index)
+				if (bone_param[i].PMX_tip_index >= 0 && bone_param[i].PMX_tip_index >= PMXbone_index)
 				{
-					assert(bone_param[i].pmd_tip_index == pmdbone_index);
-					oguna::EncodingConverter converter = oguna::EncodingConverter();
-					std::wstring RES;
+					assert(bone_param[i].PMX_tip_index == PMXbone_index);
 					MAnsiString subname;
 					MAnsiString subnameEN;
 					if (bone_param[i].tip_id == 0)
@@ -1631,7 +1662,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 						subname = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_jp.toAnsiString(), 20);
 						subnameEN = getMultiBytesSubstring(bone_param[bone_id_index[bone_param[i].tip_id]].name_en.toAnsiString(), 20);
 					}
-					int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+					Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 					fwrite(&Len, sizeof(int), 1, fh);
 					fwrite(RES.c_str(), Len, 1, fh);
 					Len = converter.Cp936ToUtf16(subnameEN.c_str(), subnameEN.length(), &RES) * 2;
@@ -1650,17 +1681,17 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 						auto parent_it = bone_id_index.find(bone_param[i].parent);
 						if (parent_it != bone_id_index.end())
 						{
-							parent_bone_index = bone_param[(*parent_it).second].pmd_tip_index;
+							parent_bone_index = bone_param[(*parent_it).second].PMX_tip_index;
 						}
 					}
 					else
 					{
-						parent_bone_index = bone_param[i].pmd_root_index;
+						parent_bone_index = bone_param[i].PMX_root_index;
 					}
 					fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
 
 					int level = 0;
-					fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+					fwrite(&level, sizeof(int), 1, fh); //变形阶层
 					uint16_t BoneFlag = 19;//默认指向骨骼并且带旋转加操作
 					if (!bone_param[i].children.empty())//是否显示
 					{
@@ -1677,11 +1708,11 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 					{
 						bone_type = 7;
 					}
-					else if (bone_param[i].pmd_ik_parent_tip >= 0)
+					else if (bone_param[i].PMX_ik_parent_tip >= 0)
 					{
 						bone_type = 4;
 					}
-					else if (bone_param[i].pmd_ik_index >= 0)
+					else if (bone_param[i].PMX_ik_index >= 0)
 					{
 						bone_type = 6;
 					}
@@ -1710,17 +1741,12 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 					}
 					fwrite(&bone_type, 1, 1, fh);*/
 
-
-
-
-
-
 					if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
 					{
 						uint8_t target_index = -1;
 						if (!bone_param[i].children.empty())
 						{
-							target_index = bone_param[bone_param[i].children.front()].pmd_tip_index;
+							target_index = bone_param[bone_param[i].children.front()].PMX_tip_index;
 							if (bone_param[bone_param[i].children.front()].link_id != 0 && bone_param[bone_param[i].children.front()].link_rate != 100)
 							{
 								target_index = bone_id_index[bone_param[bone_param[i].children.front()].link_id];
@@ -1735,12 +1761,12 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 						float grant_weight = 1;
 						fwrite(&grant_weight, sizeof(float), 1, fh);
 					}
-					pmdbone_index++;
+					PMXbone_index++;
 				}
 			}
 			for (int i = 0; i < bone_num; i++)
 			{
-				if (bone_param[i].pmd_ik_chain.empty()) continue;
+				if (bone_param[i].PMX_ik_chain.empty()) continue;
 
 				MString name = bone_param[i].ik_name_jp;
 				MString ik_end_name = bone_param[i].ik_tip_name_jp;
@@ -1791,13 +1817,12 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				}
 
 				MAnsiString subname = getMultiBytesSubstring(name.toAnsiString(), 20);
-				oguna::EncodingConverter converter = oguna::EncodingConverter();
-				std::wstring RES;
-				int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+
+				Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 				fwrite(&Len, sizeof(int), 1, fh);
 				fwrite(RES.c_str(), Len, 1, fh);
-				int EngName = 0;
-				fwrite(&EngName, sizeof(int), 1, fh);
+				Len = 0;
+				fwrite(&Len, sizeof(int), 1, fh);
 
 				float bone_head_pos[3];
 				bone_head_pos[0] = bone_param[i].org_tip.x * scaling;
@@ -1814,12 +1839,12 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 					}
 					else
 					{
-						parent_bone_index = bone_param[bone_id_index[bone_param[i].ikparent]].pmd_ik_index;
+						parent_bone_index = bone_param[bone_id_index[bone_param[i].ikparent]].PMX_ik_index;
 					}
 				}
 				fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
 				int level = 0;
-				fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+				fwrite(&level, sizeof(int), 1, fh); //变形阶层
 
 				uint16_t BoneFlag = 63;//
 				fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
@@ -1827,36 +1852,36 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 				if (BoneFlag & 0x0001) //假如指向骨骼，则骨骼序列为
 				{
 					uint8_t target_index = -1;
-					if (bone_param[i].pmd_ik_end_index >= 0)
+					if (bone_param[i].PMX_ik_end_index >= 0)
 					{
-						target_index = bone_param[i].pmd_ik_end_index;
+						target_index = bone_param[i].PMX_ik_end_index;
 					}
-					else if (bone_param[i].pmd_ik_parent_tip >= 0)
+					else if (bone_param[i].PMX_ik_parent_tip >= 0)
 					{
-						target_index = bone_param[i].pmd_ik_parent_tip;
+						target_index = bone_param[i].PMX_ik_parent_tip;
 					}
 					fwrite(&target_index, sizeof(uint8_t), 1, fh);
 				}
 				if (BoneFlag & 0x0020)
 				{
-					uint8_t ik_target_bone_index = bone_param[i].pmd_tip_index; // IKターゲットボーン番号 // IKボーンが最初に接続するボーン
+					uint8_t ik_target_bone_index = bone_param[i].PMX_tip_index; // IKターゲットボーン番号 // IKボーンが最初に接続するボーン
 					fwrite(&ik_target_bone_index, sizeof(uint8_t), 1, fh);
 					int ik_loop = 10; // 再帰演算回数 // IK値1
 					fwrite(&ik_loop, sizeof(int), 1, fh);
 					float ik_loop_angle_limit = 0.5f;
 					fwrite(&ik_loop_angle_limit, sizeof(float), 1, fh);
-					int ik_link_count = bone_param[i].pmd_ik_chain.size();
+					int ik_link_count = bone_param[i].PMX_ik_chain.size();
 					fwrite(&ik_link_count, sizeof(int), 1, fh);
 					for (size_t j = 0; j < ik_link_count; j++)
 					{
 						uint8_t link_target = -1;
-						if (j + 1 == ik_link_count && !bone_param[i].pmd_ik_root_tip)
+						if (j + 1 == ik_link_count && !bone_param[i].PMX_ik_root_tip)
 						{
-							link_target = bone_param[bone_param[i].pmd_ik_chain[j]].pmd_root_index;
+							link_target = bone_param[bone_param[i].PMX_ik_chain[j]].PMX_root_index;
 						}
 						else
 						{
-							link_target = bone_param[bone_param[i].pmd_ik_chain[j]].pmd_tip_index;
+							link_target = bone_param[bone_param[i].PMX_ik_chain[j]].PMX_tip_index;
 						}
 						fwrite(&link_target, sizeof(uint8_t), 1, fh);
 						uint8_t angle_lock = 0;
@@ -1876,23 +1901,18 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 						}
 					}
 				}
-				assert(pmdbone_index == bone_param[i].pmd_ik_index);
-				pmdbone_index++;
+				assert(PMXbone_index == bone_param[i].PMX_ik_index);
+				PMXbone_index++;
 
 				if (option.output_ik_end)
 				{
-					MAnsiString subname = getMultiBytesSubstring(ik_end_name.toAnsiString(), 20);
-					oguna::EncodingConverter converter = oguna::EncodingConverter();
-					std::wstring RES;
-					int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+					subname = getMultiBytesSubstring(ik_end_name.toAnsiString(), 20);
+					Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 					fwrite(&Len, sizeof(int), 1, fh);
 					fwrite(RES.c_str(), Len, 1, fh);
-					int EngName = 0;
-					fwrite(&EngName, sizeof(int), 1, fh);
-
-
-					MQPoint parent_dir;
-					parent_dir = bone_param[i].org_root - bone_param[i].org_tip;
+					Len = 0;
+					fwrite(&Len, sizeof(int), 1, fh);
+					MQPoint parent_dir = bone_param[i].org_root - bone_param[i].org_tip;
 					parent_dir.normalize();
 					MQPoint vec1(0, -1, 0), vec2(0, 0, -1);
 					MQPoint ik_end_dir;
@@ -1914,28 +1934,28 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 							ik_end_dir = -ik_end_dir;
 						}
 					}
-					MQPoint ik_end_pos;
-					ik_end_pos = bone_param[i].org_tip + ik_end_dir;
-					float bone_head_pos[3];
+
+					MQPoint ik_end_pos = bone_param[i].org_tip + ik_end_dir;
+					bone_head_pos[3];
 					bone_head_pos[0] = ik_end_pos.x * scaling;
 					bone_head_pos[1] = ik_end_pos.y * scaling;
 					bone_head_pos[2] = -ik_end_pos.z * scaling;
 					fwrite(&bone_head_pos, 4, 3, fh);
 
-					uint8_t	parent_bone_index = bone_param[i].pmd_ik_index;
+					parent_bone_index = bone_param[i].PMX_ik_index;
 					fwrite(&parent_bone_index, sizeof(uint8_t), 1, fh);
-					int level = 0;
-					fwrite(&level, sizeof(int), 1, fh);	//变形阶层
+					Len = 0;
+					fwrite(&Len, sizeof(int), 1, fh); //变形阶层
 
-					uint16_t BoneFlag = 19;
+					BoneFlag = 19;
 					fwrite(&BoneFlag, sizeof(uint16_t), 1, fh);
 
 					uint8_t target_index = -1;
 					fwrite(&target_index, sizeof(uint8_t), 1, fh);
 
-					assert(pmdbone_index == bone_param[i].pmd_ik_end_index);
+					assert(PMXbone_index == bone_param[i].PMX_ik_end_index);
 
-					pmdbone_index++;
+					PMXbone_index++;
 				}
 			}
 		}
@@ -1947,10 +1967,10 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	float skin_vert_pos[3];
 	DWORD skin_vert_count = 0;
 	int skin_vert_index = 0;
-	PMDMorphParam *mParam;
+	PMXMorphParam* mParam;
 	int MAXCOUNT = 0;
 	int MAXTEMP = 0;
-	PMDMorphParam MaxParam;
+	PMXMorphParam MaxParam;
 	for (int i = 0; i < skin_count; i++)
 	{
 		int TEMP = morph_param_list.at(i).vertNum;
@@ -1965,7 +1985,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	{
 		MaxList.push_back(MaxParam.vertex.at(i).first);
 	}
-	
+
 	for (int i = 0; i < skin_count; i++)
 	{
 		if (i == MAXTEMP)
@@ -1973,14 +1993,13 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			continue;
 		}
 		mParam = &morph_param_list.at(i);
-		oguna::EncodingConverter converter = oguna::EncodingConverter();
-		std::wstring RES;
+
 		auto subname = getMultiBytesSubstring(mParam->skin_name, 20);
-		int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+		Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 		fwrite(&Len, sizeof(int), 1, fh);
 		fwrite(RES.c_str(), Len, 1, fh);
-		int EngName = 0;
-		fwrite(&EngName, sizeof(int), 1, fh);
+		Len = 0;
+		fwrite(&Len, sizeof(int), 1, fh);
 		fwrite(&mParam->type, sizeof(uint8_t), 1, fh);//Panel
 		uint8_t morph_type = 1;
 		fwrite(&morph_type, sizeof(uint8_t), 1, fh);//Kind=Vertex
@@ -1995,7 +2014,7 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			}
 			else
 			{
-				skin_vert_index = static_cast<int>(std::distance(morph_base_vertex_index_list.begin(), std::find(morph_base_vertex_index_list.begin(), morph_base_vertex_index_list.end(), vertex->first)));
+				skin_vert_index = static_cast<int>(distance(morph_base_vertex_index_list.begin(), find(morph_base_vertex_index_list.begin(), morph_base_vertex_index_list.end(), vertex->first)));
 			}
 			skin_vert_index = MaxList[skin_vert_index];
 			fwrite(&skin_vert_index, 4, 1, fh);
@@ -2012,21 +2031,19 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	{
 		for (int i = 0; i < skin_disp_count; i++)
 		{
-			oguna::EncodingConverter converter = oguna::EncodingConverter();
-			std::wstring RES;
 			MAnsiString subname;
 			MAnsiString subnameEN;
 			if (i == 0)
 			{
-				 subname="Root";
-				 subnameEN="Root";
+				subname = "Root";
+				subnameEN = "Root";
 			}
 			else
 			{
 				subname = "表情";
 				subnameEN = "Exp";
 			}
-			int Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+			Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 			fwrite(&Len, sizeof(int), 1, fh);
 			fwrite(RES.c_str(), Len, 1, fh);
 			Len = converter.Cp936ToUtf16(subnameEN.c_str(), subnameEN.length(), &RES) * 2;
@@ -2037,7 +2054,6 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 			int NodeNum = 0;
 			fwrite(&NodeNum, sizeof(int), 1, fh);
 		}
-
 	}
 
 	int rigid_body_count = 0;
@@ -2045,50 +2061,57 @@ BOOL ExportPMDPlugin::ExportFile(int index, const char *filename, MQDocument doc
 	int joint_count = 0;
 	fwrite(&joint_count, sizeof(int), 1, fh);
 
-	for(size_t i=0; i<expobjs.size(); i++){
+	for (size_t i = 0; i < expobjs.size(); i++)
+	{
 		delete expobjs[i];
 	}
 
-	if(fclose(fh) != 0)
+	if (fclose(fh) != 0)
 	{
 		return FALSE;
 	}
 	return TRUE;
 }
 
-bool ExportPMDPlugin::LoadBoneSettingFile()
+bool ExportPMXPlugin::LoadBoneSettingFile()
 {
-	MString dir = MFileUtil::extractDirectory(s_DllPath);
-	MString filename = MFileUtil::combinePath(dir, L"ExportPMDBoneSetting.xml");
-
+	//MString dir = MFileUtil::extractDirectory(s_DllPath);
+	//MString filename = MFileUtil::combinePath(dir, L"ExportPMXBoneSetting.xml");
+	MAnsiString FileName = "ExportPMXBoneSetting";
 	tinyxml2::XMLDocument doc;
-	tinyxml2::XMLError err = doc.LoadFile(filename.toAnsiString().c_str());
-	if(err != tinyxml2::XML_SUCCESS){
-		MString buf = MString::format(L"Failed to load '%s'. (code %d)\n", filename.c_str(), err);
-		OutputDebugStringW(buf.c_str());
+	//tinyxml2::XMLError err = doc.LoadFile(filename.toAnsiString().c_str());
+	tinyxml2::XMLError err = doc.LoadFile(FileName.c_str());
+	if (err != tinyxml2::XML_SUCCESS)
+	{
+		/*MString buf = MString::format(L"Failed to load '%s'. (code %d)\n", filename.c_str(), err);
+		OutputDebugStringW(buf.c_str());*/
 		return false;
 	}
-
-	const tinyxml2::XMLElement *root = doc.RootElement();
-	if(root != NULL){
-		const tinyxml2::XMLElement *bones = root->FirstChildElement("bones");
-		if(bones != NULL){
-			const tinyxml2::XMLElement *elem = bones->FirstChildElement("bone");
-			while(elem != NULL){
-				const char *jp = elem->Attribute("jp");
-				const char *en = elem->Attribute("en");
-				const char *group = elem->Attribute("group");
-				const char *root = elem->Attribute("root");
+	const tinyxml2::XMLElement* root = doc.RootElement();
+	if (root != nullptr)
+	{
+		const tinyxml2::XMLElement* bones = root->FirstChildElement("bones");
+		if (bones != nullptr)
+		{
+			const tinyxml2::XMLElement* elem = bones->FirstChildElement("bone");
+			while (elem != nullptr)
+			{
+				const char* jp = elem->Attribute("jp");
+				const char* en = elem->Attribute("en");
+				const char* group = elem->Attribute("group");
+				const char* root = elem->Attribute("root");
 
 				BoneNameSetting setting;
 				setting.jp = MString::fromUtf8String(jp);
 				setting.en = MString::fromUtf8String(en);
-				if(group != nullptr){
+				if (group != nullptr)
+				{
 					setting.group = MString::fromUtf8String(group);
 				}
 				m_BoneNameSetting.push_back(setting);
 
-				if(root != nullptr && MAnsiString(root).toInt() != 0){
+				if (root != nullptr && MAnsiString(root).toInt() != 0)
+				{
 					m_RootBoneName = setting;
 				}
 
@@ -2096,13 +2119,15 @@ bool ExportPMDPlugin::LoadBoneSettingFile()
 			}
 		}
 
-		const tinyxml2::XMLElement *ik_names = root->FirstChildElement("ik_names");
-		if(ik_names != NULL){
-			const tinyxml2::XMLElement *elem = ik_names->FirstChildElement("ik");
-			while(elem != NULL){
-				const char *bone = elem->Attribute("bone");
-				const char *ik = elem->Attribute("ik");
-				const char *end = elem->Attribute("end");
+		const tinyxml2::XMLElement* ik_names = root->FirstChildElement("ik_names");
+		if (ik_names != nullptr)
+		{
+			const tinyxml2::XMLElement* elem = ik_names->FirstChildElement("ik");
+			while (elem != nullptr)
+			{
+				const char* bone = elem->Attribute("bone");
+				const char* ik = elem->Attribute("ik");
+				const char* end = elem->Attribute("end");
 
 				BoneIKNameSetting setting;
 				setting.bone = MString::fromUtf8String(bone);
@@ -2114,12 +2139,14 @@ bool ExportPMDPlugin::LoadBoneSettingFile()
 			}
 		}
 
-		const tinyxml2::XMLElement *groups = root->FirstChildElement("groups");
-		if(groups != NULL){
-			const tinyxml2::XMLElement *elem = groups->FirstChildElement("group");
-			while(elem != NULL){
-				const char *jp = elem->Attribute("jp");
-				const char *en = elem->Attribute("en");
+		const tinyxml2::XMLElement* groups = root->FirstChildElement("groups");
+		if (groups != nullptr)
+		{
+			const tinyxml2::XMLElement* elem = groups->FirstChildElement("group");
+			while (elem != nullptr)
+			{
+				const char* jp = elem->Attribute("jp");
+				const char* en = elem->Attribute("en");
 
 				BoneGroupSetting setting;
 				setting.jp = MString::fromUtf8String(jp);
@@ -2138,9 +2165,8 @@ bool ExportPMDPlugin::LoadBoneSettingFile()
 //  GetPluginClass
 //    プラグインのベースクラスを返す
 //---------------------------------------------------------------------------
-MQBasePlugin *GetPluginClass()
+MQBasePlugin* GetPluginClass()
 {
-	static ExportPMDPlugin plugin;
+	static ExportPMXPlugin plugin;
 	return &plugin;
 }
-

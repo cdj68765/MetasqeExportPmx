@@ -348,7 +348,7 @@ namespace pmx
 		/// IKリンク数
 		int ik_link_count;
 		/// IKリンク
-		std::unique_ptr<PmxIkLink []> ik_links;
+		std::unique_ptr<PmxIkLink[]> ik_links;
 		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
@@ -526,19 +526,19 @@ namespace pmx
 		/// オフセット数
 		int offset_count;
 		/// 頂点モーフ配列
-		std::unique_ptr<PmxMorphVertexOffset []> vertex_offsets;
+		std::unique_ptr<PmxMorphVertexOffset[]> vertex_offsets;
 		/// UVモーフ配列
-		std::unique_ptr<PmxMorphUVOffset []> uv_offsets;
+		std::unique_ptr<PmxMorphUVOffset[]> uv_offsets;
 		/// ボーンモーフ配列
-		std::unique_ptr<PmxMorphBoneOffset []> bone_offsets;
+		std::unique_ptr<PmxMorphBoneOffset[]> bone_offsets;
 		/// マテリアルモーフ配列
-		std::unique_ptr<PmxMorphMaterialOffset []> material_offsets;
+		std::unique_ptr<PmxMorphMaterialOffset[]> material_offsets;
 		/// グループモーフ配列
-		std::unique_ptr<PmxMorphGroupOffset []> group_offsets;
+		std::unique_ptr<PmxMorphGroupOffset[]> group_offsets;
 		/// フリップモーフ配列
-		std::unique_ptr<PmxMorphFlipOffset []> flip_offsets;
+		std::unique_ptr<PmxMorphFlipOffset[]> flip_offsets;
 		/// インパルスモーフ配列
-		std::unique_ptr<PmxMorphImplusOffset []> implus_offsets;
+		std::unique_ptr<PmxMorphImplusOffset[]> implus_offsets;
 		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
@@ -576,7 +576,7 @@ namespace pmx
 		/// 枠内要素数
 		int element_count;
 		/// 枠内要素配列
-		std::unique_ptr<PmxFrameElement []> elements;
+		std::unique_ptr<PmxFrameElement[]> elements;
 		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
@@ -776,9 +776,9 @@ namespace pmx
 		float AST;
 		float VST;
 		int anchor_count;
-		std::unique_ptr<PmxAncherRigidBody []> anchers;
+		std::unique_ptr<PmxAncherRigidBody[]> anchers;
 		int pin_vertex_count;
-		std::unique_ptr<int []> pin_vertices;
+		std::unique_ptr<int[]> pin_vertices;
 		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
@@ -815,43 +815,43 @@ namespace pmx
 		/// 頂点数
 		int vertex_count;
 		/// 頂点配列
-		std::unique_ptr<PmxVertex []> vertices;
+		std::unique_ptr<PmxVertex[]> vertices;
 		/// インデックス数
 		int index_count;
 		/// インデックス配列
-		std::unique_ptr<int []> indices;
+		std::unique_ptr<int[]> indices;
 		/// テクスチャ数
 		int texture_count;
 		/// テクスチャ配列
-		std::unique_ptr< utfstring []> textures;
+		std::unique_ptr< utfstring[]> textures;
 		/// マテリアル数
 		int material_count;
 		/// マテリアル
-		std::unique_ptr<PmxMaterial []> materials;
+		std::unique_ptr<PmxMaterial[]> materials;
 		/// ボーン数
 		int bone_count;
 		/// ボーン配列
-		std::unique_ptr<PmxBone []> bones;
+		std::unique_ptr<PmxBone[]> bones;
 		/// モーフ数
 		int morph_count;
 		/// モーフ配列
-		std::unique_ptr<PmxMorph []> morphs;
+		std::unique_ptr<PmxMorph[]> morphs;
 		/// 表示枠数
 		int frame_count;
 		/// 表示枠配列
-		std::unique_ptr<PmxFrame [] > frames;
+		std::unique_ptr<PmxFrame[] > frames;
 		/// 剛体数
 		int rigid_body_count;
 		/// 剛体配列
-		std::unique_ptr<PmxRigidBody []> rigid_bodies;
+		std::unique_ptr<PmxRigidBody[]> rigid_bodies;
 		/// ジョイント数
 		int joint_count;
 		/// ジョイント配列
-		std::unique_ptr<PmxJoint []> joints;
+		std::unique_ptr<PmxJoint[]> joints;
 		/// ソフトボディ数
 		int soft_body_count;
 		/// ソフトボディ配列
-		std::unique_ptr<PmxSoftBody []> soft_bodies;
+		std::unique_ptr<PmxSoftBody[]> soft_bodies;
 		/// モデル初期化
 		void Init();
 		/// モデル読み込み
