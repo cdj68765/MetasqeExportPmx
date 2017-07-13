@@ -1518,8 +1518,8 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 		//BYTE toon_index = (toon >= 1 && toon <= 10) ? static_cast<BYTE>(toon - 1) : 0;
 		BYTE toon_index = 255;
 		fwrite(&toon_index, 1, 1, fh);//Toon
-		fwrite(&edge_flag, sizeof(int), 1, fh);//Memo
-
+		int Memo = 0;
+		fwrite(&Memo, sizeof(int), 1, fh);//Memo
 		face_vert_count = material_used[i] * 3;
 		fwrite(&face_vert_count, 4, 1, fh);//Face
 	}
