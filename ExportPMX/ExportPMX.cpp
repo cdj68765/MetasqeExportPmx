@@ -1791,6 +1791,11 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 					MAnsiString subname = getMultiBytesSubstring(name.toAnsiString(), 20);
 
 					Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
+					bool IKMode = false;
+					if(subname.indexOf("足", 0)!=-1)
+					{
+						IKMode = true;
+					}
 					fwrite(&Len, sizeof(int), 1, fh);
 					fwrite(RES.c_str(), Len, 1, fh);
 					Len = 0;
@@ -1838,9 +1843,14 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 					{
 						uint8_t ik_target_bone_index = bone_param[i].PMX_tip_index; // IKターゲットボーン番号 // IKボーンが最初に接続するボーン
 						fwrite(&ik_target_bone_index, sizeof(uint8_t), 1, fh);
-						int ik_loop = 10; // 再帰演算回数 // IK値1
+						int ik_loop = 3; // 再帰演算回数 // IK値1
+						float ik_loop_angle_limit = 4;
+						if (IKMode)
+						{
+							ik_loop = 40;
+							ik_loop_angle_limit = 2;
+						}
 						fwrite(&ik_loop, sizeof(int), 1, fh);
-						float ik_loop_angle_limit = 0.5f;
 						fwrite(&ik_loop_angle_limit, sizeof(float), 1, fh);
 						int ik_link_count = bone_param[i].PMX_ik_chain.size();
 						fwrite(&ik_link_count, sizeof(int), 1, fh);
@@ -1856,17 +1866,18 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 								link_target = bone_param[bone_param[i].PMX_ik_chain[j]].PMX_tip_index;
 							}
 							fwrite(&link_target, sizeof(uint8_t), 1, fh);
-							uint8_t angle_lock = 0;
-							fwrite(&angle_lock, sizeof(uint8_t), 1, fh);
-							if (angle_lock == 1)
+							byte angle_lock = 0;
+							if (IKMode&&j == 0) angle_lock = 1;
+							fwrite(&angle_lock, 1, 1, fh);
+							if (angle_lock == 1&&j==0)
 							{
 								float max_radian[3];
-								max_radian[0] = 0;
+								max_radian[0] =-3.14159f;
 								max_radian[1] = 0;
 								max_radian[2] = 0;
 								fwrite(&max_radian, 4, 3, fh);
 								float min_radian[3];
-								min_radian[0] = 0;
+								min_radian[0] = -0.0872f;
 								min_radian[1] = 0;
 								min_radian[2] = 0;
 								fwrite(&min_radian, 4, 3, fh);
