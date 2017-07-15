@@ -139,7 +139,7 @@ void ExportPMXPlugin::GetPlugInID(DWORD* Product, DWORD* ID)
 const char* ExportPMXPlugin::GetPlugInName()
 {
 	//return "Export PMX       Copyright(C) 2014-2015, tetraface Inc.";
-	return "Export PMX";
+	return "Export PMX Beta";
 }
 
 const char* ExportPMXPlugin::EnumFileType(int index)
@@ -413,6 +413,12 @@ static bool containsTargetObject(std::vector<PMXMorphInputParam>& list, MQObject
 
 BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc)
 {
+	if (GetACP() != 936)
+	{
+		MQWindow mainwin = MQWindow::GetMainWindow();
+		MQDialog::MessageWarningBox(mainwin, L"请在中文环境下使用该插件", L"导出错误");
+		return false;
+	}
 	LoadBoneSettingFile();
 	MQBoneManager bone_manager(this, doc);
 
@@ -525,7 +531,7 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 			targetIndexes = &morph_target_index_list.at(i);
 
 			PMXMorphInputParam* iParam = &morph_intput_list.at(i);
-			int	target_size = this->SendUserMessage(doc, morph_plugin_product, morph_plugin_id, "getTargetSize", iParam->base);
+			int target_size = this->SendUserMessage(doc, morph_plugin_product, morph_plugin_id, "getTargetSize", iParam->base);
 
 			target.resize(target_size + 1);
 			target.at(0) = std::make_pair(iParam->base, MORPH_BASE);
@@ -1792,7 +1798,7 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 
 					Len = converter.Cp936ToUtf16(subname.c_str(), subname.length(), &RES) * 2;
 					bool IKMode = false;
-					if(subname.indexOf("足", 0)!=-1)
+					if (subname.indexOf("足", 0) != -1)
 					{
 						IKMode = true;
 					}
@@ -1867,12 +1873,12 @@ BOOL ExportPMXPlugin::ExportFile(int index, const char* filename, MQDocument doc
 							}
 							fwrite(&link_target, sizeof(uint8_t), 1, fh);
 							byte angle_lock = 0;
-							if (IKMode&&j == 0) angle_lock = 1;
+							if (IKMode && j == 0) angle_lock = 1;
 							fwrite(&angle_lock, 1, 1, fh);
-							if (angle_lock == 1&&j==0)
+							if (angle_lock == 1 && j == 0)
 							{
 								float max_radian[3];
-								max_radian[0] =-3.14159f;
+								max_radian[0] = -3.14159f;
 								max_radian[1] = 0;
 								max_radian[2] = 0;
 								fwrite(&max_radian, 4, 3, fh);
